@@ -1,7 +1,7 @@
 <script setup>
     import { useI18n } from 'vue-i18n';
     import { watchEffect } from 'vue';
-    import SvgIcon from './SvgIcon.vue';
+    import SvgIcon from '../SvgIcon.vue';
     
     const { locale } = useI18n();
     
@@ -22,7 +22,7 @@
 </script>
 
 <template>
-    <div class="LanguageSwitcher">
+    <div class="language-switcher">
         <button :style="{ opacity: isCurrentLang('nl') ? 1 : 0.2  }" 
                 @click="setLanguage('nl')" >
             <SvgIcon name="Flag-NL" width="40px" height="28px"/>
@@ -36,13 +36,13 @@
 </template>
   
 <style>
-    .LanguageSwitcher {
+    .language-switcher {
         display: flex;
         flex-direction: row;
         gap: 8px;
     }
 
-    .LanguageSwitcher button {
+    .language-switcher button {
         display: flex;
         align-items: center;
         justify-content: center;
