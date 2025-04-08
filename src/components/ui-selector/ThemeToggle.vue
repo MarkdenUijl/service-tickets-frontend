@@ -20,8 +20,8 @@
 
 <template>
 
-    <div color-scheme=" isDark ? 'light' : 'dark' ">
-        <label :class="['ThemeToggler', isDark ? 'end' : 'start']">
+    <div class="theme-toggle-container" color-scheme=" isDark ? 'light' : 'dark' ">
+        <label :class="['theme-toggler', isDark ? 'end' : 'start']">
             <input type="checkbox" v-model="isDark">
             <div class="toggle-track"></div>
             <motion.div
@@ -49,8 +49,13 @@
 
 
 <style>
+    .theme-toggle-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-    .ThemeToggler input {
+    .theme-toggler input {
         opacity: 0;
         width: 0;
         height: 0;
@@ -66,7 +71,7 @@
         --color-text: var(--vt-c-black);
     } 
 
-    .ThemeToggler {
+    .theme-toggler {
         width: 40px;
         height: 20px;
         border-radius: 20px;
@@ -76,18 +81,18 @@
         align-items: center;
     }
 
-    .ThemeToggler.start {
+    .theme-toggler.start {
         justify-content: flex-start;
     }
 
-    .ThemeToggler.end {
+    .theme-toggler.end {
         justify-content: flex-end;
     }
 
     .toggle-track {
         z-index: 0;
         position: absolute;
-        background-color: var(--color-text);
+        /* background-color: var(--color-text); */
         margin: 2px;
         width: 36px;
         height: 16px;
@@ -106,5 +111,4 @@
         align-items: center;
         justify-content: center;
     }
-    
 </style>

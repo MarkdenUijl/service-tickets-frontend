@@ -1,19 +1,21 @@
 /* color palette */
 :root {
   --vt-c-white: #ffffff;
+  --vt-c-offwhite: #D7D7D7;
   --vt-c-black: #1E1E1E;
 }
 
 /* semantic color variables for this project */
 :root {
   --color-background: var(--vt-c-white);
- 
+  --color-text: var(--vt-c-black)
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
     --color-text: var(--vt-c-white);
+    --color-subtext: var(--vt-c-offwhite);
   }
 }
 

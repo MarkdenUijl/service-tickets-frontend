@@ -11,7 +11,7 @@ const svgContent = ref(null)
 watchEffect(async () => {
   if (props.name) {
     try {
-      const rawSvg = await import(`@/assets/SVG/${props.name}.svg?raw`)
+      const rawSvg = await import(`@/assets/svg/${props.name}.svg?raw`)
       let svg = rawSvg.default
 
       // Remove hardcoded width/height from the <svg> tag
