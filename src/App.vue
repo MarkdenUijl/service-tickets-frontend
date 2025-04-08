@@ -1,19 +1,21 @@
-<script>
+<script setup>
     import ThemeToggle from './components/ThemeToggle.vue';
+    import { useI18n } from 'vue-i18n';
+    import LanguageSwitcher from './components/LanguageSwitcher.vue';
 
-    export default {
-        name: 'App',
-        components: {
-            ThemeToggle,
-        }
-    }
+
+    const { t } = useI18n();
 </script>
 
 <template>
-    <body>
+    <!-- <body>
         <ThemeToggle/>
-        <!-- <span>HELLO!!!!</span> -->
-    </body>
+       
+    </body> -->
+    <div>
+        <LanguageSwitcher />
+        <p>{{ t('welcome') }}</p>
+    </div>
 </template>
 
 <style scoped>
