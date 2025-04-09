@@ -8,7 +8,8 @@
 /* semantic color variables for this project */
 :root {
   --color-background: var(--vt-c-white);
-  --color-text: var(--vt-c-black)
+  --color-text: var(--vt-c-black);
+  --color-subtext: var(--vt-c-offwhite);
 }
 
 @media (prefers-color-scheme: dark) {

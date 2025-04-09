@@ -92,7 +92,6 @@
     .toggle-track {
         z-index: 0;
         position: absolute;
-        /* background-color: var(--color-text); */
         margin: 2px;
         width: 36px;
         height: 16px;

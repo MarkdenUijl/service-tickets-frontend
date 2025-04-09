@@ -48,4 +48,9 @@
         justify-content: center;
         transition: opacity 0.3s ease;
     }
+
+    .language-switcher svg {
+        border-radius: 4px;
+        box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.25);
+    }
 </style>
