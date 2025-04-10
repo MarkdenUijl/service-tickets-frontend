@@ -9,7 +9,7 @@
 <template>
     <body>
         <UISelector/><br>
-        <TextInput placeholder="Email" type="password"/>
+        <TextInput placeholder="Email" type="text" validationText="Passwords don't match."/>
         <!-- <TextInput placeholder="Password" type="password"/> -->
         <!-- <div>
             <p>{{ t('welcome') }}</p>
