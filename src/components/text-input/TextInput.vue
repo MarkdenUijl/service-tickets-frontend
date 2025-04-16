@@ -17,17 +17,30 @@
         }
     });
 
+    const emit = defineEmits(['blur']);
+
     const modelValue = defineModel();
     const isFocussed = ref(false);
 
+    const handleFocus = () => {
+        isFocussed.value = true;
+    };
+
+    const handleBlur = () => {
+        isFocussed.value = false;
+        emit('blur');
+    };
+    
+
     const isFilled = computed(() => isFocussed.value || modelValue.value !== '');
+    
     const inputColor = computed(() => {
         return props.validationColor || (isFocussed.value ? 'var(--color-text)' : 'var(--color-subtext)');
     });
 </script>
 
 <template>
-    <div id="input-field">
+    <div class="input-field">
         <motion.label
             class="input-placeholder"
             for="text-input"
@@ -47,7 +60,6 @@
         </motion.label>
 
         <input class="text-input"
-            id="text-input"
             :class="{ focussed : isFocussed }" 
             :type="props.type" 
             :name="props.placeholder"
@@ -56,13 +68,13 @@
                 borderColor: inputColor,
                 color: inputColor
             }"
-            @focus="isFocussed = true" 
-            @blur="isFocussed = false">
+            @focus="handleFocus" 
+            @blur="handleBlur">
     </div>
 </template>
   
 <style scoped>
-    #input-field {
+    .input-field {
         font-family: 'Ubuntu', sans-serif;
         width: 300px;
         height: 60px;

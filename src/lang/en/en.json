@@ -1,3 +1,8 @@
 {
-    "welcome" : "Welcome!"
+    "welcome" : "Welcome!",
+    "password" : "Password",
+    "emailIncorrect" : "This email is unknown.",
+    "emailInvalid" : "Email invalid.",
+    "passwordIncorrect" : "This password is incorrect.",
+    "passwordInvalid" : "Invalid password."
 }

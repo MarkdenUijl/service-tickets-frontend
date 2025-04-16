@@ -1,5 +1,5 @@
 <script setup>
-    import { computed } from 'vue';
+    import { ref, computed, watch } from 'vue';
     import TextInput from './TextInput.vue';
     import { motion } from 'motion-v';
 
@@ -14,7 +14,27 @@
     });
 
     const modelValue = defineModel();
-    const shouldValidate = computed(() => !props.isValid && props.validationText && modelValue.value !== '' )
+    const touched = ref(false);
+
+    const handleBlur = () => {
+        if(modelValue.value !== '') {
+            touched.value = true;
+        }
+    }
+
+    const shouldValidate = computed(() => {
+        return !props.isValid &&
+                props.validationText &&
+                modelValue.value !== '' &&
+                touched.value
+    });
+    
+    watch(modelValue, (newValue) => {
+        if(newValue === '') {
+            touched.value = false;
+        }
+    });
+    
     const validationColor = computed(() => (shouldValidate.value ? 'var(--vt-c-red)' : null));
 </script>
 
@@ -25,6 +45,7 @@
             :placeholder="props.placeholder"
             :type="props.type"
             :validationColor="validationColor"
+            @blur="handleBlur"
         />
         
         <motion.span 
@@ -43,6 +64,8 @@
             {{ props.validationText }} 
         </motion.span>
     </div>
+
+    VALUE: {{ modelValue }}
 </template>
   
 <style scoped>

@@ -1,3 +1,8 @@
 {
-    "welcome" : "Welkom!"
+    "welcome" : "Welkom!",
+    "password" : "Wachtwoord",
+    "emailIncorrect" : "Dit mailadres is niet bekend.",
+    "emailInvalid" : "Ongeldige email.",
+    "passwordIncorrect" : "Dit wachtwoord is incorrect.",
+    "passwordInvalid" : "Ongeldig wachtwoord."
 }
