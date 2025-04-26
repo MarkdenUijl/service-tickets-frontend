@@ -114,6 +114,7 @@
     }
 
     .input-placeholder {
+        pointer-events: none;
         position: relative;
         padding: 3px;
         z-index: 1;

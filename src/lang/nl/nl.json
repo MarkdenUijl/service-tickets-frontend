@@ -1,8 +1,9 @@
 {
     "welcome" : "Welkom!",
     "password" : "Wachtwoord",
-    "emailIncorrect" : "Dit mailadres is niet bekend.",
+    "emailIncorrect" : "Dit account is niet bekend.",
     "emailInvalid" : "Ongeldige email.",
     "passwordIncorrect" : "Dit wachtwoord is incorrect.",
-    "passwordInvalid" : "Ongeldig wachtwoord."
+    "passwordInvalid" : "Ongeldig wachtwoord.",
+    "serverError": "Verbinding met server mislukt."
 }

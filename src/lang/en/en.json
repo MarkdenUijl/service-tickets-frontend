@@ -1,8 +1,9 @@
 {
     "welcome" : "Welcome!",
     "password" : "Password",
-    "emailIncorrect" : "This email is unknown.",
+    "emailIncorrect" : "This account is unknown.",
     "emailInvalid" : "Email invalid.",
     "passwordIncorrect" : "This password is incorrect.",
-    "passwordInvalid" : "Invalid password."
+    "passwordInvalid" : "Invalid password.",
+    "serverError": "Server connection error."
 }
