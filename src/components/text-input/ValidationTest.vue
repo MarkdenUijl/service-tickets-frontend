@@ -2,8 +2,9 @@
     import { ref, computed, watch } from 'vue';
     import ValidatedInput from './ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
-    import axios from 'axios';
+    import authApi from '../../utils/authApi';
 
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
     const password = ref('');
     const loginErrorKey = ref('');
@@ -38,10 +39,11 @@
                 password: password.value
             }
 
-            // console.log(`Logged in with email ${payload.email} and password ${payload.password}.`);
-            axios.post("https://localhost:8443/auth/login", payload)
+            authApi.post('/auth/login', payload)
             .then( function(response) {
-                console.log(response);
+                const token = response.data.token;
+
+                localStorage.setItem('token', token);
             })
             .catch( function(error) {
                 if (error.response.status === 401) {
