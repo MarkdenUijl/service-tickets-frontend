@@ -64,8 +64,6 @@
             {{ props.validationText }} 
         </motion.span>
     </div>
-
-    VALUE: {{ modelValue }}
 </template>
   
 <style scoped>

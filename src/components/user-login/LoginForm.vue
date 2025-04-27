@@ -1,6 +1,6 @@
 <script setup>
     import { ref, computed, watch } from 'vue';
-    import ValidatedInput from './ValidatedInput.vue';
+    import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import authApi from '../../utils/authApi';
 
@@ -14,8 +14,7 @@
         /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
     );
 
-    const isPasswordValid = computed(() =>
-        // /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password.value);
+    const isLoginValid = computed(() =>
         loginErrorKey.value === ''
     );
 
@@ -72,7 +71,7 @@
             v-model="password"
             :placeholder="t('password')"
             type="password"
-            :isValid="isPasswordValid"
+            :isValid="isLoginValid"
             :validationText="loginErrorKey ? t(loginErrorKey) : ''"
         />
 
