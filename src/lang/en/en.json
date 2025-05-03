@@ -1,6 +1,9 @@
 {
     "welcome" : "Welcome!",
     "password" : "Password",
+    "loginButtonText" : "SIGN IN",
+    "rememberMeText" : "Remember me",
+    "forgotPasswordText" : "Forgot password?",
     "emailIncorrect" : "This account is unknown.",
     "emailInvalid" : "Email invalid.",
     "passwordIncorrect" : "This password is incorrect.",

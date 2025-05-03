@@ -1,7 +1,7 @@
 <script setup>
     import { useI18n } from 'vue-i18n';
     import { watchEffect } from 'vue';
-    import SvgIcon from '../SvgIcon.vue';
+    import SvgIcon from '../svg-icon/SvgIcon.vue';
     
     const { locale } = useI18n();
     

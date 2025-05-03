@@ -3,6 +3,7 @@
   --vt-c-white: #ffffff;
   --vt-c-offwhite: #D7D7D7;
   --vt-c-black: #1E1E1E;
+  --vt-c-highlight: #B91228;
   --vt-c-red: #B91228;
   --vt-c-green: #28B446;
 }
@@ -35,23 +36,13 @@ body {
   color: var(--color-text);
   background: var(--color-background);
   line-height: 1.6;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
   font-size: 15px;
+  font-family: 'Ubuntu';
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
 }
 
 button {

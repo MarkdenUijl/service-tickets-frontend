@@ -3,6 +3,7 @@
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
+    import { motion } from 'motion-v';
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
@@ -77,9 +78,25 @@
             :validationText="loginErrorKey ? t(loginErrorKey) : ''"
         />
 
-        <button class="btn btn-outline-dark" type="submit">
-            Login
-        </button>
+        <div class="login-options">
+            <label id="remember-me">
+                <input type="checkbox">
+                <span> {{ t('rememberMeText') }} </span>
+            </label>
+
+            <div id="forgot-password">
+                <!-- TURN INTO LINK -->
+                {{ t('forgotPasswordText') }}
+            </div>
+        </div>
+
+        <motion.button 
+            class="login-button" 
+            type="submit"
+            :whilePress="{ scale: 0.95 }"
+            >
+            {{ t('loginButtonText') }}
+        </motion.button>
     </form>
 </template>
 
@@ -88,5 +105,70 @@
         display: flex;
         flex-direction: column;
         gap: 32px;
+    }
+
+    .login-options {
+        width: 300px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 400;
+    }
+
+    #remember-me {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--color-subtext);
+        cursor: pointer;
+        position: relative;
+    }
+
+    #remember-me input {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        height: 14px;
+        width: 14px;
+        border: 1px solid var(--color-subtext);
+        border-radius: 4px;
+    }
+
+    #remember-me input:checked {
+        background-color: var(--vt-c-highlight);
+        border: var(--vt-c-highlight);
+    }
+
+    #remember-me input[type="checkbox"]:checked::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 5px;
+        width: 6px;
+        height: 10px;
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg);
+        border-color: white;
+        border-style: solid;
+    }
+
+    #forgot-password {
+        color: var(--vt-c-highlight);
+    }
+
+    .login-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 300px;
+        height: 44px;
+        border-radius: 8px;
+        background: var(--vt-c-highlight);
+        color: #FFFFFF;
+        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+        font-family: 'Ubuntu';
+        font-weight: 700;
+        font-size: 16px;
     }
 </style>
