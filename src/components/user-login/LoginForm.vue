@@ -2,7 +2,7 @@
     import { ref, computed, watch } from 'vue';
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
-    import authApi from '../../utils/authApi';
+    import api from '@/utils/api';
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
@@ -38,21 +38,23 @@
                 password: password.value
             }
 
-            authApi.post('/auth/login', payload)
+            api.post('/auth/login', payload)
             .then( function(response) {
                 const token = response.data.token;
 
                 localStorage.setItem('token', token);
             })
             .catch( function(error) {
-                if (error.response.status === 401) {
+                if (error.type === 'unauthorized') {
                     loginErrorKey.value = 'emailIncorrect';
+                } else if (error.type === 'network') {
+                    loginErrorKey.value = 'serverError';
                 } else {
-                    loginErrorKey.value ='serverError';
+                    loginErrorKey.value = 'serverError';
                 }
             })
         } else {
-            console.log("Both email and password need to be filled.")
+            loginErrorKey.value = 'insufficientCredentialsError'
         }
     }
 </script>
@@ -85,6 +87,6 @@
     #login-form {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 32px;
     }
 </style>
