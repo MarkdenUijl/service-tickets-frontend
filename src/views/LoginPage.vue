@@ -6,7 +6,8 @@
 
 <template>
     <div class="login-page">
-        <SvgIcon class="background" name="gradient-background" width="100%"/>
+        <SvgIcon class="helvar-logo" name="helvar-logo" width="200px" height="80px"/>
+        <SvgIcon class="background" name="gradient-background"/>
         <div class="login-background">
             <UISelector id="ui-selector"/><br>
             <LoginForm/>
@@ -19,6 +20,14 @@
         position: absolute;
         left: 0;
         top: 0;
+        border: red double 2px;
+    }
+
+    .helvar-logo {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        z-index: 1;
     }
 
     .login-page {

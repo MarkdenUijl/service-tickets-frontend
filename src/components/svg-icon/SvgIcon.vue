@@ -23,8 +23,6 @@ watchEffect(async () => {
           svg = svg.replace(/<svg([^>]*)>/i, '<svg$1 viewBox="0 0 100 100">')
         }
 
-        // svg = svg.replace(/\s(width|height)="[^"]*"/gi, '');
-
         svgContent.value = svg
     } catch (e) {
       console.error(`Could not load SVG "${props.name}"`, e);
@@ -45,7 +43,7 @@ watchEffect(async () => {
     ></div>
 </template>
 
-<style>
+<style scoped>
   .svg-icon svg {
     width: 100%;
     height: 100%;
