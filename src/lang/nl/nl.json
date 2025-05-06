@@ -1,4 +1,5 @@
 {
+    "loginHeaderSubtext" : "Welkom bij de Helvar Service Tickets web app, log nu in om een nieuw ticket aan te melden, je ticket status in te zien, of beheer openstaande tickets.",
     "welcome" : "Welkom!",
     "password" : "Wachtwoord",
     "loginButtonText" : "INLOGGEN",
@@ -9,5 +10,8 @@
     "passwordIncorrect" : "Dit wachtwoord is incorrect.",
     "passwordInvalid" : "Ongeldig wachtwoord.",
     "serverError": "Verbinding met server mislukt.",
-    "insufficientCredentialsError": "Vul alle gegevens correct in."
+    "insufficientCredentialsError": "Vul alle gegevens correct in.",
+    "loginDividerText" : "of",
+    "loginNewHereText" : "Ben je hier nieuw?",
+    "loginCreateAccountText" : "Maak account aan"
 }

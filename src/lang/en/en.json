@@ -1,4 +1,5 @@
 {
+    "loginHeaderSubtext" : "Welcome to the Helvar Service Tickets web app, log in now to register a new ticket, view your submitted ticket status, or manage outstanding tickets.",
     "welcome" : "Welcome!",
     "password" : "Password",
     "loginButtonText" : "SIGN IN",
@@ -8,6 +9,9 @@
     "emailInvalid" : "Email invalid.",
     "passwordIncorrect" : "This password is incorrect.",
     "passwordInvalid" : "Invalid password.",
-    "serverError": "Server connection error.",
-    "insufficientCredentialsError": "Please enter all credentials correctly."
+    "serverError" : "Server connection error.",
+    "insufficientCredentialsError" : "Please enter all credentials correctly.",
+    "loginDividerText" : "or",
+    "loginNewHereText" : "Are you new here?",
+    "loginCreateAccountText" : "Create account"
 }

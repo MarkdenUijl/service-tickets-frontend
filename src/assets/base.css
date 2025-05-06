@@ -2,6 +2,7 @@
 :root {
   --vt-c-white: #ffffff;
   --vt-c-offwhite: #D7D7D7;
+  --vt-c-darkwhite: #C1C1C1;
   --vt-c-black: #1E1E1E;
   --vt-c-highlight: #B91228;
   --vt-c-red: #B91228;
@@ -12,7 +13,7 @@
 :root {
   --color-background: var(--vt-c-white);
   --color-text: var(--vt-c-black);
-  --color-subtext: var(--vt-c-offwhite);
+  --color-subtext: var(--vt-c-darkwhite);
 }
 
 @media (prefers-color-scheme: dark) {
