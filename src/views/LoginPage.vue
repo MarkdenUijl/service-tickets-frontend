@@ -2,6 +2,8 @@
     import UISelector from '@/components/ui-selector/UISelector.vue';
     import LoginForm from '@/components/user-login/LoginForm.vue';
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
+    import LogoLarge from '@/components/graphic-items/LogoLarge.vue';
+    import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
     import { useI18n } from 'vue-i18n';
 
     const { t } = useI18n();
@@ -10,7 +12,7 @@
 <template>
     <div class="login-page">
 
-        <SvgIcon class="helvar-logo" name="helvar-logo" width="200px" height="80px" radius="10px"/>
+        <LogoLarge id="homescreen-logo"/>
         
         <SvgIcon class="background" name="gradient-background" />
 
@@ -20,7 +22,7 @@
             <div id="login-page-content">
                 <div id="login-header-text">
                     <div id="login-header-title">
-                        <SvgIcon name="helvar-logo-small" width="28px" height="28px"/>
+                        <LogoIcon />
                         <span :style="{ 'font-weight' : 800, 'font-size' : '20px' }">HELVAR SERVICE TICKETS</span>
                     </div>
 
@@ -54,6 +56,14 @@
 </template>
 
 <style>
+    #homescreen-logo {
+        position: absolute;
+        left: 24px;
+        top: 24px;
+        z-index: 1;
+        box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.25);
+    }
+    
     #login-page-content {
         display: flex;
         flex-direction: column;
@@ -100,14 +110,6 @@
         position: absolute;
         left: 0;
         top: 0;
-    }
-
-    .helvar-logo {
-        position: absolute;
-        left: 24px;
-        top: 24px;
-        z-index: 1;
-        box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.25);
     }
 
     .login-page {

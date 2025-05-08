@@ -22,6 +22,12 @@ npm install
 npm run dev
 ```
 
+## Clean SVG files during development
+
+```sh
+    npm run optimize:svg
+```
+
 ### Compile and Minify for Production
 
 ```sh
