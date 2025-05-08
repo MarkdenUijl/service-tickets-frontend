@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <SvgIcon name="helvar-logo" width="200px" height="80px" radius="10px"/>
+    <SvgIcon name="helvar-logo" width="200px" height="80px" radius="8px"/>
 </template>
 
 <style scoped>

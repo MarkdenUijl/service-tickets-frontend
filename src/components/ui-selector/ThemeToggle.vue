@@ -20,7 +20,7 @@
 
 <template>
 
-    <div class="theme-toggle-container" color-scheme=" isDark ? 'light' : 'dark' ">
+    <div class="theme-toggle-container" :color-scheme="isDark ? 'dark' : 'light'">
         <label :class="['theme-toggler', isDark ? 'end' : 'start']">
             <input type="checkbox" v-model="isDark">
             <div class="toggle-track"></div>
@@ -90,7 +90,7 @@
     }
 
     .toggle-track {
-        z-index: 0;
+        z-index: 1;
         position: absolute;
         margin: 2px;
         width: 36px;
@@ -100,7 +100,7 @@
     }
 
     .toggle-handle {
-        z-index: 1;
+        z-index: 2;
         width: 20px;
         height: 20px;
         border: var(--color-text) 1px solid;
