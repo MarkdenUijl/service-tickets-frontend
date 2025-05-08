@@ -64,8 +64,6 @@
             {{ props.validationText }} 
         </motion.span>
     </div>
-
-    VALUE: {{ modelValue }}
 </template>
   
 <style scoped>
@@ -79,7 +77,7 @@
         bottom: -26px;
         right: 0;
         z-index: 2;
-        font-size: 14px;
+        font-size: 13px;
         color: var(--vt-c-red);
         pointer-events: none;
     }
