@@ -4,12 +4,14 @@
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
     import { motion } from 'motion-v';
+    import { useRouter } from 'vue-router';
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
     const password = ref('');
     const loginErrorKey = ref('');
     const { t } = useI18n();
+    const router = useRouter();
 
     const isEmailValid = computed(() =>
         /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
@@ -44,6 +46,7 @@
                 const token = response.data.token;
 
                 localStorage.setItem('token', token);
+                router.push('/');
             })
             .catch( function(error) {
                 if (error.type === 'unauthorized') {

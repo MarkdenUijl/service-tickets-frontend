@@ -1,5 +1,5 @@
 <script setup>
-    import LoginPage from './views/LoginPage.vue';
+    import LoginView from './views/LoginView.vue';
     import { useI18n } from 'vue-i18n';
 
     const { t } = useI18n();
@@ -7,7 +7,7 @@
 
 <template>
     <body>
-        <LoginPage/>
+        <router-view/>
     </body>
     
 </template>
