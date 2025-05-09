@@ -4,6 +4,7 @@
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
     import LogoLarge from '@/components/graphic-items/LogoLarge.vue';
     import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
+
     import { useI18n } from 'vue-i18n';
 
     const { t } = useI18n();
@@ -40,15 +41,20 @@
                 </div>
 
                 <div class="create-account-options">
-                    <span :style="{ 'color' : 'var(--color-subtext)'}"> 
+                    <span :style="{ 'color' : 'var(--color-subtext)' }"> 
                         {{ t('loginNewHereText') }} 
                     </span>
 
-
-                    <div id="forgot-password">
-                        <!-- TURN INTO LINK -->
+                    <router-link
+                        to="/register"
+                        :style="{ 
+                            color: 'var(--vt-c-highlight)',
+                            cursor: 'pointer',
+                            textDecoration: 'none'
+                         }"
+                    >
                         {{ t('loginCreateAccountText') }}
-                    </div>
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -168,7 +174,6 @@
         right: 16px;
     }
 
-    /* ✅ Small screen rules */
     @media (max-width: 635px) {
         .login-page {
             flex-direction: column;
