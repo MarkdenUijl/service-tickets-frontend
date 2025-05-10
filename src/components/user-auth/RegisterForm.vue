@@ -1,6 +1,7 @@
 <script setup>
     import { ref, computed, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
+    import ValidatedInput from '../text-input/ValidatedInput.vue';
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
@@ -45,10 +46,46 @@
 
 <template>
     <form id="registration-form" @submit.prevent="register">
-        
+         <ValidatedInput
+            id="email"
+            v-model="email"
+            placeholder="Email"
+            type="text"
+            :isValid="isEmailValid"
+            :validationText="t('emailInvalid')"
+            validationMode="both"
+        />
+
+        <ValidatedInput
+            id="password"
+            v-model="password"
+            :placeholder="t('password')"
+            type="password"
+            :isValid="isPasswordValid"
+            :validationText="t('passwordInvalid')"
+            validationMode="both"
+        />
+
+        <ValidatedInput
+            id="confirm-password"
+            v-model="passwordConfirmation"
+            :placeholder="t('passwordConfirm')"
+            type="password"
+            :isValid="isPasswordConfirmationValid"
+            validationText="PLACEHOLDER"
+            validationMode="both"
+        />
     </form>
 </template>
 
 <style>
- 
+    #registration-form {
+        border: double red 2px;
+        height: inherit;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        justify-content: center;
+        align-items: center;
+    }
 </style>

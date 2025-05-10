@@ -18,7 +18,7 @@
         <SvgIcon class="background" name="gradient-background" />
 
         <div class="auth-background">
-            <UISelector id="ui-selector"/><br>
+            <UISelector id="ui-selector"/>
             
             <div id="login-page-content">
                 <div id="login-header-text">
@@ -80,7 +80,6 @@
         min-width: 400px;
         height: 100vh;
         box-sizing: border-box;
-        padding: 24px;
         display: flex;
         flex-direction: column;
         align-items: center;

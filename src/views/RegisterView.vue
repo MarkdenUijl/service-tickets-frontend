@@ -2,6 +2,7 @@
     import UISelector from '@/components/ui-selector/UISelector.vue';
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
     import LogoLarge from '@/components/graphic-items/LogoLarge.vue';
+    import RegisterForm from '@/components/user-auth/RegisterForm.vue';
 
     import { useI18n } from 'vue-i18n';
 
@@ -16,9 +17,9 @@
         <SvgIcon class="background" name="gradient-background" />
 
         <div class="auth-background">
-            <UISelector id="ui-selector"/><br>
+            <UISelector id="ui-selector"/>
             
-            
+            <RegisterForm/>
         </div>
     </div>
 </template>

@@ -11,6 +11,11 @@
             type: Boolean,
             default: true,
         },
+        validationMode: {
+            type: String,
+            default: 'red-only',
+            validator: (value) => ['both', 'red-only'].includes(value),
+        },
         id: {
             type: String,
             required: true
@@ -39,7 +44,19 @@
         }
     });
     
-    const validationColor = computed(() => (shouldValidate.value ? 'var(--vt-c-red)' : null));
+    const isValidAndFilled = computed(() => {
+        return props.isValid && modelValue.value !== '';
+    });
+
+    const validationColor = computed(() => {
+        if (shouldValidate.value) {
+            return 'var(--vt-c-red)';
+        } else if (props.validationMode === 'both' && isValidAndFilled.value) {
+            return 'var(--vt-c-green)';
+        } else {
+            return null;
+        }
+    });
 </script>
 
 <template>
