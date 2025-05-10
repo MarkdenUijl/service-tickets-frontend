@@ -9,6 +9,7 @@
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
     const password = ref('');
+    const tokenPersist = ref(false);
     const loginErrorKey = ref('');
     const { t } = useI18n();
     const router = useRouter();
@@ -34,16 +35,24 @@
     });
 
     const login = () => {
-        password
         if(isEmailValid.value) {
             const payload = {
                 username: email.value,
-                password: password.value
+                password: password.value,
+                tokenPersist: tokenPersist.value
             }
 
             api.post('/auth/login', payload)
             .then( function(response) {
                 const token = response.data.token;
+
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    const expiryTimestamp = payload.exp * 1000; // JWT exp is in seconds
+                    const expiryDate = new Date(expiryTimestamp);
+                    console.log('Token expires at:', expiryDate);
+                }
 
                 localStorage.setItem('token', token);
                 router.push('/');
@@ -66,6 +75,7 @@
 <template>
     <form id="login-form" @submit.prevent="login">
         <ValidatedInput
+            id="email"
             v-model="email"
             placeholder="Email"
             type="text"
@@ -74,6 +84,7 @@
         />
 
         <ValidatedInput
+            id="password"
             v-model="password"
             :placeholder="t('password')"
             type="password"
@@ -83,7 +94,7 @@
 
         <div class="login-options">
             <label id="remember-me">
-                <input type="checkbox">
+                <input id="remember-me-checkbox" type="checkbox" v-model="tokenPersist">
                 <span> {{ t('rememberMeText') }} </span>
             </label>
 
