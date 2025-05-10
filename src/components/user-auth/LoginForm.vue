@@ -46,14 +46,6 @@
             .then( function(response) {
                 const token = response.data.token;
 
-                const tokenParts = token.split('.');
-                if (tokenParts.length === 3) {
-                    const payload = JSON.parse(atob(tokenParts[1]));
-                    const expiryTimestamp = payload.exp * 1000; // JWT exp is in seconds
-                    const expiryDate = new Date(expiryTimestamp);
-                    console.log('Token expires at:', expiryDate);
-                }
-
                 localStorage.setItem('token', token);
                 router.push('/');
             })

@@ -1,6 +1,6 @@
 <script setup>
     import UISelector from '@/components/ui-selector/UISelector.vue';
-    import LoginForm from '@/components/user-login/LoginForm.vue';
+    import LoginForm from '@/components/user-auth/LoginForm.vue';
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
     import LogoLarge from '@/components/graphic-items/LogoLarge.vue';
     import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
@@ -11,13 +11,13 @@
 </script>
 
 <template>
-    <div class="login-page">
+    <div class="auth-page">
 
         <LogoLarge id="homescreen-logo"/>
         
         <SvgIcon class="background" name="gradient-background" />
 
-        <div class="login-background">
+        <div class="auth-background">
             <UISelector id="ui-selector"/><br>
             
             <div id="login-page-content">
@@ -62,7 +62,7 @@
 </template>
 
 <style>
-    .login-page {
+    .auth-page {
         position: relative;
         display: flex;
         flex-direction: row;
@@ -73,11 +73,12 @@
         box-sizing: border-box;
     }
 
-    .login-background {
+    .auth-background {
         background-color: var(--color-background);
         width: 40%;
         max-width: 560px;
         min-width: 400px;
+        height: 100vh;
         box-sizing: border-box;
         padding: 24px;
         display: flex;
@@ -175,12 +176,12 @@
     }
 
     @media (max-width: 635px) {
-        .login-page {
+        .auth-page {
             flex-direction: column;
             justify-content: center;
         }
 
-        .login-background {
+        .auth-background {
             width: 100%;
             height: 90%;
             max-width: 100%;
