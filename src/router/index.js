@@ -18,12 +18,12 @@ const routes = [
     { 
         path: '/register', 
         name: 'register', 
-        component: import('@/views/RegisterView.vue') 
+        component: () => import('@/views/RegisterView.vue') 
     },
     { 
         path: '/', 
         name: 'dashboard', 
-        component: import('@/views/DashboardView.vue'),
+        component: () => import('@/views/DashboardView.vue'),
         meta: { requiresAuth: 'true' }
     },
 ];

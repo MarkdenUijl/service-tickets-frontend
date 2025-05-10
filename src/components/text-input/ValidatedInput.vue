@@ -10,7 +10,11 @@
         isValid: {
             type: Boolean,
             default: true,
-        }
+        },
+        id: {
+            type: String,
+            required: true
+        },
     });
 
     const modelValue = defineModel();
@@ -41,6 +45,7 @@
 <template>
     <div class="input-wrapper">
         <TextInput
+            :id="props.id"
             v-model="modelValue"
             :placeholder="props.placeholder"
             :type="props.type"
