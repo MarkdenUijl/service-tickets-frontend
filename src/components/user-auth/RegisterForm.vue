@@ -13,8 +13,10 @@
     const passwordConfirmation = ref('');
 
     const emailRegisterError = ref('');
-    const passwordRegisterError = ref('');
-    const passwordConfirmationError = ref('')
+
+    const passwordRegisterErrorKey = ref('');
+
+    const passwordConfirmationError = ref('');
 
     const { t } = useI18n();
 
@@ -46,9 +48,24 @@
         }
     });
 
-    watch (password, () => {
-        if (passwordRegisterError.value) {
-            passwordRegisterError.value = '';
+    watch (password, (val) => {
+        if (isPasswordValid.value) {
+            passwordRegisterErrorKey.value = '';
+            return;
+        }
+
+        if (val.length < 8) {
+            passwordRegisterErrorKey.value = 'passwordTooShort';
+        } else if (!/[A-Z]/.test(val)) {
+            passwordRegisterErrorKey.value = 'passwordMissingUppercase';
+        } else if (!/[a-z]/.test(val)) {
+            passwordRegisterErrorKey.value = 'passwordMissingLowercase';
+        } else if (!/\d/.test(val)) {
+            passwordRegisterErrorKey.value = 'passwordMissingDigit';
+        } else if (!/[^A-Za-z\d]/.test(val)) {
+            passwordRegisterErrorKey.value = 'passwordMissingSpecial';
+        } else {
+            passwordRegisterErrorKey.value = 'passwordInvalid';
         }
     });
 
@@ -94,7 +111,7 @@
             :placeholder="t('password')"
             type="password"
             :isValid="isPasswordValid"
-            :validationText="t('passwordInvalid')"
+            :validationText="passwordRegisterErrorKey ? t(passwordRegisterErrorKey) : ''"
             validationMode="both"
         />
 
