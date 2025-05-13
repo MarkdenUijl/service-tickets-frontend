@@ -96,7 +96,7 @@
 
     .validation-text {
         position: absolute;
-        bottom: -26px;
+        bottom: -20px;
         right: 0;
         z-index: 2;
         font-size: 13px;

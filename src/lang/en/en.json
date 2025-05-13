@@ -1,6 +1,6 @@
 {
     "loginHeaderSubtext" : "Welcome to the Helvar Service Tickets web app, log in now to register a new ticket, view your submitted ticket status, or manage outstanding tickets.",
-    "registerHeaderSubtext" : "Please fill in your email and desired password to register your account.",
+    "registerHeaderSubtext" : "Please fill in your details to register your account.",
     "welcome" : "Welcome!",
     "password" : "Password",
     "passwordConfirm" : "Confirm password",
@@ -10,7 +10,7 @@
     "rememberMeText" : "Remember me",
     "forgotPasswordText" : "Forgot password?",
     "emailIncorrect" : "This account is unknown",
-    "emailInvalid" : "Email invalid.",
+    "emailInvalid" : "Email invalid",
     "passwordIncorrect" : "This password is incorrect",
     "passwordTooShort" : "Needs at least 8 characters",
     "passwordMissingUppercase" : "Needs at least one uppercase",
