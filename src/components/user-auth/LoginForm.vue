@@ -10,7 +10,9 @@
     const email = ref('');
     const password = ref('');
     const tokenPersist = ref(false);
+
     const loginErrorKey = ref('');
+    
     const { t } = useI18n();
     const router = useRouter();
 
@@ -97,7 +99,7 @@
         </div>
 
         <motion.button 
-            class="login-button" 
+            class="submit-button" 
             type="submit"
             :whilePress="{ scale: 0.95 }"
             >
@@ -163,7 +165,7 @@
         color: var(--vt-c-highlight);
     }
 
-    .login-button {
+    .submit-button {
         display: flex;
         align-items: center;
         justify-content: center;
