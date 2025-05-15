@@ -91,7 +91,8 @@
 <style scoped>
     .input-wrapper {
         position: relative;
-        width: min-content;
+        width: 100%;
+        border: red double 2px;
     }
 
     .validation-text {
