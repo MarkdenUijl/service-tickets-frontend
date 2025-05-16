@@ -137,7 +137,7 @@
             id="return-button" 
             :whilePress="{ scale: 0.95 }"
             >
-            <RouterLink to="/login" id="register-return-link">
+            <RouterLink to="/auth/login" id="register-return-link">
                 {{ t('registerReturnText') }}
             </RouterLink>
         </motion.div>

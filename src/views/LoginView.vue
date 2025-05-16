@@ -1,5 +1,4 @@
 <script setup>
-    import AuthLayout from '@/components/layouts/AuthLayout.vue';
     import LoginForm from '@/components/user-auth/LoginForm.vue';
     import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
 
@@ -8,40 +7,39 @@
 </script>
 
 <template>
-    <AuthLayout>
-        <div id="login-page-content">
-            <div id="login-header-text">
-                <div id="login-header-title">
+    <div id="login-page-content">
+        <div id="login-header-text">
+            <div id="login-header-title">
                 <LogoIcon />
                 <span style="font-weight: 800; font-size: 20px">HELVAR SERVICE TICKETS</span>
-                </div>
+            </div>
 
-                <span id="login-header-subtext">
+            <span id="login-header-subtext">
                 {{ t('loginHeaderSubtext') }}
-                </span>
-            </div>
-
-            <LoginForm />
-
-            <div id="horizontal-divider">
-                <span class="horizontal-divider-bar"></span>
-                {{ t("loginDividerText") }}
-                <span class="horizontal-divider-bar"></span>
-            </div>
-
-            <div class="create-account-options">
-                <span style="color: var(--color-subtext)">
-                {{ t('loginNewHereText') }}
-                </span>
-                <router-link
-                to="/register"
-                style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
-                >
-                {{ t('loginCreateAccountText') }}
-                </router-link>
-            </div>
+            </span>
         </div>
-    </AuthLayout>
+
+        <LoginForm />
+
+        <div id="horizontal-divider">
+            <span class="horizontal-divider-bar"></span>
+            {{ t("loginDividerText") }}
+            <span class="horizontal-divider-bar"></span>
+        </div>
+
+        <div class="create-account-options">
+            <span style="color: var(--color-subtext)">
+                {{ t('loginNewHereText') }}
+            </span>
+
+            <router-link
+                to="/auth/register"
+                style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
+            >
+                {{ t('loginCreateAccountText') }}
+            </router-link>
+        </div>
+    </div>
 </template>
 
 <style>

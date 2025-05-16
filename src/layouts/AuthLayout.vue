@@ -1,6 +1,7 @@
 <script setup>
     import { useRoute } from 'vue-router';
     import { computed } from 'vue';
+    import { motion } from 'motion-v';
 
     import UISelector from '@/components/ui-selector/UISelector.vue';
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
@@ -9,7 +10,7 @@
     const route = useRoute();
 
     const backgroundWidth = computed(() => {
-        return route.path === '/register' ? '60%' : '40%';
+        return route.name === 'register' ? '50%' : '40%';
     });
 </script>
 
@@ -19,14 +20,19 @@
 
     <SvgIcon class="background" name="gradient-background" />
 
-    <div 
+    <motion.div 
       class="auth-background"
-      :style="{ width: backgroundWidth }"
+      :animate="{ width: backgroundWidth }"
+      :transition="{
+        type: 'spring',
+        visualDuration: 0.6,
+        bounce: 0.3,
+      }"
     >
       <UISelector id="ui-selector" />
 
-      <slot />
-    </div>
+      <router-view/>
+    </motion.div>
   </div>
 </template>
 
@@ -44,7 +50,6 @@
 
     .auth-background {
         background-color: var(--color-background);
-        max-width: 720px;
         min-width: 400px;
         height: 100vh;
         box-sizing: border-box;

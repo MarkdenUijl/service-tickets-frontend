@@ -165,7 +165,7 @@
         color: var(--vt-c-highlight);
     }
 
-    .submit-button {
+    /* .submit-button {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -178,5 +178,5 @@
         font-family: 'Ubuntu';
         font-weight: 700;
         font-size: 16px;
-    }
+    } */
 </style>
