@@ -37,7 +37,10 @@
     >
       <UISelector id="ui-selector" />
 
-      <router-view @form-progress="handleFormProgress"/>
+      <Transition name="slide-fade" mode="out-in">
+        <router-view @form-progress="handleFormProgress"/>
+      </Transition>
+      
 
       <div id="register-progress-bar">
         <div id="register-progress-fill" :style="{ width: formProgress + '%' }" />
@@ -135,5 +138,21 @@
         #homescreen-logo {
             display: none;
         }
+    }
+
+    .slide-fade-enter-active, .slide-fade-leave-active {
+        transition: all 0.8s ease;
+        position: absolute;
+        width: 100%;
+    }
+
+    .slide-fade-enter-from {
+        opacity: 0;
+        transform: translateX(60px);
+    }
+
+    .slide-fade-leave-to {
+        opacity: 0;
+        transform: translateX(-40px);
     }
 </style>
