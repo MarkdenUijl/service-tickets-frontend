@@ -1,6 +1,6 @@
 <script setup>
     import { useRoute } from 'vue-router';
-    import { computed } from 'vue';
+    import { computed, ref } from 'vue';
     import { motion } from 'motion-v';
 
     import UISelector from '@/components/ui-selector/UISelector.vue';
@@ -12,6 +12,12 @@
     const backgroundWidth = computed(() => {
         return route.name === 'register' ? '50%' : '40%';
     });
+
+    const formProgress = ref(0);
+    
+    function handleFormProgress(value) {
+        formProgress.value = value;
+    }
 </script>
 
 <template>
@@ -31,7 +37,11 @@
     >
       <UISelector id="ui-selector" />
 
-      <router-view/>
+      <router-view @form-progress="handleFormProgress"/>
+
+      <div id="register-progress-bar">
+        <div id="register-progress-fill" :style="{ width: formProgress + '%' }" />
+      </div>
     </motion.div>
   </div>
 </template>
@@ -89,6 +99,23 @@
         position: absolute;
         top: 16px;
         right: 16px;
+    }
+    
+    #register-progress-bar {
+        height: 8px;
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-start;
+    }
+
+        #register-progress-fill {
+        height: 100%;
+        background-color: var(--vt-c-green);
+        transition: width 0.3s ease-in-out;
     }
 
     @media (max-width: 635px) {

@@ -92,12 +92,11 @@
     .input-wrapper {
         position: relative;
         width: 100%;
-        border: red double 2px;
     }
 
     .validation-text {
         position: absolute;
-        bottom: -20px;
+        bottom: -18px;
         right: 0;
         z-index: 2;
         font-size: 13px;

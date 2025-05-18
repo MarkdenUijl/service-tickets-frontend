@@ -2,23 +2,23 @@
     import { ref, computed, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { motion } from 'motion-v';
-    import { RouterLink } from 'vue-router';
 
-    import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
     import ValidatedInput from '../text-input/ValidatedInput.vue';
+    import { capitalizeWords } from '@/utils/capitalizeWords';
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    const firstName = ref('');
+    const lastName = ref('');
     const email = ref('');
     const password = ref('');
     const passwordConfirmation = ref('');
-
-    const emailRegisterError = ref('');
-
     const passwordRegisterErrorKey = ref('');
 
-    const passwordConfirmationError = ref('');
-
     const { t } = useI18n();
+    const emit = defineEmits(['form-progress'])
+
+    const isFirstNameValid = computed(() => firstName.value.length > 0);
+    const isLastNameValid = computed(() => lastName.value.length > 0);
 
     const isEmailValid = computed(() =>
         /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
@@ -34,18 +34,18 @@
 
     const formCompletion = computed(() => {
         let count = 0;
-        
+
+        if (isFirstNameValid.value) count++;
+        if (isLastNameValid.value) count++;
         if(isEmailValid.value) count++;
         if(isPasswordValid.value) count++;
         if(isPasswordConfirmationValid.value) count++;
 
-        return (count / 3) * 100;
+        return (count / 5) * 100;
     });
 
-    watch (email, () => {
-        if (emailRegisterError.value) {
-            emailRegisterError.value = '';
-        }
+    watch(formCompletion, (val) => {
+        emit('form-progress', val)
     });
 
     watch (password, (val) => {
@@ -69,13 +69,12 @@
         }
     });
 
-    watch (passwordConfirmation, () => {
-        if (passwordConfirmationError.value) {
-            passwordConfirmationError.value = '';
-        }
-    });
-
     const register = () => {
+        firstName.value = capitalizeWords(firstName.value);
+        lastName.value = capitalizeWords(lastName.value);
+
+        console.log(`first name: ${firstName.value}`)
+        console.log(`last name: ${lastName.value}`)
         console.log(`email: ${email.value}`)
         console.log(`password: ${password.value}`)
         console.log(`confirmation: ${passwordConfirmation.value}`)
@@ -84,16 +83,28 @@
 
 <template>
     <form id="registration-form" @submit.prevent="register">
-        <div id="login-header-text">
-            <div id="login-header-title">
-                <LogoIcon />
-                <span :style="{ 'font-weight' : 800, 'font-size' : '20px' }">HELVAR SERVICE TICKETS</span>
-            </div>
-
-            <span id="login-header-subtext">
-                {{ t('registerHeaderSubtext') }}
-            </span>
-        </div> 
+        <div id="registration-name-form">
+            <ValidatedInput
+                id="firstname"
+                v-model="firstName"
+                placeholder="First name"
+                type="text"
+                :isValid="isFirstNameValid"
+                validationMode="both"
+                :style="{
+                    width: '60%'
+                }"
+            />
+            
+            <ValidatedInput
+                id="lastname"
+                v-model="lastName"
+                placeholder="Last name"
+                type="text"
+                :isValid="isLastNameValid"
+                validationMode="both"
+            />
+        </div>
         
         <ValidatedInput
             id="email"
@@ -132,38 +143,25 @@
             >
             {{ t('submitButtonText') }}
         </motion.button>
-
-        <motion.div 
-            id="return-button" 
-            :whilePress="{ scale: 0.95 }"
-            >
-            <RouterLink to="/auth/login" id="register-return-link">
-                {{ t('registerReturnText') }}
-            </RouterLink>
-        </motion.div>
-
-        <div id="register-progress-bar" >
-            <div id="register-progress-fill" :style="{ width: formCompletion + '%' }">
-
-            </div>
-        </div>
     </form>
 </template>
 
 <style>
-    #login-header-text {
-        max-width: 300px;
-    }
-
     #registration-form {
-        height: inherit;
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 32px;
+        gap: 16px;
         justify-content: center;
         align-items: center;
         position: relative;
+    }
+
+    #registration-name-form {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
     }
 
     #return-button {
@@ -188,21 +186,5 @@
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-
-    #register-progress-bar {
-        height: 8px;
-        position: absolute;
-        width: 100%;
-        bottom: 0;
-        overflow: hidden;
-        display: flex;
-        align-items: flex-start;
-    }
-
-    #register-progress-fill {
-        height: 100%;
-        background-color: var(--vt-c-green);
-        transition: width 0.3s ease-in-out;
     }
 </style>
