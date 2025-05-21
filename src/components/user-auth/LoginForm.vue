@@ -12,12 +12,13 @@
     const tokenPersist = ref(false);
 
     const loginErrorKey = ref('');
+    const emailErrorKey = ref('');
     
     const { t } = useI18n();
     const router = useRouter();
-
+    
     const isEmailValid = computed(() =>
-        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
+         /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value) && emailErrorKey.value === ''
     );
 
     const isLoginValid = computed(() =>
@@ -25,19 +26,31 @@
     );
 
     watch (password, () => {
-        if (loginErrorKey.value) {
-            loginErrorKey.value = '';
-        }
+        loginErrorKey.value = '';
     });
 
     watch (email, () => {
-        if (loginErrorKey.value) {
-            loginErrorKey.value = '';
-        }
+        loginErrorKey.value = '';
+        emailErrorKey.value = '';
     });
 
     const login = () => {
-        if(isEmailValid.value) {
+        let isValid = true;
+
+        if(email.value === '') {
+            emailErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)) {
+            emailErrorKey.value = 'emailInvalid';
+            isValid = false;
+        }
+
+        if(password.value === '') {
+            loginErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        }
+
+        if(isValid) {
             const payload = {
                 username: email.value,
                 password: password.value,
@@ -53,16 +66,14 @@
             })
             .catch( function(error) {
                 if (error.type === 'unauthorized') {
-                    loginErrorKey.value = 'emailIncorrect';
+                    emailErrorKey.value = 'emailIncorrect';
                 } else if (error.type === 'network') {
                     loginErrorKey.value = 'serverError';
                 } else {
                     loginErrorKey.value = 'serverError';
                 }
             })
-        } else {
-            loginErrorKey.value = 'insufficientCredentialsError'
-        }
+        } 
     }
 </script>
 
@@ -74,7 +85,7 @@
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="t('emailInvalid')"
+            :validationText="emailErrorKey ? t(emailErrorKey) : ''"
         />
 
         <ValidatedInput

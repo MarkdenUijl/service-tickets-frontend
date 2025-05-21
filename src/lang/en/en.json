@@ -12,17 +12,21 @@
     "forgotPasswordText" : "Forgot password?",
     "emailIncorrect" : "This account is unknown",
     "emailInvalid" : "Email invalid",
+    "emptyFieldError": "Field can't be empty",
     "passwordIncorrect" : "This password is incorrect",
     "passwordTooShort" : "Needs at least 8 characters",
     "passwordMissingUppercase" : "Needs at least one uppercase",
     "passwordMissingLowercase" : "Needs at least one lowercase",
     "passwordMissingDigit" : "Needs at least one digit",
-    "passwordMissingSpecial" : "Needs at leats one special character",
+    "passwordMissingSpecial" : "Needs at least one special character",
     "passwordInvalid" : "Invalid password",
     "passwordMismatch" : "Passwords don't match",
     "serverError" : "Server connection error.",
     "insufficientCredentialsError" : "Please enter all credentials correctly",
     "loginDividerText" : "or",
     "loginNewHereText" : "Are you new here?",
-    "loginCreateAccountText" : "Create account"
+    "loginCreateAccountText" : "Create account",
+    "registerFirstName" : "First name",
+    "registerLastName" : "Last name"
+
 }

@@ -12,6 +12,7 @@
     "forgotPasswordText" : "Wachtwoord vergeten?",
     "emailIncorrect" : "Dit account is niet bekend",
     "emailInvalid" : "Ongeldige email",
+    "emptyFieldError": "Veld mag niet leeg zijn",
     "passwordTooShort" : "Moet minimaal 8 karakters bevatten",
     "passwordMissingUppercase" : "Moet minimaal één hoofdletter bevatten",
     "passwordMissingLowercase" : "Moet minimaal één letter bevatten",
@@ -23,5 +24,7 @@
     "insufficientCredentialsError": "Vul alle gegevens correct in",
     "loginDividerText" : "of",
     "loginNewHereText" : "Ben je hier nieuw?",
-    "loginCreateAccountText" : "Maak account aan"
+    "loginCreateAccountText" : "Maak account aan",
+    "registerFirstName" : "Voornaam",
+    "registerLastName" : "Achternaam"
 }

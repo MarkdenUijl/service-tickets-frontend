@@ -2,6 +2,7 @@
     import { ref, computed, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { motion } from 'motion-v';
+    import api from '@/utils/api'
 
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
@@ -12,13 +13,18 @@
     const email = ref('');
     const password = ref('');
     const passwordConfirmation = ref('');
+
+    const firstNameErrorKey = ref('');
+    const lastNameErrorKey = ref('');
+    const emailRegisterErrorKey = ref('');
     const passwordRegisterErrorKey = ref('');
+    const passwordConfirmationErrorKey = ref('');
 
     const { t } = useI18n();
     const emit = defineEmits(['form-progress'])
 
     const isFirstNameValid = computed(() => firstName.value.length > 0);
-    const isLastNameValid = computed(() => lastName.value.length > 0);
+    const isLastNameValid = computed(() =>  lastName.value.length > 0);
 
     const isEmailValid = computed(() =>
         /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
@@ -48,13 +54,27 @@
         emit('form-progress', val)
     });
 
+    watch(firstName, () => {
+        firstNameErrorKey.value = '';
+    });
+
+    watch(lastName, () => {
+        lastNameErrorKey.value = '';
+    });
+
+    watch (email, () => {
+        emailRegisterErrorKey.value = '';
+    });
+
     watch (password, (val) => {
         if (isPasswordValid.value) {
             passwordRegisterErrorKey.value = '';
             return;
         }
 
-        if (val.length < 8) {
+        if (val.length === 0) {
+            passwordRegisterErrorKey.value = '';
+        } else if (val.length < 8) {
             passwordRegisterErrorKey.value = 'passwordTooShort';
         } else if (!/[A-Z]/.test(val)) {
             passwordRegisterErrorKey.value = 'passwordMissingUppercase';
@@ -69,7 +89,49 @@
         }
     });
 
+    watch([password, passwordConfirmation], ([newPassword, newConfirmation]) => {
+        if (newConfirmation.length === 0) {
+            passwordConfirmationErrorKey.value = '';
+        } else if (newPassword !== newConfirmation) {
+            passwordConfirmationErrorKey.value = 'passwordMismatch';
+        } else {
+            passwordConfirmationErrorKey.value = '';
+        }
+    });
+
     const register = () => {
+        let isValid = true;
+
+        if(firstName.value === '') {
+            firstNameErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        }
+
+        if(lastName.value === '') {
+            lastNameErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        }
+
+        if(email.value === '') {
+            emailRegisterErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)) {
+            emailRegisterErrorKey.value = 'emailInvalid';
+            isValid = false;
+        }
+
+        if(password.value === '') {
+            passwordRegisterErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        }
+
+        if(passwordConfirmation.value === '') {
+            passwordConfirmationErrorKey.value = 'emptyFieldError';
+            isValid = false;
+        }
+
+
+
         firstName.value = capitalizeWords(firstName.value);
         lastName.value = capitalizeWords(lastName.value);
 
@@ -87,9 +149,10 @@
             <ValidatedInput
                 id="firstname"
                 v-model="firstName"
-                placeholder="First name"
+                :placeholder="t('registerFirstName')"
                 type="text"
                 :isValid="isFirstNameValid"
+                :validationText="firstNameErrorKey ? t(firstNameErrorKey) : ''"
                 validationMode="both"
                 :style="{
                     width: '60%'
@@ -99,9 +162,10 @@
             <ValidatedInput
                 id="lastname"
                 v-model="lastName"
-                placeholder="Last name"
+                :placeholder="t('registerLastName')"
                 type="text"
                 :isValid="isLastNameValid"
+                :validationText="lastNameErrorKey ? t(lastNameErrorKey) : ''"
                 validationMode="both"
             />
         </div>
@@ -112,7 +176,7 @@
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="t('emailInvalid')"
+            :validationText="emailRegisterErrorKey ? t(emailRegisterErrorKey) : ''"
             validationMode="both"
         />
 
@@ -132,7 +196,7 @@
             :placeholder="t('passwordConfirm')"
             type="password"
             :isValid="isPasswordConfirmationValid"
-            :validationText="t('passwordMismatch')"
+            :validationText="passwordConfirmationErrorKey? t(passwordConfirmationErrorKey) : ''"
             validationMode="both"
         />
 

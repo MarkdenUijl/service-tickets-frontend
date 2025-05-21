@@ -32,10 +32,13 @@
     }
 
     const shouldValidate = computed(() => {
+        // return !props.isValid &&
+        //         props.validationText &&
+        //         modelValue.value !== '' &&
+        //         touched.value
         return !props.isValid &&
                 props.validationText &&
-                modelValue.value !== '' &&
-                touched.value
+                (touched.value || modelValue.value === '');
     });
     
     watch(modelValue, (newValue) => {
