@@ -6,7 +6,6 @@
     import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const email = ref('');
     const password = ref('');
     const tokenPersist = ref(false);

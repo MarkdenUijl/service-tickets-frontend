@@ -12,6 +12,7 @@
     "forgotPasswordText" : "Forgot password?",
     "emailIncorrect" : "This account is unknown",
     "emailInvalid" : "Email invalid",
+    "emailConflict" : "This account already exists",
     "emptyFieldError": "Field can't be empty",
     "passwordIncorrect" : "This password is incorrect",
     "passwordTooShort" : "Needs at least 8 characters",

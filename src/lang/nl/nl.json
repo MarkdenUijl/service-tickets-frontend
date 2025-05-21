@@ -12,6 +12,7 @@
     "forgotPasswordText" : "Wachtwoord vergeten?",
     "emailIncorrect" : "Dit account is niet bekend",
     "emailInvalid" : "Ongeldige email",
+    "emailConflict" : "Dit account bestaat al",
     "emptyFieldError": "Veld mag niet leeg zijn",
     "passwordTooShort" : "Moet minimaal 8 karakters bevatten",
     "passwordMissingUppercase" : "Moet minimaal één hoofdletter bevatten",

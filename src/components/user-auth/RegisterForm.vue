@@ -2,12 +2,12 @@
     import { ref, computed, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { motion } from 'motion-v';
+    import { useRouter } from 'vue-router';
     import api from '@/utils/api'
 
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const firstName = ref('');
     const lastName = ref('');
     const email = ref('');
@@ -21,13 +21,28 @@
     const passwordConfirmationErrorKey = ref('');
 
     const { t } = useI18n();
+    const router = useRouter();
     const emit = defineEmits(['form-progress'])
+
+    const resetForm = () => {
+        firstName.value = '';
+        lastName.value = '';
+        email.value = '';
+        password.value = '';
+        passwordConfirmation.value = '';
+
+        firstNameErrorKey.value = '';
+        lastNameErrorKey.value = '';
+        emailRegisterErrorKey.value = '';
+        passwordRegisterErrorKey.value = '';
+        passwordConfirmationErrorKey.value = '';
+    };
 
     const isFirstNameValid = computed(() => firstName.value.length > 0);
     const isLastNameValid = computed(() =>  lastName.value.length > 0);
 
     const isEmailValid = computed(() =>
-        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
+        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value) && emailRegisterErrorKey.value === ''
     );
 
     const isPasswordValid = computed(() => 
@@ -62,8 +77,19 @@
         lastNameErrorKey.value = '';
     });
 
-    watch (email, () => {
-        emailRegisterErrorKey.value = '';
+    watch (email, (val) => {
+        if (isEmailValid.value) {
+            isEmailValid.value = '';
+            return;
+        }
+        
+        if (val.length === 0) {
+            emailRegisterErrorKey.value = '';
+        } else if (! /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(val)) {
+            emailRegisterErrorKey.value = 'emailInvalid';
+        } else {
+            emailRegisterErrorKey.value = '';
+        }
     });
 
     watch (password, (val) => {
@@ -130,16 +156,34 @@
             isValid = false;
         }
 
+        if (isValid) {
+            firstName.value = capitalizeWords(firstName.value);
+            lastName.value = capitalizeWords(lastName.value);
 
+            const payload = {
+                firstName: firstName.value,
+                lastName: lastName.value,
+                email: email.value,
+                password: password.value
+            }
 
-        firstName.value = capitalizeWords(firstName.value);
-        lastName.value = capitalizeWords(lastName.value);
-
-        console.log(`first name: ${firstName.value}`)
-        console.log(`last name: ${lastName.value}`)
-        console.log(`email: ${email.value}`)
-        console.log(`password: ${password.value}`)
-        console.log(`confirmation: ${passwordConfirmation.value}`)
+            api.post('/users', payload)
+            .then( function(response) {
+                console.log(response);
+                resetForm();
+                router.push('auth/login');
+            })
+            .catch( function(error) {
+                if (error.originalError.status === 409) {
+                    emailRegisterErrorKey.value = 'emailConflict';
+                    console.log('There was already an account with this name')
+                } else if (error.type === 'network') {
+                    emailRegisterErrorKey.value = 'serverError';
+                } else {
+                    emailRegisterErrorKey.value = 'serverError';
+                }
+            })
+        }
     }
 </script>
 
