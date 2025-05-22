@@ -9,6 +9,23 @@
     import { capitalizeWords } from '@/utils/capitalizeWords';
     import { isEmail, isStrongPassword } from '@/utils/validators';
 
+    import { ref, onMounted, onUnmounted } from 'vue';
+
+    const inputWidth = ref('60%');
+
+    const updateInputWidth = () => {
+        inputWidth.value = window.innerWidth <= 635 ? '100%' : '60%';
+    };
+
+    onMounted(() => {
+        updateInputWidth();
+        window.addEventListener('resize', updateInputWidth);
+    });
+
+    onUnmounted(() => {
+        window.removeEventListener('resize', updateInputWidth);
+    });
+
     const formData = reactive({
         firstName: '',
         lastName: '',
@@ -179,7 +196,7 @@
                 :validationText="errors.firstName ? t(errors.firstName) : ''"
                 validationMode="both"
                 :style="{
-                    width: '60%'
+                    width: inputWidth
                 }"
             />
             
@@ -252,6 +269,10 @@
         gap: 8px;
     }
 
+    .firstname {
+        width: 60%;
+    }
+
     #return-button {
         display: flex;
         border: solid var(--vt-c-highlight) 2px;
@@ -274,5 +295,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    @media (max-width: 635px) {
+        #registration-name-form {
+            flex-direction: column;
+        }
     }
 </style>
