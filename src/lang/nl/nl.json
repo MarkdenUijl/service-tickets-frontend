@@ -27,5 +27,7 @@
     "loginNewHereText" : "Ben je hier nieuw?",
     "loginCreateAccountText" : "Maak account aan",
     "registerFirstName" : "Voornaam",
-    "registerLastName" : "Achternaam"
+    "registerLastName" : "Achternaam",
+    "accountCreationSuccesful" : "Je account is aangemaakt, je kunt nu ",
+    "backToLoginText" : "terug naar de login pagina."
 }

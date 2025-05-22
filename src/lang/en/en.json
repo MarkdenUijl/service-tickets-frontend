@@ -28,6 +28,7 @@
     "loginNewHereText" : "Are you new here?",
     "loginCreateAccountText" : "Create account",
     "registerFirstName" : "First name",
-    "registerLastName" : "Last name"
-
+    "registerLastName" : "Last name",
+    "accountCreationSuccesful" : "Your account was succesfully created, you can now ",
+    "backToLoginText" : "return to the login page."
 }

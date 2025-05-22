@@ -1,59 +1,66 @@
 <script setup>
-    import { ref, computed, watch } from 'vue';
+    import { reactive, ref, computed, watch } from 'vue';
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
     import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
+    import { isEmail } from '@/utils/validators';
 
-    const email = ref('');
-    const password = ref('');
-    const tokenPersist = ref(false);
+    const formData = reactive({
+        email: '',
+        password: '',
+        tokenPersist: ''
+    });
 
-    const loginErrorKey = ref('');
-    const emailErrorKey = ref('');
+    // const email = ref('');
+    // const password = ref('');
+    // const tokenPersist = ref(false);
+
+    const errors = reactive({
+        login: '',
+        email: ''
+    });
+
+    // const loginErrorKey = ref('');
+    // const emailErrorKey = ref('');
     
     const { t } = useI18n();
     const router = useRouter();
     
-    const isEmailValid = computed(() =>
-         /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value) && emailErrorKey.value === ''
-    );
+    const isEmailValid = computed(() => isEmail(formData.email) && !errors.email);
+    const isLoginValid = computed(() => !errors.login);
 
-    const isLoginValid = computed(() =>
-        loginErrorKey.value === ''
-    );
-
-    watch (password, () => {
-        loginErrorKey.value = '';
+    watch (() => formData.password, () => {
+        errors.login = '';
     });
 
-    watch (email, () => {
-        loginErrorKey.value = '';
-        emailErrorKey.value = '';
+    watch (() => formData.email, () => {
+        errors.login = '';
+        errors.email = '';
     });
 
     const login = () => {
         let isValid = true;
 
-        if(email.value === '') {
-            emailErrorKey.value = 'emptyFieldError';
+        if(formData.email === '') {
+            errors.email = 'emptyFieldError';
             isValid = false;
         } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)) {
-            emailErrorKey.value = 'emailInvalid';
+            errors.email = 'emailInvalid';
             isValid = false;
         }
 
-        if(password.value === '') {
-            loginErrorKey.value = 'emptyFieldError';
+        if(formData.password === '') {
+            errors.login = 'emptyFieldError';
             isValid = false;
         }
 
         if(isValid) {
             const payload = {
-                username: email.value,
-                password: password.value,
-                tokenPersist: tokenPersist.value
+                username: formData.email,
+                password: formData.password,
+                tokenPersist: formData.tokenPersist
             }
 
             api.post('/auth/login', payload)
@@ -65,11 +72,9 @@
             })
             .catch( function(error) {
                 if (error.type === 'unauthorized') {
-                    emailErrorKey.value = 'emailIncorrect';
-                } else if (error.type === 'network') {
-                    loginErrorKey.value = 'serverError';
+                    errors.email = 'emailIncorrect';
                 } else {
-                    loginErrorKey.value = 'serverError';
+                    errors.login = 'serverError';
                 }
             })
         } 
@@ -80,25 +85,25 @@
     <form id="login-form" @submit.prevent="login">
         <ValidatedInput
             id="email"
-            v-model="email"
+            v-model="formData.email"
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="emailErrorKey ? t(emailErrorKey) : ''"
+            :validationText="errors.email ? t(errors.email) : ''"
         />
 
         <ValidatedInput
             id="password"
-            v-model="password"
+            v-model="formData.password"
             :placeholder="t('password')"
             type="password"
             :isValid="isLoginValid"
-            :validationText="loginErrorKey ? t(loginErrorKey) : ''"
+            :validationText="errors.login ? t(errors.login) : ''"
         />
 
         <div class="login-options">
             <label id="remember-me">
-                <input id="remember-me-checkbox" type="checkbox" v-model="tokenPersist">
+                <input id="remember-me-checkbox" type="checkbox" v-model="formData.tokenPersist">
                 <span> {{ t('rememberMeText') }} </span>
             </label>
 

@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, computed, watch } from 'vue';
+    import { reactive, computed, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
@@ -7,184 +7,164 @@
 
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
+    import { isEmail, isStrongPassword } from '@/utils/validators';
 
-    const firstName = ref('');
-    const lastName = ref('');
-    const email = ref('');
-    const password = ref('');
-    const passwordConfirmation = ref('');
+    const formData = reactive({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        passwordConfirmation: '',
+    });
 
-    const firstNameErrorKey = ref('');
-    const lastNameErrorKey = ref('');
-    const emailRegisterErrorKey = ref('');
-    const passwordRegisterErrorKey = ref('');
-    const passwordConfirmationErrorKey = ref('');
+    const errors = reactive({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        passwordConfirmation: '',
+    });
 
     const { t } = useI18n();
     const router = useRouter();
     const emit = defineEmits(['form-progress'])
 
     const resetForm = () => {
-        firstName.value = '';
-        lastName.value = '';
-        email.value = '';
-        password.value = '';
-        passwordConfirmation.value = '';
-
-        firstNameErrorKey.value = '';
-        lastNameErrorKey.value = '';
-        emailRegisterErrorKey.value = '';
-        passwordRegisterErrorKey.value = '';
-        passwordConfirmationErrorKey.value = '';
+        Object.keys(formData).forEach(key => formData[key] = '');
+        Object.keys(errors).forEach(key => errors[key] = '');
     };
 
-    const isFirstNameValid = computed(() => firstName.value.length > 0);
-    const isLastNameValid = computed(() =>  lastName.value.length > 0);
+    const isFirstNameValid = computed(() => formData.firstName.length > 0);
+    const isLastNameValid = computed(() => formData.lastName.length > 0);
+    const isEmailValid = computed(() => isEmail(formData.email) && !errors.email);
+    const isPasswordValid = computed(() => isStrongPassword(formData.password))
 
-    const isEmailValid = computed(() =>
-        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value) && emailRegisterErrorKey.value === ''
-    );
-
-    const isPasswordValid = computed(() => 
-        /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\W]{9,}$/.test(password.value)
-    );
-
-    const isPasswordConfirmationValid = computed(() => 
-        password.value.length > 0 && password.value === passwordConfirmation.value
+    const isPasswordConfirmationValid = computed(() =>
+        formData.password.length > 0 &&
+        formData.passwordConfirmation.length > 0 &&
+        formData.password === formData.passwordConfirmation
     );
 
     const formCompletion = computed(() => {
-        let count = 0;
+        const validations = [
+            isFirstNameValid.value,
+            isLastNameValid.value,
+            isEmailValid.value,
+            isPasswordValid.value,
+            isPasswordConfirmationValid.value,
+        ];
 
-        if (isFirstNameValid.value) count++;
-        if (isLastNameValid.value) count++;
-        if(isEmailValid.value) count++;
-        if(isPasswordValid.value) count++;
-        if(isPasswordConfirmationValid.value) count++;
-
-        return (count / 5) * 100;
+        return (validations.filter(Boolean).length / validations.length) * 100;
     });
 
     watch(formCompletion, (val) => {
         emit('form-progress', val)
     });
 
-    watch(firstName, () => {
-        firstNameErrorKey.value = '';
+    watch(() => formData.firstName, () => {
+        errors.firstName = '';
     });
 
-    watch(lastName, () => {
-        lastNameErrorKey.value = '';
+        watch(() => formData.lastName, () => {
+        errors.lastName = '';
     });
 
-    watch (email, (val) => {
+    watch(() => formData.email, (val) => {
         if (isEmailValid.value) {
-            isEmailValid.value = '';
+            errors.email = '';
             return;
         }
-        
+
         if (val.length === 0) {
-            emailRegisterErrorKey.value = '';
-        } else if (! /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(val)) {
-            emailRegisterErrorKey.value = 'emailInvalid';
+            errors.email = '';
+        } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(val)) {
+            errors.email = 'emailInvalid';
         } else {
-            emailRegisterErrorKey.value = '';
+            errors.email = '';
         }
     });
 
-    watch (password, (val) => {
+    watch(() => formData.password, (val) => {
         if (isPasswordValid.value) {
-            passwordRegisterErrorKey.value = '';
+            errors.password = '';
             return;
         }
 
         if (val.length === 0) {
-            passwordRegisterErrorKey.value = '';
+            errors.password = '';
         } else if (val.length < 8) {
-            passwordRegisterErrorKey.value = 'passwordTooShort';
+            errors.password = 'passwordTooShort';
         } else if (!/[A-Z]/.test(val)) {
-            passwordRegisterErrorKey.value = 'passwordMissingUppercase';
+            errors.password = 'passwordMissingUppercase';
         } else if (!/[a-z]/.test(val)) {
-            passwordRegisterErrorKey.value = 'passwordMissingLowercase';
+            errors.password = 'passwordMissingLowercase';
         } else if (!/\d/.test(val)) {
-            passwordRegisterErrorKey.value = 'passwordMissingDigit';
+            errors.password = 'passwordMissingDigit';
         } else if (!/[^A-Za-z\d]/.test(val)) {
-            passwordRegisterErrorKey.value = 'passwordMissingSpecial';
+            errors.password = 'passwordMissingSpecial';
         } else {
-            passwordRegisterErrorKey.value = 'passwordInvalid';
+            errors.password = 'passwordInvalid';
         }
     });
 
-    watch([password, passwordConfirmation], ([newPassword, newConfirmation]) => {
-        if (newConfirmation.length === 0) {
-            passwordConfirmationErrorKey.value = '';
-        } else if (newPassword !== newConfirmation) {
-            passwordConfirmationErrorKey.value = 'passwordMismatch';
-        } else {
-            passwordConfirmationErrorKey.value = '';
+   watch(
+        [() => formData.password, () => formData.passwordConfirmation],
+        ([newPassword, newConfirmation]) => {
+            if (newConfirmation.length === 0) {
+                errors.passwordConfirmation = '';
+            } else if (newPassword.length === 0) {
+                errors.passwordConfirmation = 'emptyFieldError';
+            } else if (newPassword !== newConfirmation) {
+                errors.passwordConfirmation = 'passwordMismatch';
+            } else {
+                errors.passwordConfirmation = '';
+            }
         }
-    });
+    );
 
-    const register = () => {
+    const register = async () => {
         let isValid = true;
 
-        if(firstName.value === '') {
-            firstNameErrorKey.value = 'emptyFieldError';
+        Object.entries({
+            firstName: () => formData.firstName ? '' : 'emptyFieldError',
+            lastName: () => formData.lastName ? '' : 'emptyFieldError',
+            email: () => {
+            if (!formData.email) return 'emptyFieldError';
+            if (!isEmail(formData.email)) return 'emailInvalid';
+            return '';
+            },
+            password: () => formData.password ? '' : 'emptyFieldError',
+            passwordConfirmation: () => formData.passwordConfirmation ? '' : 'emptyFieldError',
+        }).forEach(([field, validator]) => {
+            const error = validator();
+            if (error) {
+            errors[field] = error;
             isValid = false;
-        }
-
-        if(lastName.value === '') {
-            lastNameErrorKey.value = 'emptyFieldError';
-            isValid = false;
-        }
-
-        if(email.value === '') {
-            emailRegisterErrorKey.value = 'emptyFieldError';
-            isValid = false;
-        } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)) {
-            emailRegisterErrorKey.value = 'emailInvalid';
-            isValid = false;
-        }
-
-        if(password.value === '') {
-            passwordRegisterErrorKey.value = 'emptyFieldError';
-            isValid = false;
-        }
-
-        if(passwordConfirmation.value === '') {
-            passwordConfirmationErrorKey.value = 'emptyFieldError';
-            isValid = false;
-        }
-
-        if (isValid) {
-            firstName.value = capitalizeWords(firstName.value);
-            lastName.value = capitalizeWords(lastName.value);
-
-            const payload = {
-                firstName: firstName.value,
-                lastName: lastName.value,
-                email: email.value,
-                password: password.value
             }
+        });
 
-            api.post('/users', payload)
-            .then( function(response) {
-                console.log(response);
-                resetForm();
-                router.push('auth/login');
-            })
-            .catch( function(error) {
-                if (error.originalError.status === 409) {
-                    emailRegisterErrorKey.value = 'emailConflict';
-                    console.log('There was already an account with this name')
-                } else if (error.type === 'network') {
-                    emailRegisterErrorKey.value = 'serverError';
-                } else {
-                    emailRegisterErrorKey.value = 'serverError';
-                }
-            })
+        if (!isValid) return;
+
+        const payload = {
+            firstName: capitalizeWords(formData.firstName),
+            lastName: capitalizeWords(formData.lastName),
+            email: formData.email,
+            password: formData.password,
+        };
+
+        try {
+            await api.post('/users', payload);
+            resetForm();
+
+            router.push('confirmation');
+        } catch (error) {
+            if (error.originalError?.status === 409) {
+            errors.email = 'emailConflict';
+            } else {
+            errors.email = 'serverError';
+            }
         }
-    }
+    };
 </script>
 
 <template>
@@ -192,11 +172,11 @@
         <div id="registration-name-form">
             <ValidatedInput
                 id="firstname"
-                v-model="firstName"
+                v-model="formData.firstName"
                 :placeholder="t('registerFirstName')"
                 type="text"
                 :isValid="isFirstNameValid"
-                :validationText="firstNameErrorKey ? t(firstNameErrorKey) : ''"
+                :validationText="errors.firstName ? t(errors.firstName) : ''"
                 validationMode="both"
                 :style="{
                     width: '60%'
@@ -205,42 +185,42 @@
             
             <ValidatedInput
                 id="lastname"
-                v-model="lastName"
+                v-model="formData.lastName"
                 :placeholder="t('registerLastName')"
                 type="text"
                 :isValid="isLastNameValid"
-                :validationText="lastNameErrorKey ? t(lastNameErrorKey) : ''"
+                :validationText="errors.lastName ? t(errors.lastName) : ''"
                 validationMode="both"
             />
         </div>
         
         <ValidatedInput
             id="email"
-            v-model="email"
+            v-model="formData.email"
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="emailRegisterErrorKey ? t(emailRegisterErrorKey) : ''"
+            :validationText="errors.email ? t(errors.email) : ''"
             validationMode="both"
         />
 
         <ValidatedInput
             id="password"
-            v-model="password"
+            v-model="formData.password"
             :placeholder="t('password')"
             type="password"
             :isValid="isPasswordValid"
-            :validationText="passwordRegisterErrorKey ? t(passwordRegisterErrorKey) : ''"
+            :validationText="errors.password ? t(errors.password) : ''"
             validationMode="both"
         />
 
         <ValidatedInput
             id="confirm-password"
-            v-model="passwordConfirmation"
+            v-model="formData.passwordConfirmation"
             :placeholder="t('passwordConfirm')"
             type="password"
             :isValid="isPasswordConfirmationValid"
-            :validationText="passwordConfirmationErrorKey? t(passwordConfirmationErrorKey) : ''"
+            :validationText="errors.passwordConfirmation? t(errors.passwordConfirmation) : ''"
             validationMode="both"
         />
 

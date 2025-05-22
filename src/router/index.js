@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { isTokenValid } from '@/utils/auth';
+import AccountCreationConfirmationView from '@/views/AccountCreationConfirmationView.vue';
 
 const DashboardView = () => import('@/views/DashboardView.vue');
 const LoginView = () => import('@/views/LoginView.vue');
@@ -27,6 +28,11 @@ const routes = [
                 path: 'register',
                 name: 'register',
                 component: RegisterView
+            },
+            {
+                path: 'confirmation',
+                name: 'confirmation',
+                component: AccountCreationConfirmationView
             }
         ]
     },
