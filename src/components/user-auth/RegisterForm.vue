@@ -1,15 +1,14 @@
 <script setup>
-    import { reactive, computed, watch } from 'vue';
+    import { reactive, computed, watch, ref, onMounted, onUnmounted  } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
     import api from '@/utils/api'
 
     import ValidatedInput from '../text-input/ValidatedInput.vue';
+    import LoaderButton from '../Buttons/LoaderButton.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
     import { isEmail, isStrongPassword } from '@/utils/validators';
-
-    import { ref, onMounted, onUnmounted } from 'vue';
 
     const inputWidth = ref('60%');
 
@@ -45,6 +44,7 @@
     const { t } = useI18n();
     const router = useRouter();
     const emit = defineEmits(['form-progress'])
+    const loading = ref(false);
 
     const resetForm = () => {
         Object.keys(formData).forEach(key => formData[key] = '');
@@ -162,6 +162,8 @@
 
         if (!isValid) return;
 
+        loading.value = true;
+
         const payload = {
             firstName: capitalizeWords(formData.firstName),
             lastName: capitalizeWords(formData.lastName),
@@ -180,6 +182,8 @@
             } else {
             errors.email = 'serverError';
             }
+        } finally {
+            loading.value = false;
         }
     };
 </script>
@@ -241,13 +245,11 @@
             validationMode="both"
         />
 
-        <motion.button 
-            class="submit-button" 
+        <LoaderButton
+            :loading="loading"
+            :label="t('submitButtonText')"
             type="submit"
-            :whilePress="{ scale: 0.95 }"
-            >
-            {{ t('submitButtonText') }}
-        </motion.button>
+        />
     </form>
 </template>
 

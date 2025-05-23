@@ -3,9 +3,9 @@
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
-    import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
     import { isEmail } from '@/utils/validators';
+    import LoaderButton from '../Buttons/LoaderButton.vue';
 
     const formData = reactive({
         email: '',
@@ -13,20 +13,14 @@
         tokenPersist: ''
     });
 
-    // const email = ref('');
-    // const password = ref('');
-    // const tokenPersist = ref(false);
-
     const errors = reactive({
         login: '',
         email: ''
     });
-
-    // const loginErrorKey = ref('');
-    // const emailErrorKey = ref('');
     
     const { t } = useI18n();
     const router = useRouter();
+    const loading = ref(false);
     
     const isEmailValid = computed(() => isEmail(formData.email) && !errors.email);
     const isLoginValid = computed(() => !errors.login);
@@ -40,7 +34,7 @@
         errors.email = '';
     });
 
-    const login = () => {
+    const login = async () => {
         let isValid = true;
 
         if(formData.email === '') {
@@ -57,26 +51,31 @@
         }
 
         if(isValid) {
+            loading.value = true
+            
             const payload = {
                 username: formData.email,
                 password: formData.password,
                 tokenPersist: formData.tokenPersist
             }
 
-            api.post('/auth/login', payload)
-            .then( function(response) {
-                const token = response.data.token;
+            try {
+                await api.post('/auth/login', payload)
+                .then( function(response) {
+                    const token = response.data.token;
 
-                localStorage.setItem('token', token);
-                router.push('/');
-            })
-            .catch( function(error) {
+                    localStorage.setItem('token', token);
+                    router.push('/');
+                } )
+            } catch (error) {
                 if (error.type === 'unauthorized') {
                     errors.email = 'emailIncorrect';
                 } else {
                     errors.login = 'serverError';
                 }
-            })
+            } finally {
+                loading.value = false;
+            }
         } 
     }
 </script>
@@ -113,13 +112,11 @@
             </div>
         </div>
 
-        <motion.button 
-            class="submit-button" 
+        <LoaderButton
+            :loading="loading"
+            :label="t('loginButtonText')"
             type="submit"
-            :whilePress="{ scale: 0.95 }"
-            >
-            {{ t('loginButtonText') }}
-        </motion.button>
+        />
     </form>
 </template>
 
@@ -127,6 +124,7 @@
     #login-form {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 32px;
     }
 
