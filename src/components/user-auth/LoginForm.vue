@@ -1,44 +1,66 @@
 <script setup>
-    import { ref, computed, watch } from 'vue';
+    import { reactive, ref, computed, watch } from 'vue';
     import ValidatedInput from '../text-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
     import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
+    import { isEmail } from '@/utils/validators';
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-    const email = ref('');
-    const password = ref('');
-    const loginErrorKey = ref('');
-    const { t } = useI18n();
-    const router = useRouter();
-
-    const isEmailValid = computed(() =>
-        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)
-    );
-
-    const isLoginValid = computed(() =>
-        loginErrorKey.value === ''
-    );
-
-    watch (password, () => {
-        if (loginErrorKey.value) {
-            loginErrorKey.value = '';
-        }
+    const formData = reactive({
+        email: '',
+        password: '',
+        tokenPersist: ''
     });
 
-    watch (email, () => {
-        if (loginErrorKey.value) {
-            loginErrorKey.value = '';
-        }
+    // const email = ref('');
+    // const password = ref('');
+    // const tokenPersist = ref(false);
+
+    const errors = reactive({
+        login: '',
+        email: ''
+    });
+
+    // const loginErrorKey = ref('');
+    // const emailErrorKey = ref('');
+    
+    const { t } = useI18n();
+    const router = useRouter();
+    
+    const isEmailValid = computed(() => isEmail(formData.email) && !errors.email);
+    const isLoginValid = computed(() => !errors.login);
+
+    watch (() => formData.password, () => {
+        errors.login = '';
+    });
+
+    watch (() => formData.email, () => {
+        errors.login = '';
+        errors.email = '';
     });
 
     const login = () => {
-        password
-        if(isEmailValid.value) {
+        let isValid = true;
+
+        if(formData.email === '') {
+            errors.email = 'emptyFieldError';
+            isValid = false;
+        } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email.value)) {
+            errors.email = 'emailInvalid';
+            isValid = false;
+        }
+
+        if(formData.password === '') {
+            errors.login = 'emptyFieldError';
+            isValid = false;
+        }
+
+        if(isValid) {
             const payload = {
-                username: email.value,
-                password: password.value
+                username: formData.email,
+                password: formData.password,
+                tokenPersist: formData.tokenPersist
             }
 
             api.post('/auth/login', payload)
@@ -50,40 +72,38 @@
             })
             .catch( function(error) {
                 if (error.type === 'unauthorized') {
-                    loginErrorKey.value = 'emailIncorrect';
-                } else if (error.type === 'network') {
-                    loginErrorKey.value = 'serverError';
+                    errors.email = 'emailIncorrect';
                 } else {
-                    loginErrorKey.value = 'serverError';
+                    errors.login = 'serverError';
                 }
             })
-        } else {
-            loginErrorKey.value = 'insufficientCredentialsError'
-        }
+        } 
     }
 </script>
 
 <template>
     <form id="login-form" @submit.prevent="login">
         <ValidatedInput
-            v-model="email"
+            id="email"
+            v-model="formData.email"
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="t('emailInvalid')"
+            :validationText="errors.email ? t(errors.email) : ''"
         />
 
         <ValidatedInput
-            v-model="password"
+            id="password"
+            v-model="formData.password"
             :placeholder="t('password')"
             type="password"
             :isValid="isLoginValid"
-            :validationText="loginErrorKey ? t(loginErrorKey) : ''"
+            :validationText="errors.login ? t(errors.login) : ''"
         />
 
         <div class="login-options">
             <label id="remember-me">
-                <input type="checkbox">
+                <input id="remember-me-checkbox" type="checkbox" v-model="formData.tokenPersist">
                 <span> {{ t('rememberMeText') }} </span>
             </label>
 
@@ -94,7 +114,7 @@
         </div>
 
         <motion.button 
-            class="login-button" 
+            class="submit-button" 
             type="submit"
             :whilePress="{ scale: 0.95 }"
             >
@@ -158,20 +178,5 @@
 
     #forgot-password {
         color: var(--vt-c-highlight);
-    }
-
-    .login-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 300px;
-        height: 44px;
-        border-radius: 8px;
-        background: var(--vt-c-highlight);
-        color: #FFFFFF;
-        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-        font-family: 'Ubuntu';
-        font-weight: 700;
-        font-size: 16px;
     }
 </style>

@@ -7,7 +7,7 @@
 </script>
 
 <template>
-    <div id="login-page-content">
+    <div id="confirmation-page-content">
         <div id="auth-header-text">
             <div id="auth-header-title">
                 <LogoIcon />
@@ -15,35 +15,21 @@
             </div>
 
             <span id="auth-header-subtext">
-                {{ t('loginHeaderSubtext') }}
+                {{ t('accountCreationSuccesful') }}
+
+                 <router-link
+                    to="/auth/login"
+                    style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
+                >
+                    {{ t('backToLoginText') }}
+                </router-link>
             </span>
-        </div>
-
-        <LoginForm />
-
-        <div id="horizontal-divider">
-            <span class="horizontal-divider-bar"></span>
-            {{ t("loginDividerText") }}
-            <span class="horizontal-divider-bar"></span>
-        </div>
-
-        <div class="create-account-options">
-            <span style="color: var(--color-subtext)">
-                {{ t('loginNewHereText') }}
-            </span>
-
-            <router-link
-                to="/auth/register"
-                style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
-            >
-                {{ t('loginCreateAccountText') }}
-            </router-link>
         </div>
     </div>
 </template>
 
 <style>
-    #login-page-content {
+    #confirmation-page-content {
         display: flex;
         flex-direction: column;
         align-items: center;

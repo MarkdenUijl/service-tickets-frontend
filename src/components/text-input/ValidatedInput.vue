@@ -10,7 +10,16 @@
         isValid: {
             type: Boolean,
             default: true,
-        }
+        },
+        validationMode: {
+            type: String,
+            default: 'red-only',
+            validator: (value) => ['both', 'red-only'].includes(value),
+        },
+        id: {
+            type: String,
+            required: true
+        },
     });
 
     const modelValue = defineModel();
@@ -23,10 +32,13 @@
     }
 
     const shouldValidate = computed(() => {
+        // return !props.isValid &&
+        //         props.validationText &&
+        //         modelValue.value !== '' &&
+        //         touched.value
         return !props.isValid &&
                 props.validationText &&
-                modelValue.value !== '' &&
-                touched.value
+                (touched.value || modelValue.value === '');
     });
     
     watch(modelValue, (newValue) => {
@@ -35,12 +47,25 @@
         }
     });
     
-    const validationColor = computed(() => (shouldValidate.value ? 'var(--vt-c-red)' : null));
+    const isValidAndFilled = computed(() => {
+        return props.isValid && modelValue.value !== '';
+    });
+
+    const validationColor = computed(() => {
+        if (shouldValidate.value) {
+            return 'var(--vt-c-red)';
+        } else if (props.validationMode === 'both' && isValidAndFilled.value) {
+            return 'var(--vt-c-green)';
+        } else {
+            return null;
+        }
+    });
 </script>
 
 <template>
     <div class="input-wrapper">
         <TextInput
+            :id="props.id"
             v-model="modelValue"
             :placeholder="props.placeholder"
             :type="props.type"
@@ -69,12 +94,12 @@
 <style scoped>
     .input-wrapper {
         position: relative;
-        width: min-content;
+        width: 100%;
     }
 
     .validation-text {
         position: absolute;
-        bottom: -26px;
+        bottom: -18px;
         right: 0;
         z-index: 2;
         font-size: 13px;

@@ -15,6 +15,7 @@
   
 <style>
     .ui-selector {
+        z-index: 5;
         display: flex;
         flex-direction: row;
         gap: 16px;
