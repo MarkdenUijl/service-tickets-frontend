@@ -1,25 +1,37 @@
 <script setup>
-    import LoginForm from '@/components/user-auth/LoginForm.vue';
+    import { ref } from 'vue';
+    import RegisterForm from '@/components/user-auth/RegisterForm.vue';
     import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
-
     import { useI18n } from 'vue-i18n';
+
     const { t } = useI18n();
+
+    const formProgress = ref(0);
+    const emit = defineEmits(['form-progress']);
+
+    function handleFormProgress(value) {
+        formProgress.value = value;
+        emit('form-progress', value);
+    }
 </script>
 
 <template>
-    <div id="login-page-content">
-        <div id="auth-header-text">
+    <div id="register-page-content">
+        <div 
+            id="auth-header-text"
+            style="align-self: flex-start"
+        >
             <div id="auth-header-title">
                 <LogoIcon />
-                <span style="font-weight: 800; font-size: 20px">HELVAR SERVICE TICKETS</span>
+                <span :style="{ 'font-weight' : 800, 'font-size' : '20px' }">HELVAR SUPPORT PORTAL</span>
             </div>
 
             <span id="auth-header-subtext">
-                {{ t('loginHeaderSubtext') }}
+                {{ t('registerHeaderSubtext') }}
             </span>
-        </div>
+        </div> 
 
-        <LoginForm />
+        <RegisterForm @form-progress="handleFormProgress" />
 
         <div id="horizontal-divider">
             <span class="horizontal-divider-bar"></span>
@@ -29,27 +41,26 @@
 
         <div class="create-account-options">
             <span style="color: var(--color-subtext)">
-                {{ t('loginNewHereText') }}
+                {{ t('alreadyHaveAccountText') }}
             </span>
 
             <router-link
-                to="/auth/register"
+                to="/auth/login"
                 style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
             >
-                {{ t('loginCreateAccountText') }}
+                {{ t('registerReturnText') }}
             </router-link>
         </div>
     </div>
 </template>
 
 <style>
-    #login-page-content {
+    #register-page-content {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 24px;
-        width: 100%;
-        max-width: 300px;
+        width: 80%;
         box-sizing: border-box;
     }
 </style>

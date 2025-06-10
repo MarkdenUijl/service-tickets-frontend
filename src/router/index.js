@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { isTokenValid } from '@/utils/auth';
-import AccountCreationConfirmationView from '@/views/AccountCreationConfirmationView.vue';
 
 const DashboardView = () => import('@/views/DashboardView.vue');
-const LoginView = () => import('@/views/LoginView.vue');
-const RegisterView = () => import('@/views/RegisterView.vue');
+const AccountCreationConfirmationView = () => import('@/views/auth-views/AccountCreationConfirmationView.vue');
+const LoginView = () => import('@/views/auth-views/LoginView.vue');
+const RegisterView = () => import('@/views/auth-views/RegisterView.vue');
 const AuthLayout = () => import('@/layouts/AuthLayout.vue');
 
 const routes = [
@@ -50,14 +50,14 @@ const router = createRouter({
     routes
 });
 
-router.beforeEach((to, from, next) => {
-    const isAuthenticated = isTokenValid();
+// router.beforeEach((to, from, next) => {
+//     const isAuthenticated = isTokenValid();
 
-    if (to.meta.requiresAuth && !isAuthenticated) {
-        next('auth/login');
-    } else {
-        next();
-    }
-});
+//     if (to.meta.requiresAuth && !isAuthenticated) {
+//         next('auth/login');
+//     } else {
+//         next();
+//     }
+// });
 
 export default router;
