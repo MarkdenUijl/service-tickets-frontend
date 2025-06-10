@@ -63,7 +63,7 @@
     }
 
     .auth-background {
-        background-color: var(--color-background);
+        background-color: var(--color-menu-background);
         min-width: 400px;
         height: 100dvh;
         box-sizing: border-box;

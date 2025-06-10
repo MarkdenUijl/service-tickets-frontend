@@ -6,6 +6,7 @@ const AccountCreationConfirmationView = () => import('@/views/auth-views/Account
 const LoginView = () => import('@/views/auth-views/LoginView.vue');
 const RegisterView = () => import('@/views/auth-views/RegisterView.vue');
 const AuthLayout = () => import('@/layouts/AuthLayout.vue');
+const DashboardLayout = () => import('@/layouts/DashboardLayout.vue');
 
 const routes = [
     {
@@ -39,7 +40,7 @@ const routes = [
     {
         path: '/',
         name: 'dashboard',
-        component: DashboardView,
+        component: DashboardLayout,
         meta: { requiresAuth: true }
     },
     { path: '/:pathMatch(.*)*', redirect: '/auth/login' }
