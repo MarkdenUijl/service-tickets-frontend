@@ -3,5 +3,5 @@
 </script>
 
 <template>
-    <SvgIcon name="helvar-logo-small" width="28px" height="28px"/>
+    <SvgIcon name="helvar-logo-small" width="38px" height="38px"/>
 </template>

@@ -1,5 +1,4 @@
 <script setup>
-    import LoginForm from '@/components/user-auth/LoginForm.vue';
     import LogoIcon from '@/components/graphic-items/LogoIcon.vue';
 
     import { useI18n } from 'vue-i18n';
@@ -15,13 +14,13 @@
             </div>
 
             <span id="auth-header-subtext">
-                {{ t('accountCreationSuccesful') }}
+                {{ t('auth.accountCreationSuccesful') }}
 
                  <router-link
                     to="/auth/login"
                     style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
                 >
-                    {{ t('backToLoginText') }}
+                    {{ t('auth.backToLoginText') }}
                 </router-link>
             </span>
         </div>

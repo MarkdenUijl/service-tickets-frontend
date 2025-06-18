@@ -27,7 +27,7 @@
             </div>
 
             <span id="auth-header-subtext">
-                {{ t('registerHeaderSubtext') }}
+                {{ t('auth.registerHeaderSubtext') }}
             </span>
         </div> 
 
@@ -35,20 +35,20 @@
 
         <div id="horizontal-divider">
             <span class="horizontal-divider-bar"></span>
-            {{ t("loginDividerText") }}
+            {{ t('auth.loginDividerText') }}
             <span class="horizontal-divider-bar"></span>
         </div>
 
         <div class="create-account-options">
             <span style="color: var(--color-subtext)">
-                {{ t('alreadyHaveAccountText') }}
+                {{ t('auth.alreadyHaveAccountText') }}
             </span>
 
             <router-link
                 to="/auth/login"
                 style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
             >
-                {{ t('registerReturnText') }}
+                {{ t('auth.registerReturnText') }}
             </router-link>
         </div>
     </div>

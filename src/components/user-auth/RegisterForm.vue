@@ -1,12 +1,11 @@
 <script setup>
     import { reactive, computed, watch, ref, onMounted, onUnmounted  } from 'vue';
     import { useI18n } from 'vue-i18n';
-    import { motion } from 'motion-v';
     import { useRouter } from 'vue-router';
     import api from '@/utils/api'
 
     import ValidatedInput from '../text-input/ValidatedInput.vue';
-    import LoaderButton from '../Buttons/LoaderButton.vue';
+    import LoaderButton from '../buttons/LoaderButton.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
     import { isEmail, isStrongPassword } from '@/utils/validators';
 
@@ -194,10 +193,10 @@
             <ValidatedInput
                 id="firstname"
                 v-model="formData.firstName"
-                :placeholder="t('registerFirstName')"
+                :placeholder="t('auth.registerFirstName')"
                 type="text"
                 :isValid="isFirstNameValid"
-                :validationText="errors.firstName ? t(errors.firstName) : ''"
+                :validationText="errors.firstName ? t(`auth.${errors.firstName}`) : ''"
                 validationMode="both"
                 :style="{
                     width: inputWidth
@@ -207,10 +206,10 @@
             <ValidatedInput
                 id="lastname"
                 v-model="formData.lastName"
-                :placeholder="t('registerLastName')"
+                :placeholder="t('auth.registerLastName')"
                 type="text"
                 :isValid="isLastNameValid"
-                :validationText="errors.lastName ? t(errors.lastName) : ''"
+                :validationText="errors.lastName ? t(`auth.${errors.lastName}`) : ''"
                 validationMode="both"
             />
         </div>
@@ -221,33 +220,33 @@
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="errors.email ? t(errors.email) : ''"
+            :validationText="errors.email ? t(`auth.${errors.email}`) : ''"
             validationMode="both"
         />
 
         <ValidatedInput
             id="password"
             v-model="formData.password"
-            :placeholder="t('password')"
+            :placeholder="t('auth.password')"
             type="password"
             :isValid="isPasswordValid"
-            :validationText="errors.password ? t(errors.password) : ''"
+            :validationText="errors.password ? t(`auth.${errors.password}`) : ''"
             validationMode="both"
         />
 
         <ValidatedInput
             id="confirm-password"
             v-model="formData.passwordConfirmation"
-            :placeholder="t('passwordConfirm')"
+            :placeholder="t('auth.passwordConfirm')"
             type="password"
             :isValid="isPasswordConfirmationValid"
-            :validationText="errors.passwordConfirmation? t(errors.passwordConfirmation) : ''"
+            :validationText="errors.passwordConfirmation? t(`auth.${errors.passwordConfirmation}`) : ''"
             validationMode="both"
         />
 
         <LoaderButton
             :loading="loading"
-            :label="t('submitButtonText')"
+            :label="t('auth.submitButtonText')"
             type="submit"
         />
     </form>

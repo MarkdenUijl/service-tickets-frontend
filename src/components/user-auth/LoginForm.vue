@@ -5,7 +5,7 @@
     import api from '@/utils/api';
     import { useRouter } from 'vue-router';
     import { isEmail } from '@/utils/validators';
-    import LoaderButton from '../Buttons/LoaderButton.vue';
+    import LoaderButton from '../buttons/LoaderButton.vue';
 
     const formData = reactive({
         email: '',
@@ -88,33 +88,33 @@
             placeholder="Email"
             type="text"
             :isValid="isEmailValid"
-            :validationText="errors.email ? t(errors.email) : ''"
+            :validationText="errors.email ? t(`auth.${errors.email}`) : ''"
         />
 
         <ValidatedInput
             id="password"
             v-model="formData.password"
-            :placeholder="t('password')"
+            :placeholder="t('auth.password')"
             type="password"
             :isValid="isLoginValid"
-            :validationText="errors.login ? t(errors.login) : ''"
+            :validationText="errors.login ? t(`auth.${errors.login}`) : ''"
         />
 
         <div class="login-options">
             <label id="remember-me">
                 <input id="remember-me-checkbox" type="checkbox" v-model="formData.tokenPersist">
-                <span> {{ t('rememberMeText') }} </span>
+                <span> {{ t('auth.rememberMeText') }} </span>
             </label>
 
             <div id="forgot-password">
                 <!-- TURN INTO LINK -->
-                {{ t('forgotPasswordText') }}
+                {{ t('auth.forgotPasswordText') }}
             </div>
         </div>
 
         <LoaderButton
             :loading="loading"
-            :label="t('loginButtonText')"
+            :label="t('auth.loginButtonText')"
             type="submit"
         />
     </form>

@@ -1,21 +1,32 @@
+import { useDark } from '@vueuse/core';
+
+let isDarkRef = null;
+
 export function useTheme() {
+  if (!isDarkRef) {
+    isDarkRef = useDark({
+      selector: 'html',
+      attribute: 'class',
+      valueDark: 'theme-dark',
+      valueLight: 'theme-light',
+      storageKey: 'theme',
+      initialValue: 'auto',
+    });
+  }
+
   const toggleTheme = () => {
-    const root = document.documentElement;
-    const isDark = root.classList.contains('theme-dark');
-
-    root.classList.remove('theme-dark', 'theme-light');
-    const newTheme = isDark ? 'theme-light' : 'theme-dark';
-    root.classList.add(newTheme);
-    localStorage.setItem('theme', newTheme);
+    isDarkRef.value = !isDarkRef.value;
   };
 
-  const applyStoredTheme = () => {
-    const saved = localStorage.getItem('theme');
+  const resetToSystem = () => {
+    localStorage.removeItem('theme');
     
-    if (saved === 'theme-dark' || saved === 'theme-light') {
-      document.documentElement.classList.add(saved);
-    }
+    isDarkRef.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
   };
 
-  return { toggleTheme, applyStoredTheme };
+  return {
+    isDark: isDarkRef,
+    toggleTheme,
+    resetToSystem,
+  };
 }
