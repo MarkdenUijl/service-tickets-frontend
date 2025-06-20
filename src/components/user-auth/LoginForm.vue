@@ -60,13 +60,18 @@
             }
 
             try {
-                await api.post('/auth/login', payload)
-                .then( function(response) {
-                    const token = response.data.token;
+                const response = await api.post('/auth/login', payload);
+                const token = response.data.token;
 
-                    localStorage.setItem('token', token);
-                    router.push('/');
-                } )
+                api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+                const userResponse = await api.get('/users/me');
+                const user = userResponse.data;
+
+                localStorage.setItem('user', JSON.stringify(user));
+                localStorage.setItem('token', token);
+
+                router.push('/dashboard/overview');
             } catch (error) {
                 if (error.type === 'unauthorized') {
                     errors.email = 'emailIncorrect';
@@ -113,7 +118,7 @@
         </div>
 
         <LoaderButton
-            :loading="loading"
+            :loading="loading.value"
             :label="t('auth.loginButtonText')"
             type="submit"
         />

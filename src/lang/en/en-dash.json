@@ -4,5 +4,6 @@
     "navProjectsText": "Projects",
     "navContractsText": "Contracts",
     "navUsersText": "Users",
-    "navSettingsText": "Settings"
+    "navSettingsText": "Settings",
+    "logoutText": "Logout"
 }

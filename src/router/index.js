@@ -18,18 +18,18 @@ const routes = [
     {
         path: '/auth',
         component: AuthLayout,
+        beforeEnter(to, from, next) {
+                    if( isTokenValid() ) {
+                        next('/dashboard/overview');
+                    } else {
+                        next();
+                    }
+                },
         children: [
             {
                 path: 'login',
                 name: 'login',
                 component: LoginView,
-                beforeEnter(to, from, next) {
-                    if( isTokenValid() ) {
-                        next('');
-                    } else {
-                        next();
-                    }
-                }
             },
             {
                 path: 'register',
@@ -89,14 +89,14 @@ const router = createRouter({
     routes
 });
 
-// router.beforeEach((to, from, next) => {
-//     const isAuthenticated = isTokenValid();
+router.beforeEach((to, from, next) => {
+    const isAuthenticated = isTokenValid();
 
-//     if (to.meta.requiresAuth && !isAuthenticated) {
-//         next('auth/login');
-//     } else {
-//         next();
-//     }
-// });
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        next('/auth/login');
+    } else {
+        next();
+    }
+});
 
 export default router;
