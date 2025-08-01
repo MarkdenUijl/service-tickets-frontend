@@ -1,6 +1,6 @@
 <script setup>
     import { useRoute, useRouter } from 'vue-router';
-    import { computed, ref } from 'vue';
+    import { computed, nextTick, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { motion, AnimatePresence } from 'motion-v';
 
@@ -8,6 +8,7 @@
     import { logout } from '@/utils/auth';
     import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue';
     import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
+    import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
     
     
     const { t } = useI18n();
@@ -16,6 +17,10 @@
     const route = useRoute();
 
     const showMenu = ref(false);
+    const buttonRefs = ref([]);
+    const indicatorY = ref(-15);
+    const indicatorHeight = ref(60);
+    const wrapperRef = ref(null);
 
     const handleLogout = () => {
       logout();
@@ -63,7 +68,27 @@
 
     const toggleMenu = () => {
       showMenu.value = !showMenu.value;
-    };  
+    };
+
+    watch(() => route.path, () => {
+      nextTick(() => {
+        const selectedIndex = selectedPages.value.findIndex(p => p.selected);
+        const el = buttonRefs.value[selectedIndex];
+
+        if(!el) return;
+
+        const wrapperTop = wrapperRef.value.getBoundingClientRect().top;
+        const rect = el.getBoundingClientRect();
+        const newY = rect.top + rect.height / 2 - wrapperTop - 30;
+        
+        indicatorHeight.value = 70;
+        indicatorY.value = newY;
+
+        setTimeout(() => {
+          indicatorHeight.value = 60;
+        }, 150);
+      });
+    }, { immediate: true });
 </script>
 
 <template>
@@ -74,15 +99,26 @@
         <span style="font-weight: 700; font-size: 50px; font-family: 'Noto Sans JP'; user-select: none;">Helvar</span>
       </div>
 
-      <div id="dashboard-selection-menu">
-        <DashboardPageSelectorButton
-          v-for="page in selectedPages"
-          :key="page.to"
-          :label="page.label"
-          :icon="page.icon"
-          :to="page.to"
-          :selected="page.selected"
-        />
+      <div class="selection-menu-wrapper" ref="wrapperRef">
+        <motion.div
+          class="selection-menu-indicator"
+          :animate="{ y: indicatorY, height: indicatorHeight + 'px' }"
+          :transition="{ type: 'spring', stiffness: 300, damping: 25 }"
+        >
+          <SvgIcon name="selection-indicator"/>
+        </motion.div>
+
+        <div id="dashboard-selection-menu">
+          <DashboardPageSelectorButton
+            v-for="( page, index ) in selectedPages"
+            :key="page.to"
+            :label="page.label"
+            :icon="page.icon"
+            :to="page.to"
+            :selected="page.selected"
+            :ref="el => buttonRefs[index] = el?.$el"
+          />
+        </div>
       </div>
 
       <div id="user-info-tile">
@@ -237,5 +273,17 @@
 
     .user-info-menu-item:hover {
       background-color: var(--color-background);
+    }
+
+    .selection-menu-wrapper {
+      position: relative;
+    }
+
+    .selection-menu-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 60px;
     }
 </style>
