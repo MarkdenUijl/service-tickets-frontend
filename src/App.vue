@@ -1,7 +1,8 @@
 <script setup>
-    import { useI18n } from 'vue-i18n';
+    import { useTheme } from '@/utils/useTheme';
 
-    const { t } = useI18n();
+    /* DO NOT REMOVE - USED FOR GLOBAL THEME STYLING */
+    const { isDark } = useTheme();
 </script>
 
 <template>

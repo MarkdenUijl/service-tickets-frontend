@@ -1,27 +1,46 @@
-/* color palette */
+/* Color palette */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-offwhite: #D7D7D7;
+  --vt-c-white: #FFFFFF;
+  --vt-c-ghost-white: #F3F3F3;
+  --vt-c-offwhite: #B0B1B5;
   --vt-c-darkwhite: #C1C1C1;
-  --vt-c-black: #1E1E1E;
+  --vt-c-black: #36373F;
+  --vt-c-pure-black: #000000;
   --vt-c-highlight: #B91228;
   --vt-c-red: #B91228;
   --vt-c-green: #28B446;
-}
 
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
+  /* Default to light mode variables */
+  --color-menu-background: var(--vt-c-white);
+  --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
 }
 
+/* Override for system dark preference */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: var(--vt-c-black);
+    --color-menu-background: var(--vt-c-black);
+    --color-background: var(--vt-c-pure-black);
     --color-text: var(--vt-c-white);
     --color-subtext: var(--vt-c-offwhite);
   }
+}
+
+/* Manual dark override */
+:root.theme-dark {
+  --color-menu-background: var(--vt-c-black);
+  --color-background: var(--vt-c-pure-black);
+  --color-text: var(--vt-c-white);
+  --color-subtext: var(--vt-c-offwhite);
+}
+
+/* Manual light override */
+:root.theme-light {
+  --color-menu-background: var(--vt-c-white);
+  --color-background: var(--vt-c-ghost-white);
+  --color-text: var(--vt-c-black);
+  --color-subtext: var(--vt-c-darkwhite);
 }
 
 *,

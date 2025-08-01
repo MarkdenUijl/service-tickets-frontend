@@ -135,7 +135,7 @@
         width: inherit;
         height: 60px;
         flex-shrink: 0;
-        background-color: var(--color-background);
+        background-color: var(--color-menu-background);
         border: 1px solid var(--color-subtext);
         color: var(--color-subtext);
         border-radius: 4px;
@@ -150,7 +150,7 @@
     }
 
     .text-input:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px var(--color-background) inset !important;
+        box-shadow: 0 0 0px 1000px var(--color-menu-background) inset !important;
         -webkit-text-fill-color: var(--color-subtext) !important;
         caret-color: var(--color-subtext);
     }
@@ -166,7 +166,7 @@
         padding: 3px;
         z-index: 1;
         color: var(--color-subtext);
-        background-color: var(--color-background);
+        background-color: var(--color-menu-background);
         left: 16px;
         top: 18px;
         font-size: 16px;

@@ -57,13 +57,13 @@
         flex-direction: row;
         justify-content: flex-end;
         align-items: stretch;
-        min-height: 100vh;
+        min-height: 100dvh;
         width: 100%;
         box-sizing: border-box;
     }
 
     .auth-background {
-        background-color: var(--color-background);
+        background-color: var(--color-menu-background);
         min-width: 400px;
         height: 100dvh;
         box-sizing: border-box;
@@ -82,7 +82,7 @@
         left: 0;
         top: 0;
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
         object-fit: cover;
         z-index: 0;
         pointer-events: none;

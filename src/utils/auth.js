@@ -1,6 +1,10 @@
 export function isTokenValid() {
     const token = localStorage.getItem('token');
-    if (!token) return false;
+    
+    if (!token) {
+        logout();
+        return false;
+    }
 
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -21,5 +25,5 @@ export function isTokenValid() {
 
 export function logout() {
     localStorage.removeItem('token');
-    window.location.href('/login');
+    localStorage.removeItem('user');
 }

@@ -15,7 +15,7 @@
 
 <template>
   <div class="svg-icon-container" :style="{ width: props.width, height: props.height, borderRadius: props.radius }">
-    <component :is="SvgComponent" width="100%" height="100%" />
+    <component :is="SvgComponent" width="100%" height="100%"/>
   </div>
 </template>
 
