@@ -1,5 +1,6 @@
 <script setup>
   import { defineAsyncComponent, computed } from 'vue'
+  import LoadingSpinner from '../common/LoadingSpinner.vue';
 
   const props = defineProps({
     name: { type: String, required: true },
@@ -8,8 +9,13 @@
     radius: { type: String, default: '0' }
   })
 
+
   const SvgComponent = computed(() =>
-    defineAsyncComponent(() => import(`@/assets/svg/${props.name}.svg`))
+    defineAsyncComponent({
+      loader: () => import(`@/assets/svg/${props.name}.svg`),
+      loadingComponent: LoadingSpinner,
+      delay: 200
+    })
   )
 </script>
 

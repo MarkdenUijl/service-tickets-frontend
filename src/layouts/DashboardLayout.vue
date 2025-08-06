@@ -93,6 +93,8 @@
 
 <template>
   <div class="dashboard-page">
+    <SvgIcon name="gradient-background-banner" height="184px" class="page-background"/>
+
     <div class="dashboard-index-background">
       <div id="dashboard-branding">
         <LogoIconLarge />
@@ -157,9 +159,10 @@
       </div>
     </div>
 
-    <router-view v-slot="{ Component }">
+    <router-view id="dashboard-views" v-slot="{ Component }">
       <component :is="Component"/>
     </router-view>
+    
   </div>
 </template>
 
@@ -175,10 +178,14 @@
         box-sizing: border-box;
     }
 
+    #dashboard-views {
+      z-index: 1;
+    }
+
     .dashboard-index-background {
         background-color: var(--color-menu-background);
         /* min-width: 400px; */
-        width: 21%;
+        width: 20%;
         height: 100dvh;
         box-sizing: border-box;
         display: flex;
@@ -285,5 +292,9 @@
       left: 0;
       width: 8px;
       height: 60px;
+    }
+
+    .page-background {
+      position: absolute;
     }
 </style>
