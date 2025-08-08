@@ -10,8 +10,7 @@
     import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
     import UserInfoTile from '@/components/common/UserInfoTile.vue';
-    
-    
+
     const { t } = useI18n();
     const { user } = useCurrentUser();
     const router = useRouter();
@@ -31,6 +30,21 @@
     const handleBurgerMenuClick = () => {
       menuOpen.value = !menuOpen.value;
     };
+
+    const bar1 = {
+      open: { opacity: 0, y: 6 },
+      closed: { opacity: 1, y: 0, backgroundColor: 'var(--vt-c-white)' }
+    }
+
+    const bar2 = {
+      open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' },
+      closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' }
+    }
+
+    const bar3 = {
+      open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' },
+      closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' }
+    }
 
     const pages = [
       {label: t('dash.navOverviewText'), icon: 'overview-icon', to: '/dashboard/overview'},
@@ -77,12 +91,16 @@
   <div class="dashboard-page">
     <SvgIcon name="gradient-background-banner" height="184px" class="page-background"/>
 
-    <div id="menu-toggle-button" :class="menuOpen ? 'open' : ''" @click="handleBurgerMenuClick">
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+    <motion.div 
+      id="menu-toggle-button" 
+      @click="handleBurgerMenuClick"
+      :initial="false"
+      :animate="menuOpen ? 'open' : 'closed'"
+    >
+      <motion.span class="bar" :variants="bar1"/>
+      <motion.span id="bar2" class="bar" :variants="bar2"/>
+      <motion.span class="bar" :variants="bar3"/>
+    </motion.div>
 
     <div class="dashboard-index-background">
       <div id="dashboard-branding">
@@ -193,79 +211,21 @@
     }
 
     #menu-toggle-button {
-      z-index: 10;
+      width: 24px;
+      height: 18px;
       position: absolute;
       top: 20px;
       right: 20px;
-      width: 24px;
-      height: 18px;
-      -webkit-transform: rotate(0deg);
-      -moz-transform: rotate(0deg);
-      -o-transform: rotate(0deg);
-      transform: rotate(0deg);
-      -webkit-transition: .5s ease-in-out;
-      -moz-transition: .5s ease-in-out;
-      -o-transition: .5s ease-in-out;
-      transition: .5s ease-in-out;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 100;
     }
 
-    #menu-toggle-button span {
-      display: block;
-      position: absolute;
+    #menu-toggle-button .bar {
       height: 3px;
       width: 100%;
-      background: var(--vt-c-white);
       border-radius: 3px;
-      opacity: 1;
-      left: 0;
-      -webkit-transform: rotate(0deg);
-      -moz-transform: rotate(0deg);
-      -o-transform: rotate(0deg);
-      transform: rotate(0deg);
-      -webkit-transition: .25s ease-in-out;
-      -moz-transition: .25s ease-in-out;
-      -o-transition: .25s ease-in-out;
-      transition: .25s ease-in-out;
-    }
-
-    #menu-toggle-button span:nth-child(1) {
-      top: 0px;
-    }
-
-    #menu-toggle-button span:nth-child(2),#menu-toggle-button span:nth-child(3) {
-      top: 9px;
-    }
-
-    #menu-toggle-button span:nth-child(4) {
-      top: 18px;
-    }
-
-    #menu-toggle-button.open span:nth-child(1) {
-      top: 9px;
-      width: 0%;
-      left: 50%;
-    }
-
-    #menu-toggle-button.open span:nth-child(2) {
-      -webkit-transform: rotate(45deg);
-      -moz-transform: rotate(45deg);
-      -o-transform: rotate(45deg);
-      transform: rotate(45deg);
-      background: var(--vt-c-black);
-    }
-
-    #menu-toggle-button.open span:nth-child(3) {
-      -webkit-transform: rotate(-45deg);
-      -moz-transform: rotate(-45deg);
-      -o-transform: rotate(-45deg);
-      transform: rotate(-45deg);
-      background: var(--vt-c-black);
-    }
-
-    #menu-toggle-button.open span:nth-child(4) {
-      top: 9px;
-      width: 0%;
-      left: 50%;
     }
 </style>
