@@ -7,7 +7,7 @@
     width: { type: String, default: '100%' },
     height: { type: String, default: '100%' },
     radius: { type: String, default: '0' }
-  })
+  });
 
 
   const SvgComponent = computed(() =>
@@ -16,7 +16,7 @@
       loadingComponent: LoadingSpinner,
       delay: 200
     })
-  )
+  );
 </script>
 
 <template>

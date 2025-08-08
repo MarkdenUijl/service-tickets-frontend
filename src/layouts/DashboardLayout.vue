@@ -2,13 +2,14 @@
     import { useRoute, useRouter } from 'vue-router';
     import { computed, nextTick, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
-    import { motion, AnimatePresence } from 'motion-v';
+    import { motion } from 'motion-v';
 
     import { useCurrentUser } from '@/utils/useCurrentUser';
     import { logout } from '@/utils/auth';
     import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue';
     import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
     import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
+    import UserInfoTile from '@/components/common/UserInfoTile.vue';
     
     
     const { t } = useI18n();
@@ -16,15 +17,19 @@
     const router = useRouter();
     const route = useRoute();
 
-    const showMenu = ref(false);
     const buttonRefs = ref([]);
     const indicatorY = ref(-15);
     const indicatorHeight = ref(60);
     const wrapperRef = ref(null);
+    const menuOpen = ref(false);
 
     const handleLogout = () => {
       logout();
       router.push('/auth/login');
+    };
+
+    const handleBurgerMenuClick = () => {
+      menuOpen.value = !menuOpen.value;
     };
 
     const pages = [
@@ -46,29 +51,6 @@
         selected: route.path.startsWith(page.to)
       }))
     );
-
-    const userInfo = computed(() => {
-      const userVal = user.value;
-      if (!userVal) {
-        return {
-          fullName: '',
-          email: '',
-          initials: '--'
-        };
-      }
-
-      const firstName = userVal.firstName ?? '';
-      const lastName = userVal.lastName ?? '';
-      const fullName = `${firstName} ${lastName}`.trim();
-      const email = userVal.email ?? '';
-      const initials = `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
-
-      return { fullName, email, initials };
-    });
-
-    const toggleMenu = () => {
-      showMenu.value = !showMenu.value;
-    };
 
     watch(() => route.path, () => {
       nextTick(() => {
@@ -94,6 +76,13 @@
 <template>
   <div class="dashboard-page">
     <SvgIcon name="gradient-background-banner" height="184px" class="page-background"/>
+
+    <div id="menu-toggle-button" :class="menuOpen ? 'open' : ''" @click="handleBurgerMenuClick">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
     <div class="dashboard-index-background">
       <div id="dashboard-branding">
@@ -123,40 +112,12 @@
         </div>
       </div>
 
-      <div id="user-info-tile">
-        <motion.div 
-          id="user-info-picture-frame" 
-          @click="toggleMenu"
-          :while-hover="{ scale: 1.1, boxShadow: '0px 0px 8px rgba(255, 255, 255, 0.3)' }"
-        >
-          {{ userInfo.initials }}
-        </motion.div>
-
-        <AnimatePresence>
-          <motion.div 
-            v-if="showMenu" 
-            class="user-info-menu"
-            :initial="{ opacity: 0, y: 10 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :exit="{ opacity: 0, y: 10 }"
-            :transition="{ duration: 0.3, ease: 'easeOut' }"
-          >
-            <div
-              class="user-info-menu-item"
-              v-for="option in userMenuOptions"
-              :key="option.label"
-              @click="option.action"
-            >
-              {{ option.label }}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-        
-        <div id="user-info-contact">
-          <span style="font-family: 'Noto Sans JP'; font-size: 16px; font-weight: 800;">{{ userInfo.fullName }}</span>
-          <span style="font-size: 13px; font-weight: 300;">{{ userInfo.email }}</span>
-        </div>
-      </div>
+      <UserInfoTile 
+        :first-name="user.value?.firstName ?? ''" 
+        :last-name="user.value?.lastName ?? ''" 
+        :email="user.value?.email ?? ''" 
+        :menu-options="userMenuOptions"
+      />
     </div>
 
     <router-view id="dashboard-views" v-slot="{ Component }">
@@ -184,7 +145,7 @@
 
     .dashboard-index-background {
         background-color: var(--color-menu-background);
-        /* min-width: 400px; */
+        min-width: 250px;
         width: 20%;
         height: 100dvh;
         box-sizing: border-box;
@@ -215,73 +176,6 @@
       width: 100%;
     }
 
-    #user-info-tile {
-      border-top: 1px solid var(--color-subtext);
-      width: 90%;
-      max-width: 320px;
-      padding: 10px;
-      align-self: center;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-      position: absolute;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #user-info-picture-frame {
-      height: 40px;
-      width: 40px;
-      background-color: var(--vt-c-red);
-      border-radius: 20px;
-      box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
-      font-family: 'Noto Sans JP';
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--vt-c-white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      cursor: pointer;
-    }
-
-    #user-info-contact {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-    }
-
-    .user-info-menu {
-      position: absolute;
-      left: 0;
-      bottom: 56px;
-      background: var(--color-menu-background);
-      border: 1px solid var(--color-subtext);
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 8px 0px;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      z-index: 10;
-    }
-
-    .user-info-menu-item {
-      padding: 6px 16px;
-      font-size: 14px;
-      font-weight: 400;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .user-info-menu-item:hover {
-      background-color: var(--color-background);
-    }
-
     .selection-menu-wrapper {
       position: relative;
     }
@@ -296,5 +190,82 @@
 
     .page-background {
       position: absolute;
+    }
+
+    #menu-toggle-button {
+      z-index: 10;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 24px;
+      height: 18px;
+      -webkit-transform: rotate(0deg);
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      transform: rotate(0deg);
+      -webkit-transition: .5s ease-in-out;
+      -moz-transition: .5s ease-in-out;
+      -o-transition: .5s ease-in-out;
+      transition: .5s ease-in-out;
+      cursor: pointer;
+    }
+
+    #menu-toggle-button span {
+      display: block;
+      position: absolute;
+      height: 3px;
+      width: 100%;
+      background: var(--vt-c-white);
+      border-radius: 3px;
+      opacity: 1;
+      left: 0;
+      -webkit-transform: rotate(0deg);
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      transform: rotate(0deg);
+      -webkit-transition: .25s ease-in-out;
+      -moz-transition: .25s ease-in-out;
+      -o-transition: .25s ease-in-out;
+      transition: .25s ease-in-out;
+    }
+
+    #menu-toggle-button span:nth-child(1) {
+      top: 0px;
+    }
+
+    #menu-toggle-button span:nth-child(2),#menu-toggle-button span:nth-child(3) {
+      top: 9px;
+    }
+
+    #menu-toggle-button span:nth-child(4) {
+      top: 18px;
+    }
+
+    #menu-toggle-button.open span:nth-child(1) {
+      top: 9px;
+      width: 0%;
+      left: 50%;
+    }
+
+    #menu-toggle-button.open span:nth-child(2) {
+      -webkit-transform: rotate(45deg);
+      -moz-transform: rotate(45deg);
+      -o-transform: rotate(45deg);
+      transform: rotate(45deg);
+      background: var(--vt-c-black);
+    }
+
+    #menu-toggle-button.open span:nth-child(3) {
+      -webkit-transform: rotate(-45deg);
+      -moz-transform: rotate(-45deg);
+      -o-transform: rotate(-45deg);
+      transform: rotate(-45deg);
+      background: var(--vt-c-black);
+    }
+
+    #menu-toggle-button.open span:nth-child(4) {
+      top: 9px;
+      width: 0%;
+      left: 50%;
     }
 </style>

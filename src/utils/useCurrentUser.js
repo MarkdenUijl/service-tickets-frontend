@@ -1,8 +1,13 @@
 import { ref } from "vue";
 
+const EMPTY_USER = {
+    firstName: '',
+    lastName: '',
+    email: ''
+}
+
 export function useCurrentUser() {
-    /* using composable for testing purposes and ensuring all infirmation is correct and expected */
-    let user = ref(null);
+    let user = ref(EMPTY_USER);
 
     try {
         const userRaw = localStorage.getItem('user');
@@ -18,7 +23,7 @@ export function useCurrentUser() {
                 typeof maybeUser.email === 'string'
             ) {
                 user.value = maybeUser;
-            }
+            } 
         }
     } catch (error) {
         console.warn('Failed to parse user from localStorage', error);
