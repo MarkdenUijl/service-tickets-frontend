@@ -91,8 +91,8 @@
         </AnimatePresence>
         
         <div id="user-info-contact">
-          <span :style="{color: textColor}"  style="font-family: 'Noto Sans JP'; font-size: 16px; font-weight: 800;">{{ userInfo.fullName }}</span>
-          <span :style="{color: textColor}" style="font-size: 13px; font-weight: 300;">{{ userInfo.email }}</span>
+          <span :style="{ color: textColor }" style="font-family: 'Noto Sans JP'; font-size: 16px; font-weight: 800;">{{ userInfo.fullName }}</span>
+          <span :style="{ color: textColor }" style="font-size: 13px; font-weight: 300;">{{ userInfo.email }}</span>
         </div>
       </div>
 </template>
@@ -164,4 +164,20 @@
       background-color: var(--color-background);
     }
 
+    @media (max-width: 635px) {
+      #user-info-tile {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        bottom: auto;
+        transform: none;
+        border-top: none;
+        z-index: 9;
+      }
+
+      .user-info-menu {
+        left: 24px;
+        bottom: -48px;
+      }
+    }
 </style>
