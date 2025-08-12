@@ -113,9 +113,9 @@
 
     <UserInfoTile
       v-if="isMobile"
-      :first-name="user.value?.firstName ?? 'user'" 
-      :last-name="user.value?.lastName ?? 'tester'" 
-      :email="user.value?.email ?? 'usertester@mail.com'"
+      :first-name="user.value?.firstName ?? ''" 
+      :last-name="user.value?.lastName ?? ''" 
+      :email="user.value?.email ?? ''"
       :text-color="'var(--vt-c-white)'"
       :menu-options="userMenuOptions"
     />
@@ -159,9 +159,9 @@
 
         <UserInfoTile
           v-if="!isMobile"
-          :first-name="user.value?.firstName ?? 'user'" 
-          :last-name="user.value?.lastName ?? 'tester'" 
-          :email="user.value?.email ?? 'usertester@mail.com'" 
+          :first-name="user.value?.firstName ?? ''" 
+          :last-name="user.value?.lastName ?? ''" 
+          :email="user.value?.email ?? ''" 
           :menu-options="userMenuOptions"
         />
       </motion.div>
