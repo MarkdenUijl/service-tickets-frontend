@@ -113,11 +113,10 @@
 
     <UserInfoTile
       v-if="isMobile"
-      :first-name="user.value?.firstName ?? ''" 
-      :last-name="user.value?.lastName ?? ''" 
-      :email="user.value?.email ?? ''"
+      :first-name="user.firstName ?? ''" 
+      :last-name="user.lastName ?? ''" 
+      :email="user.email ?? ''"
       :text-color="'var(--vt-c-white)'"
-      :menu-options="userMenuOptions"
     />
 
     <AnimatePresence>
@@ -154,14 +153,25 @@
               :selected="page.selected"
               :ref="el => buttonRefs[index] = el?.$el"
             />
+
+            <DashboardPageSelectorButton
+              v-if="isMobile"
+              key="LogoutButton"
+              :label="t('dash.logoutText')"
+              icon="logout-icon"
+              to="/"
+              :selected="false"
+              ref="99"
+              @click="handleLogout"
+            />
           </div>
         </div>
 
         <UserInfoTile
           v-if="!isMobile"
-          :first-name="user.value?.firstName ?? ''" 
-          :last-name="user.value?.lastName ?? ''" 
-          :email="user.value?.email ?? ''" 
+          :first-name="user.firstName ?? ''" 
+          :last-name="user.lastName ?? ''" 
+          :email="user.email ?? ''" 
           :menu-options="userMenuOptions"
         />
       </motion.div>
