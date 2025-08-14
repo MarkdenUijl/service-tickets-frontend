@@ -3,14 +3,14 @@
 </script>
 
 <template>
-    <div class="dashboard-overview-wrapper" >
+    <div class="dashboard-view-wrapper" >
         <h1>Dashboard Page</h1>
         <p>Welcome to your projects.</p>
     </div>
 </template>
 
 <style>
-    .dashboard-overview-wrapper {
+    .dashboard-view-wrapper {
         
     }
 </style>
