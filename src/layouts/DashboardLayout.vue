@@ -199,6 +199,7 @@
     #dashboard-views {
       padding: 24px;
       z-index: 1;
+      width: 100%;
     }
 
     .dashboard-index-background {
@@ -248,6 +249,7 @@
 
     .page-background {
       position: absolute;
+      z-index: 0;
     }
 
     #menu-toggle-button {
