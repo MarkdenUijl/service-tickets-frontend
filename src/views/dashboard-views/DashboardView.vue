@@ -1,5 +1,5 @@
 <script setup>
-    import { GridLayout, GridItem } from 'grid-layout-plus';
+    import { GridLayout } from 'grid-layout-plus';
     import { ref, onMounted, onBeforeUnmount } from 'vue';
 
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';

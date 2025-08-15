@@ -9,12 +9,15 @@
   --vt-c-highlight: #B91228;
   --vt-c-red: #B91228;
   --vt-c-green: #28B446;
+  --vt-c-shadow-white: #ffffff6d;
+  --vt-c-shadow-black: #36373f6d;
 
   /* Default to light mode variables */
   --color-menu-background: var(--vt-c-white);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
+  --color-shadow: var(--vt-c-shadow-black);
 }
 
 /* Override for system dark preference */
@@ -24,6 +27,7 @@
     --color-background: var(--vt-c-pure-black);
     --color-text: var(--vt-c-white);
     --color-subtext: var(--vt-c-offwhite);
+    --color-shadow: var(--vt-c-shadow-white);
   }
 }
 
@@ -33,6 +37,7 @@
   --color-background: var(--vt-c-pure-black);
   --color-text: var(--vt-c-white);
   --color-subtext: var(--vt-c-offwhite);
+  --color-shadow: var(--vt-c-shadow-white);
 }
 
 /* Manual light override */
@@ -41,6 +46,7 @@
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
+  --color-shadow: var(--vt-c-shadow-black);
 }
 
 *,
