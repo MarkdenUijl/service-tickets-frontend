@@ -1,5 +1,5 @@
 <script setup>
-    import { motion, AnimatePresence, hover } from 'motion-v';
+    import { motion, AnimatePresence } from 'motion-v';
     import { onMounted, onUnmounted, computed, ref } from 'vue';
 
     const props = defineProps({

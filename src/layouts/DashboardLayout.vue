@@ -24,6 +24,11 @@
 
     const isMobile = ref(window.innerWidth <= 635);
 
+    const barTop = { open: { opacity: 0, y: 6 }, closed: { opacity: 1, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+    const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+    const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+
+
     window.addEventListener('resize', () => {
       isMobile.value = window.innerWidth <= 635;
     })
@@ -38,10 +43,6 @@
     const handleBurgerMenuClick = () => {
       menuOpen.value = !menuOpen.value;
     };
-
-    const barTop = { open: { opacity: 0, y: 6 }, closed: { opacity: 1, y: 0, backgroundColor: 'var(--vt-c-white)' } }
-    const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
-    const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 
     const pages = [
       {label: t('dash.navOverviewText'), icon: 'overview-icon', to: '/dashboard/overview'},

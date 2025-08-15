@@ -3,11 +3,15 @@
     import { ref, onMounted, onBeforeUnmount } from 'vue';
 
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
+import { watch } from 'vue';
 
     const containerWidth = ref(0);
     const colNum = 3;
+    const STORAGE_KEY = 'dashboardTileLayout';
 
-    const layout = ref([
+    const savedLayout = localStorage.getItem(STORAGE_KEY)
+
+    const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
         { x: 0, y: 0, w: 2, h: 2, i: '0' },
         { x: 2, y: 0, w: 1, h: 1, i: '1' }
     ]);
@@ -34,6 +38,10 @@
     onBeforeUnmount(() => {
         window.removeEventListener('resize', updateRowHeight);
     });
+
+    watch(layout, (newLayout) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newLayout));
+    }, { deep: true });
 
     const packLayout = (items) => {
         let x = 0;

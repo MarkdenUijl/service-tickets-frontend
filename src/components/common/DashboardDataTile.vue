@@ -1,6 +1,6 @@
 <script setup>
     import { GridItem } from 'grid-layout-plus';
-    import { motion } from 'motion-v';
+    import { motion, AnimatePresence } from 'motion-v';
     import { ref } from 'vue';
 
     const props = defineProps({
@@ -60,7 +60,7 @@
             transition: { 
                 type: 'spring',
                 stiffness: 600,
-                damping: 28,
+                damping: 32,
             }
         },
         closed: { 
@@ -88,8 +88,8 @@
             d: "M0 12 6 7",
             transition: {
                 type: 'spring',
-                stiffness: 500,
-                damping: 24,
+                stiffness: 600,
+                damping: 32,
             }
         }
     }
@@ -107,8 +107,8 @@
             d: "M0 0 6 5",
             transition: {
                 type: 'spring',
-                stiffness: 500,
-                damping: 24,
+                stiffness: 600,
+                damping: 32,
             }
         }
     }
@@ -154,6 +154,24 @@
                 />
             </svg>
         </motion.div>
+        
+        <AnimatePresence>
+            <motion.div 
+                class="tile-menu"
+                v-if="menuOpen"
+                :initial="{ opacity: 0, x: '100%' }"
+                :animate="{ opacity: 1, x: 0 }"
+                :exit="{ opacity: 0, x: '100%' }"
+                :transition="{ 
+                    type: 'spring',
+                    stiffness: 600,
+                    damping: 32
+                }"
+            >
+                <span>HELLOHELLOHELLO</span>
+            </motion.div>
+        </AnimatePresence>
+        
 
         <div class="tile-header">
             <button @click="setSize('small')">S</button>
@@ -172,6 +190,7 @@
         border-radius: 12px;
         position: relative;
         transition: all 300ms cubic-bezier(0.25, 1.25, 0.5, 1);
+        overflow: hidden;
     }
 
     .tile-header {
@@ -198,10 +217,7 @@
         justify-content: center;
         flex-direction: column;
         border-radius: 4px;
-    }
-
-    .tile-menu-button:hover {
-        box-shadow: 0 0 12px var(--color-shadow);
+        z-index: 10;
     }
 
     .tile-menu-button .dot {
@@ -212,12 +228,30 @@
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        z-index: 3;
     }
 
     .svg-dot {
         background: none;
         overflow: visible;
         pointer-events: none;
+    }
+
+    .tile-menu {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 12px;
+        z-index: 2;
+    }
+
+    .tile-menu::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: var(--color-menu-background);
+        opacity: 0.75;
+        z-index: -1;
     }
 </style>
