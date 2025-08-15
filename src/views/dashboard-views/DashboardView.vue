@@ -1,16 +1,115 @@
 <script setup>
+    import { GridLayout, GridItem } from 'grid-layout-plus';
+    import { ref, onMounted, onBeforeUnmount } from 'vue';
 
+    import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
+
+    const containerWidth = ref(0);
+    const colNum = 3;
+
+    const layout = ref([
+        { x: 0, y: 0, w: 2, h: 2, i: '0' },
+        { x: 2, y: 0, w: 1, h: 1, i: '1' }
+    ]);
+
+    const rowHeight = ref(100);
+
+    const updateRowHeight = () => {
+        if (containerWidth.value > 0) {
+            rowHeight.value = (containerWidth.value / colNum) * 0.7;
+        }
+    };
+
+    onMounted(() => {
+        const wrapper = document.querySelector('.dashboard-view-wrapper');
+        containerWidth.value = wrapper.clientWidth;
+        updateRowHeight();
+
+        window.addEventListener('resize', () => {
+            containerWidth.value = wrapper.clientWidth;
+            updateRowHeight();
+        });
+    });
+
+    onBeforeUnmount(() => {
+        window.removeEventListener('resize', updateRowHeight);
+    });
+
+    const packLayout = (items) => {
+        let x = 0;
+        let y = 0;
+        let rowHeightTracker = 0;
+        const packed = [];
+
+        for (const tile of items) {
+            if (x + tile.w > colNum) {
+                x = 0;
+                y += rowHeightTracker;
+                rowHeightTracker = 0;
+            }
+
+            packed.push({
+                ...tile,
+                x,
+                y
+            });
+
+            x += tile.w;
+            rowHeightTracker = Math.max(rowHeightTracker, tile.h);
+        };
+
+        return packed;
+    };
+
+    const handleResizeRequest = ({ id, w, h }) => {
+        const updated = layout.value.map(tile =>
+            tile.i === id ? { ...tile, w, h } : tile
+        );
+
+        updated.sort((a, b) => a.y - b.y || a.x - b.x);
+
+        layout.value = packLayout(updated);
+    };
+    
 </script>
 
 <template>
     <div class="dashboard-view-wrapper" >
-        <h1>Dashboard Page</h1>
-        <p>Welcome to your projects.</p>
+        <div class="dashboard-nav-items"></div>
+        <GridLayout
+            v-model:layout="layout"
+            :col-num="colNum"
+            :row-height="rowHeight"
+            is-draggable
+            :is-resizable="false"
+            vertical-compact
+            use-css-transforms
+            :prevent-collision="false"
+        >
+            <DashboardDataTile
+                v-for="item in layout"
+                :key="item.i"
+                :x="item.x"
+                :y="item.y"
+                :w="item.w"
+                :h="item.h"
+                :i="item.i"
+                @resizeRequest="handleResizeRequest"
+            >
+                {{ item.i }}
+            </DashboardDataTile>
+        </GridLayout>
     </div>
 </template>
 
 <style>
+    .dashboard-nav-items {
+        width: 100%;
+        background-color: aqua;
+        height: 200px;
+    }
+
     .dashboard-view-wrapper {
-        
+        overflow-y: auto;
     }
 </style>

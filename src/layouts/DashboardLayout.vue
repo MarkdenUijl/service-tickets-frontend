@@ -191,13 +191,14 @@
         flex-direction: row;
         justify-content: flex-start;
         align-items: stretch;
-        min-height: 100dvh;
+        height: 100dvh;
+        overflow-y: hidden;
         width: 100%;
         box-sizing: border-box;
     }
 
     #dashboard-views {
-      padding: 24px;
+      padding: 20px;
       z-index: 1;
       width: 100%;
     }
