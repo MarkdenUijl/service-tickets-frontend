@@ -1,8 +1,11 @@
 <script setup>
     import { GridItem } from 'grid-layout-plus';
     import { motion, AnimatePresence } from 'motion-v';
+import { reactive } from 'vue';
     import { ref } from 'vue';
+    import { useI18n } from 'vue-i18n';
 
+    const { t } = useI18n();
     const props = defineProps({
         x: { type: Number, required: true },
         y: { type: Number, required: true },
@@ -113,7 +116,49 @@
         }
     }
 
-    
+    const tileMenuOptions = reactive([
+        { 
+            title: t('dash.tileMenuTitleSizeText'),
+            isOpen: false,
+            menuItems: [
+                {
+                    optionTitle: t('dash.tileMenuSmallSizeText'),
+                    clickAction: () => setSize('small')
+                },{
+                    optionTitle: t('dash.tileMenuMediumWideSizeText'),
+                    clickAction: () => setSize('medium-wide')
+                },{
+                    optionTitle: t('dash.tileMenuMediumTallSizeText'),
+                    clickAction: () => setSize('medium-tall')
+                },{
+                    optionTitle: t('dash.tileMenuLargeSizeText'),
+                    clickAction: () => setSize('large')
+                }
+            ]
+        },{ 
+            title: t('dash.tileDataDisplayText'),
+            isOpen: false,
+            menuItems: [
+                {
+                    optionTitle: t('dash.tileMenuSmallSizeText'),
+                    clickAction: () => setSize('small')
+                },{
+                    optionTitle: t('dash.tileMenuMediumWideSizeText'),
+                    clickAction: () => setSize('medium-wide')
+                },{
+                    optionTitle: t('dash.tileMenuMediumTallSizeText'),
+                    clickAction: () => setSize('medium-tall')
+                },{
+                    optionTitle: t('dash.tileMenuLargeSizeText'),
+                    clickAction: () => setSize('large')
+                }
+            ]
+        }
+    ]);
+
+    const toggleOptionMenu = (option) => {
+        option.isOpen = !option.isOpen;
+    };
 </script>
 
 <template>
@@ -168,16 +213,40 @@
                     damping: 32
                 }"
             >
-                <span>HELLOHELLOHELLO</span>
+                <div 
+                    v-for="option in tileMenuOptions"
+                    @click="toggleOptionMenu(option)"
+                >
+                    {{ option.title }}
+
+                    <AnimatePresence>
+                        <motion.div 
+                            v-if="option.isOpen" 
+                            class="tile-submenu"
+                            :initial="{ opacity: 0.3, maxHeight: 0 }"
+                            :animate="{ opacity: 1, maxHeight: 200 }"
+                            :exit="{ opacity: 0.3, maxHeight: 0 }"
+                            :transition="{ 
+                                type: 'spring',
+                                stiffness: 100,
+                                damping: 16,
+                                bounce: 0.1
+                            }"
+                        >
+                            <div 
+                                v-for="item in option.menuItems"
+                                @click="item.clickAction"
+                            >
+                                {{ item.optionTitle }}
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
             </motion.div>
         </AnimatePresence>
         
-
         <div class="tile-header">
-            <button @click="setSize('small')">S</button>
-            <button @click="setSize('medium-wide')">MW</button>
-            <button @click="setSize('medium-tall')">MT</button>
-            <button @click="setSize('large')">L</button>
+            TILE HEADER
         </div>  
         <slot />
     </GridItem>
@@ -244,6 +313,7 @@
         left: 0;
         border-radius: 12px;
         z-index: 2;
+        padding: 24px 0
     }
 
     .tile-menu::before {
@@ -253,5 +323,10 @@
         background-color: var(--color-menu-background);
         opacity: 0.75;
         z-index: -1;
+    }
+
+    .tile-submenu {
+        /* transform-origin: top; */
+        overflow: hidden;
     }
 </style>

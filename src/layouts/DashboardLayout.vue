@@ -206,7 +206,7 @@
 
     .dashboard-index-background {
         background-color: var(--color-menu-background);
-        min-width: 250px;
+        min-width: 280px;
         width: 20%;
         height: 100dvh;
         box-sizing: border-box;
@@ -287,6 +287,7 @@
         height: 100dvh;
         z-index: 99;
         overflow-y: auto;
+        padding-bottom: 80px;
       }
 
       #dashboard-views {
