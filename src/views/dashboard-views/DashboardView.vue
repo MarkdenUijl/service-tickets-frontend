@@ -9,14 +9,38 @@ import { watch } from 'vue';
     const colNum = 3;
     const STORAGE_KEY = 'dashboardTileLayout';
 
-    const savedLayout = localStorage.getItem(STORAGE_KEY)
+    const savedLayout = localStorage.getItem(STORAGE_KEY);
+    const rowHeight = ref(100);
 
     const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
-        { x: 0, y: 0, w: 2, h: 2, i: '0' },
-        { x: 2, y: 0, w: 1, h: 1, i: '1' }
+        { x: 0, y: 0, w: 1, h: 1, i: '0' },
+        { x: 1, y: 0, w: 1, h: 1, i: '1' }
     ]);
 
-    const rowHeight = ref(100);
+    const addLayoutTile = () => {
+        const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        layout.value.push({
+            x: 0,
+            y: 0,
+            w: 1,
+            h: 1,
+            i: uniqueId
+        });
+
+        packLayout(layout.value);
+    };
+
+    const deleteLayoutTile = (id) => {
+        const index = layout.value.findIndex( tile => tile.i === id );
+
+        if (index > -1) {
+            layout.value.splice(index, 1);
+        };
+
+        packLayout(layout.value);
+    };
+
 
     const updateRowHeight = () => {
         if (containerWidth.value > 0) {
@@ -83,7 +107,9 @@ import { watch } from 'vue';
 
 <template>
     <div class="dashboard-view-wrapper" >
-        <div class="dashboard-nav-items"></div>
+        <div class="dashboard-nav-items">
+            <button @click="addLayoutTile">ADD LAYOUT TILE</button>
+        </div>
         <GridLayout
             v-model:layout="layout"
             :col-num="colNum"
@@ -103,6 +129,7 @@ import { watch } from 'vue';
                 :h="item.h"
                 :i="item.i"
                 @resizeRequest="handleResizeRequest"
+                @deletionRequest="deleteLayoutTile"
             >
                 {{ item.i }}
             </DashboardDataTile>

@@ -13,7 +13,7 @@
         i: { type: String, required: true }
     });
 
-    const emit = defineEmits(['resizeRequest']);
+    const emit = defineEmits(['resizeRequest', 'deletionRequest']);
 
     const setSize = (size) => {
         let newWidth, newHeight;
@@ -47,6 +47,10 @@
         }
 
         emit('resizeRequest', { id: props.i, w: newWidth, h: newHeight });
+    };
+
+    const deleteTile = () => {
+        emit('deletionRequest', props.i);
     };
 
     const menuOpen = ref(false);
@@ -249,6 +253,17 @@
                             </div>
                         </motion.div>
                     </AnimatePresence>
+                </div>
+
+                <div 
+                    @click="deleteTile()"
+                    class="tile-menu-option"
+                >
+                    <div 
+                        class="menu-option-title"
+                    >
+                        {{ t('dash.tileDeleteText') }}
+                    </div>
                 </div>
             </motion.div>
         </AnimatePresence>

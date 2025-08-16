@@ -11,5 +11,6 @@
     "tileMenuMediumWideSizeText": "Medium landscape",
     "tileMenuMediumTallSizeText": "Medium portret",
     "tileMenuLargeSizeText": "Groot",
-    "tileDataDisplayText": "Widget inhoud"
+    "tileDataDisplayText": "Widget inhoud",
+    "tileDeleteText": "Widget verwijderen"
 }
