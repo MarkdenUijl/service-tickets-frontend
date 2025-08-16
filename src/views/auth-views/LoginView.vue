@@ -34,7 +34,7 @@
 
             <router-link
                 to="/auth/register"
-                style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
+                style="color: var(--color-highlight); cursor: pointer; text-decoration: none"
             >
                 {{ t('auth.loginCreateAccountText') }}
             </router-link>

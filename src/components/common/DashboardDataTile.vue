@@ -1,8 +1,7 @@
 <script setup>
     import { GridItem } from 'grid-layout-plus';
     import { motion, AnimatePresence } from 'motion-v';
-import { reactive } from 'vue';
-    import { ref } from 'vue';
+    import { reactive, ref } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     const { t } = useI18n();
@@ -216,13 +215,19 @@ import { reactive } from 'vue';
                 <div 
                     v-for="option in tileMenuOptions"
                     @click="toggleOptionMenu(option)"
+                    class="tile-menu-option"
                 >
-                    {{ option.title }}
+                    <div 
+                        class="menu-option-title"
+                        :class="{ 'open': option.isOpen }"
+                    >
+                        {{ option.title }}
+                    </div>
 
                     <AnimatePresence>
                         <motion.div 
                             v-if="option.isOpen" 
-                            class="tile-submenu"
+                            class="tile-option-submenu"
                             :initial="{ opacity: 0.3, maxHeight: 0 }"
                             :animate="{ opacity: 1, maxHeight: 200 }"
                             :exit="{ opacity: 0.3, maxHeight: 0 }"
@@ -233,11 +238,14 @@ import { reactive } from 'vue';
                                 bounce: 0.1
                             }"
                         >
-                            <div 
-                                v-for="item in option.menuItems"
-                                @click="item.clickAction"
-                            >
-                                {{ item.optionTitle }}
+                            <div class="submenu-inner">
+                                <div 
+                                    v-for="item in option.menuItems"
+                                    @click.stop="item.clickAction"
+                                    class="tile-submenu-option"
+                                >
+                                    {{ item.optionTitle }}
+                                </div>
                             </div>
                         </motion.div>
                     </AnimatePresence>
@@ -260,6 +268,7 @@ import { reactive } from 'vue';
         position: relative;
         transition: all 300ms cubic-bezier(0.25, 1.25, 0.5, 1);
         overflow: hidden;
+        user-select: none;
     }
 
     .tile-header {
@@ -313,7 +322,12 @@ import { reactive } from 'vue';
         left: 0;
         border-radius: 12px;
         z-index: 2;
-        padding: 24px 0
+        padding: 20px 0;
+        overflow: scroll;
+    }
+
+    .tile-menu::-webkit-scrollbar {
+        display: none;
     }
 
     .tile-menu::before {
@@ -321,12 +335,42 @@ import { reactive } from 'vue';
         position: absolute;
         inset: 0;
         background-color: var(--color-menu-background);
-        opacity: 0.75;
+        opacity: 0.9;
         z-index: -1;
     }
 
-    .tile-submenu {
-        /* transform-origin: top; */
+    .tile-menu-option {
+        padding-left: 16px;
+        cursor: pointer;
+        max-width: 75%;
+    }
+
+    .menu-option-title {
+        font-weight: 500;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .menu-option-title.open {
+        background-color: var(--color-highlight);
+        color: var(--vt-c-white);
+    }
+
+    .tile-option-submenu {
         overflow: hidden;
+    }
+
+    .submenu-inner {
+        margin: 8px;
+    }
+
+    .tile-submenu-option {
+        cursor: pointer;
+        padding: 4px 16px;
+        border-left: 2px var(--color-text) solid;
+    }
+
+    .tile-submenu-option:hover {
+        border-left: 4px var(--color-highlight) solid;
     }
 </style>

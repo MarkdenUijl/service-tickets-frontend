@@ -18,7 +18,7 @@
 
                  <router-link
                     to="/auth/login"
-                    style="color: var(--vt-c-highlight); cursor: pointer; text-decoration: none"
+                    style="color: var(--color-highlight); cursor: pointer; text-decoration: none"
                 >
                     {{ t('auth.backToLoginText') }}
                 </router-link>

@@ -162,8 +162,8 @@
     }
 
     #remember-me input:checked {
-        background-color: var(--vt-c-highlight);
-        border: var(--vt-c-highlight);
+        background-color: var(--color-highlight);
+        border: var(--color-highlight);
     }
 
     #remember-me input[type="checkbox"]:checked::after {
@@ -180,6 +180,6 @@
     }
 
     #forgot-password {
-        color: var(--vt-c-highlight);
+        color: var(--color-highlight);
     }
 </style>

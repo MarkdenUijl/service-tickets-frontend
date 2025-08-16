@@ -44,7 +44,7 @@
     }
 
     .dashboard-menu-selector--selected {
-        color: var(--vt-c-red);
+        color: var(--color-highlight);
     }
 
     .dashboard-menu-selector--selected span {

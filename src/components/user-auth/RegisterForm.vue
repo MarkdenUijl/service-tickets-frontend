@@ -276,7 +276,7 @@
 
     #return-button {
         display: flex;
-        border: solid var(--vt-c-highlight) 2px;
+        border: solid var(--color-highlight) 2px;
         align-items: center;
         justify-content: center;
         width: 300px;
@@ -286,7 +286,7 @@
     }
 
     #register-return-link {
-        color: var(--vt-c-highlight);
+        color: var(--color-highlight);
         font-family: 'Ubuntu';
         font-weight: 700;
         font-size: 16px;

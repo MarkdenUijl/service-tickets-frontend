@@ -103,7 +103,7 @@
         right: 0;
         z-index: 2;
         font-size: 13px;
-        color: var(--vt-c-red);
+        color: var(--color-highlight);
         pointer-events: none;
     }
 </style>
