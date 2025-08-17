@@ -1,5 +1,5 @@
 <script setup>
-    import { onBeforeUnmount, onMounted, ref } from 'vue';
+    import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
     import SvgIcon from '../svg-icon/SvgIcon.vue';
 
     const props = defineProps({
@@ -10,56 +10,85 @@
     const trackEl = ref(null);
 
     const currentIndex = ref(0);
-    const cardStep = ref(0);
-    const visibleCount = ref(1);
-    const maxIndex = ref(props.cards.length - visibleCount.value);
+    const cardPositions = ref([]);
     const maxOffset = ref(0);
+    const visibleCount = ref(1);
+
+    let rafId = null;
+    let resizeObserver = null;
+    let mutationObserver = null;
+
+    const measureNow = () => {
+        if (!trackEl.value || !containerEl.value) return;
+
+        const cards = Array.from(trackEl.value.querySelectorAll('.carousel-card'));
+        if (!cards.length) {
+            cardPositions.value = [];
+            maxOffset.value = 0;
+            visibleCount.value = 1;
+            return;
+        }
+
+        const gapStr = getComputedStyle(trackEl.value).gap || getComputedStyle(trackEl.value).columnGap || '0px';
+        const gap = parseFloat(gapStr) || 0;
+
+        cardPositions.value = cards.map(c => c.offsetLeft);
+
+        const trackScrollWidth = trackEl.value.scrollWidth;
+        const viewportWidth = containerEl.value.clientWidth;
+
+        maxOffset.value = Math.max(0, trackScrollWidth - viewportWidth);
+
+        visibleCount.value = Math.max(1, Math.floor((viewportWidth + gap) / (cards[0].offsetWidth + gap)));
+
+        currentIndex.value = Math.min(currentIndex.value, Math.max(0, props.cards.length - 1));
+    };
 
     const measure = () => {
-        const firstCard = trackEl.value?.querySelector('.carousel-card');
-        const carouselNavButton = document.getElementById('carousel-back-button');
-        const navButtonWidth = carouselNavButton?.getBoundingClientRect().width || 0;
-
-        const cardWidth = firstCard?.getBoundingClientRect().width || 0;
-        const styles = window.getComputedStyle(trackEl.value);
-        const gap = parseFloat(styles.columnGap || styles.gap) || 0;
-
-        cardStep.value = cardWidth + gap;
-
-        const containerWidth = containerEl.value.clientWidth;
-        const viewportWidth = Math.max(0, containerWidth - (navButtonWidth));
-        visibleCount.value = Math.max(1, Math.floor((viewportWidth + gap) / cardStep.value));
-
-        const trackWidth = props.cards.length * cardStep.value - gap;
-        maxOffset.value = Math.max(0, trackWidth - viewportWidth);
-
-        maxIndex.value = Math.max(0, props.cards.length - visibleCount.value);
-
-        currentIndex.value = Math.min(currentIndex.value, maxIndex.value);
-    };
-
-    const carouselForward = () => {
-        measure();
-        if (currentIndex.value < maxIndex.value) {
-            currentIndex.value += 1;
-        }
-    };
-
-    const carouselBackward = () => {
-        measure();
-        if (currentIndex.value > 0) {
-            currentIndex.value -= 1;
-        }
+        if (rafId) cancelAnimationFrame(rafId);
+        
+        rafId = requestAnimationFrame(() => {
+            measureNow();
+            rafId = null;
+        });
     };
 
     onMounted(() => {
         measure();
+
         window.addEventListener('resize', measure);
+
+        resizeObserver = new ResizeObserver(measure);
+        if (containerEl.value) resizeObserver.observe(containerEl.value);
+        if (trackEl.value) resizeObserver.observe(trackEl.value);
+
+        mutationObserver = new MutationObserver(measure);
+        if (trackEl.value) mutationObserver.observe(trackEl.value, { childList: true, subtree: true, attributes: true });
     });
 
     onBeforeUnmount(() => {
         window.removeEventListener('resize', measure);
-    })
+        if (resizeObserver) { resizeObserver.disconnect(); resizeObserver = null; }
+        if (mutationObserver) { mutationObserver.disconnect(); mutationObserver = null; }
+        if (rafId) cancelAnimationFrame(rafId);
+    });
+
+    const translateX = computed(() => {
+        if (!cardPositions.value.length) return 0;
+        const pos = cardPositions.value[currentIndex.value] ?? 0;
+        return Math.min(pos, maxOffset.value);
+    });
+
+    const canGoBack = computed(() => translateX.value > 0);
+    const canGoNext = computed(() => translateX.value < maxOffset.value);
+
+    const carouselForward = () => {
+        currentIndex.value = Math.min(currentIndex.value + 1, Math.max(0, props.cards.length - 1));
+    };
+
+    const carouselBackward = () => {
+        currentIndex.value = Math.max(0, currentIndex.value - 1);
+    };
 </script>
 
 <template>
@@ -69,7 +98,7 @@
                 id="carousel-back-button" 
                 class="carousel-button"
                 @click="carouselBackward"
-                v-show="currentIndex > 0"
+                v-show="canGoBack"
             >
                 <SvgIcon name="icon-arrow-left" height="20px" width="20px"/>
             </div>
@@ -77,12 +106,12 @@
             <div 
                 class="carousel-track" 
                 ref="trackEl"
-                :style="{ transform: `translateX(-${currentIndex === maxIndex ? maxOffset : currentIndex * cardStep}px)` }"    
+                :style="{ transform: `translateX(-${translateX}px)` }"    
             >
                 <div 
                     class="carousel-card"
-                    v-for="card in props.cards"
-                    :key="card"
+                    v-for="(card, idx) in props.cards"
+                    :key="idx"
                 >
                     {{ card }}
                 </div>
@@ -92,7 +121,7 @@
                 id="carousel-next-button" 
                 class="carousel-button"
                 @click="carouselForward"
-                v-show="currentIndex < maxIndex"
+                v-show="canGoNext"
             > 
                 <SvgIcon name="icon-arrow-right" height="20px" width="20px"/>
             </div>
@@ -103,7 +132,7 @@
 <style scoped>
     .carousel-wrapper {
         width: 100%;
-        padding: 0 10px;
+        padding: 10px;
         user-select: none;
     }
 
@@ -116,7 +145,8 @@
     .carousel-track {
         display: flex;
         gap: 24px;
-        transition: transform 0.3s ease-in-out;
+        transition: transform 0.32s cubic-bezier(.2,.9,.2,1);
+        will-change: transform;
     }
 
     .carousel-card {
@@ -128,6 +158,7 @@
         border-radius: 12px;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
 
     .carousel-button {
