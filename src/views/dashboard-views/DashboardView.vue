@@ -17,6 +17,8 @@
         { x: 1, y: 0, w: 1, h: 1, i: '1' }
     ]);
 
+    const cards = [1, 2, 3, 4, 5, 6, 7]
+
     const addLayoutTile = () => {
         const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -111,7 +113,7 @@
             <button @click="addLayoutTile">ADD LAYOUT TILE</button>
         </div>
 
-        <DashboardCarousel/>
+        <DashboardCarousel :cards="cards"/>
 
         <GridLayout
             v-model:layout="layout"
@@ -150,6 +152,4 @@
     .dashboard-view-wrapper {
         overflow-y: auto;
     }
-
-    
 </style>
