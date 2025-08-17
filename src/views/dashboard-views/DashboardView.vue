@@ -1,9 +1,9 @@
 <script setup>
     import { GridLayout } from 'grid-layout-plus';
-    import { ref, onMounted, onBeforeUnmount } from 'vue';
+    import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
-import { watch } from 'vue';
+    import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
 
     const containerWidth = ref(0);
     const colNum = 3;
@@ -110,6 +110,9 @@ import { watch } from 'vue';
         <div class="dashboard-nav-items">
             <button @click="addLayoutTile">ADD LAYOUT TILE</button>
         </div>
+
+        <DashboardCarousel/>
+
         <GridLayout
             v-model:layout="layout"
             :col-num="colNum"
@@ -141,10 +144,12 @@ import { watch } from 'vue';
     .dashboard-nav-items {
         width: 100%;
         background-color: aqua;
-        height: 200px;
+        height: 100px;
     }
 
     .dashboard-view-wrapper {
         overflow-y: auto;
     }
+
+    
 </style>
