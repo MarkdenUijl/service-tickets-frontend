@@ -47,7 +47,7 @@
             i: uniqueId
         });
 
-        packLayout(layout.value);
+        layout.value = packLayout(layout.value);
     };
 
     const deleteLayoutTile = (id) => {
@@ -57,7 +57,7 @@
             layout.value.splice(index, 1);
         };
 
-        packLayout(layout.value);
+        layout.value = packLayout(layout.value);
     };
 
 
@@ -87,27 +87,42 @@
     }, { deep: true });
 
     const packLayout = (items) => {
-        let x = 0;
-        let y = 0;
-        let rowHeightTracker = 0;
+        const grid = [];
         const packed = [];
 
-        for (const tile of items) {
-            if (x + tile.w > colNum) {
-                x = 0;
-                y += rowHeightTracker;
-                rowHeightTracker = 0;
+        const isFree = (x, y, w, h) => {
+            for (let dy = 0; dy < h; dy++) {
+                for (let dx = 0; dx < w; dx++) {
+                    const row = grid[y + dy] || [];
+                    if (row[x + dx]) return false;
+                }
             }
-
-            packed.push({
-                ...tile,
-                x,
-                y
-            });
-
-            x += tile.w;
-            rowHeightTracker = Math.max(rowHeightTracker, tile.h);
+            return true;
         };
+
+        const occupy = (id, x, y, w, h) => {
+            for (let dy = 0; dy < h; dy++) {
+                if (!grid[y + dy]) grid[y + dy] = [];
+                for (let dx = 0; dx < w; dx++) {
+                    grid[y + dy][x + dx] = id;
+                }
+            }
+        };
+
+        for (const tile of items) {
+            let placed = false;
+
+            for (let y = 0; !placed; y++) {
+                for (let x = 0; x <= colNum - tile.w; x++) {
+                    if (isFree(x, y, tile.w, tile.h)) {
+                        packed.push({ ...tile, x, y });
+                        occupy(tile.i, x, y, tile.w, tile.h);
+                        placed = true;
+                        break;
+                    }
+                }
+            }
+        }
 
         return packed;
     };
