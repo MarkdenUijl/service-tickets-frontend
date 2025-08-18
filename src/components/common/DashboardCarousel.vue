@@ -113,7 +113,8 @@
                     v-for="(card, idx) in props.cards"
                     :key="idx"
                 >
-                    {{ card }}
+                    <span id="carousel-card-title">{{ card.cardTitle }}</span>
+                    <span id="carousel-card-info">{{ card.cardInfo }}</span>
                 </div>
             </div>
     
@@ -151,14 +152,27 @@
 
     .carousel-card {
         min-width: 260px;
-        height: 120px;
-        display: inline-flex;
+        max-height: 120px;
+        display: flex;
+        flex-direction: column;
         background-color: var(--color-menu-background);
         color: var(--color-text);
         border-radius: 12px;
-        align-items: center;
-        justify-content: center;
+        align-items: flex-start;
+        justify-content: flex-start;
         flex-shrink: 0;
+        padding: 16px 20px;
+        font-family: 'Noto Sans JP';
+    }
+
+    #carousel-card-title {
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    #carousel-card-info {
+        font-weight: 800;
+        font-size: 38px;
     }
 
     .carousel-button {

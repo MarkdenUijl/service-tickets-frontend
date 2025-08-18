@@ -64,6 +64,10 @@
       }))
     );
 
+    const selectedPageTitle = computed(() => { 
+      return selectedPages.value.find(p => p.selected).label 
+    });
+
     const updateIndicator = () => {
       const selectedIndex = selectedPages.value.findIndex(p => p.selected);
       const el = buttonRefs.value[selectedIndex];
@@ -178,6 +182,7 @@
       </motion.div>
     </AnimatePresence>
 
+    <!-- <div class="selected-page-info" style="color: white">{{ selectedPageTitle }}</div> -->
     <router-view id="dashboard-views" v-slot="{ Component }">
       <component :is="Component"/>
     </router-view>
@@ -198,6 +203,12 @@
         box-sizing: border-box;
     }
 
+    .selected-page-info {
+      position: absolute;
+      left: 400px;
+      z-index: 3;
+    }
+
     #dashboard-views {
       padding: 20px;
       z-index: 1;
@@ -205,19 +216,19 @@
     }
 
     .dashboard-index-background {
-        background-color: var(--color-menu-background);
-        min-width: 280px;
-        width: 20%;
-        height: 100dvh;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-start;
-        gap: 84px;
-        z-index: 1;
-        border-radius: 0;
-        position: relative;
+      background-color: var(--color-menu-background);
+      min-width: 280px;
+      width: 20%;
+      height: 100dvh;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 84px;
+      z-index: 1;
+      border-radius: 0;
+      position: relative;
     }
 
     #dashboard-branding {

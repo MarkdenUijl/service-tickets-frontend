@@ -17,7 +17,24 @@
         { x: 1, y: 0, w: 1, h: 1, i: '1' }
     ]);
 
-    const cards = [1, 2, 3, 4, 5, 6, 7]
+    const cards = [
+        {
+            cardTitle: "Open tickets",
+            cardInfo: 52
+        },{
+            cardTitle: "Escalated tickets",
+            cardInfo: 10
+        },{
+            cardTitle: "Awaiting response",
+            cardInfo: 16
+        },{
+            cardTitle: "Client responded",
+            cardInfo: 22
+        },{
+            cardTitle: "Unlinked tickets",
+            cardInfo: 4
+        },
+    ];
 
     const addLayoutTile = () => {
         const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -151,5 +168,9 @@
 
     .dashboard-view-wrapper {
         overflow-y: auto;
+    }
+
+    .dashboard-view-wrapper::-webkit-scrollbar {
+        display: none;
     }
 </style>
