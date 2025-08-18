@@ -33,7 +33,7 @@
         },{
             cardTitle: "Unlinked tickets",
             cardInfo: 4
-        },
+        }
     ];
 
     const addLayoutTile = () => {

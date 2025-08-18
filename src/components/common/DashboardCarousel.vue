@@ -13,6 +13,7 @@
     const cardPositions = ref([]);
     const maxOffset = ref(0);
     const visibleCount = ref(1);
+    const cardDynamicWidth = ref(null);
 
     let rafId = null;
     let resizeObserver = null;
@@ -41,8 +42,24 @@
 
         visibleCount.value = Math.max(1, Math.floor((viewportWidth + gap) / (cards[0].offsetWidth + gap)));
 
+        if (props.cards.length <= visibleCount.value) {
+            const totalGap = gap * (props.cards.length - 1);
+            cardDynamicWidth.value = (viewportWidth - totalGap) / props.cards.length;
+        } else {
+            cardDynamicWidth.value = null;
+        }
+
         currentIndex.value = Math.min(currentIndex.value, Math.max(0, props.cards.length - 1));
     };
+
+    const cardStyle = computed(() => {
+        if (cardDynamicWidth.value) {
+            return {
+                flex: `0 0 ${cardDynamicWidth.value}px`
+            };
+        }
+        return {};
+    });
 
     const measure = () => {
         if (rafId) cancelAnimationFrame(rafId);
@@ -112,6 +129,7 @@
                     class="carousel-card"
                     v-for="(card, idx) in props.cards"
                     :key="idx"
+                    :style="cardStyle"
                 >
                     <span id="carousel-card-title">{{ card.cardTitle }}</span>
                     <span id="carousel-card-info">{{ card.cardInfo }}</span>
