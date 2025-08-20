@@ -171,9 +171,14 @@
         position: relative;
     }
 
+
     .carousel {
         width: 100%;
         overflow-x: auto;
+        mask-image: linear-gradient(to right, rgba(0,0,0,1) 97.5%, rgba(0,0,0,0) 100%);
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        mask-position: 0 0;
     }
 
     .carousel::-webkit-scrollbar { 
