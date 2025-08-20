@@ -1,6 +1,6 @@
 <script setup>
     import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
-    import { motion } from 'motion-v';
+    import { motion, AnimatePresence } from 'motion-v';
     import SvgIcon from '../svg-icon/SvgIcon.vue';
 
     const props = defineProps({
@@ -112,19 +112,21 @@
 <template>
     <div class="carousel-wrapper">
         <div class="carousel" ref="containerEl">
-            <motion.div 
-                id="carousel-back-button" 
-                class="carousel-button"
-                @click="carouselBackward"
-                :initial="{ opacity: 0 }"
-                :while-hover="{ opacity: 1, scale: 1.1 }"
-                :while-press="{ scale: 0.9 }"
-                :exit="{ opacity: 0 }"
-                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-                v-if="canGoBack"
-            >
-                <SvgIcon name="icon-arrow-left" height="20px" width="20px"/>
-            </motion.div>
+            <AnimatePresence>
+                <motion.div 
+                    id="carousel-back-button" 
+                    class="carousel-button"
+                    @click="carouselBackward"
+                    :initial="{ opacity: 0 }"
+                    :while-hover="{ opacity: 1, scale: 1.1 }"
+                    :while-press="{ scale: 0.9 }"
+                    :exit="{ opacity: 0 }"
+                    :transition="{ duration: 0.3, easing: 'ease-in-out' }"
+                    v-if="canGoBack"
+                >
+                    <SvgIcon name="icon-arrow-left" height="20px" width="20px"/>
+                </motion.div>
+            </AnimatePresence>
     
             <div 
                 class="carousel-track" 
@@ -142,19 +144,21 @@
                 </div>
             </div>
     
-            <motion.div 
-                id="carousel-next-button" 
-                class="carousel-button"
-                @click="carouselForward"
-                :initial="{ opacity: 0 }"
-                :while-hover="{ opacity: 1, scale: 1.1 }"
-                :while-press="{ scale: 0.9 }"
-                :exit="{ opacity: 0 }"
-                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-                v-if="canGoNext"
-            > 
-                <SvgIcon name="icon-arrow-right" height="20px" width="20px"/>
-            </motion.div>
+            <AnimatePresence>
+                <motion.div 
+                    id="carousel-next-button" 
+                    class="carousel-button"
+                    @click="carouselForward"
+                    :initial="{ opacity: 0 }"
+                    :while-hover="{ opacity: 1, scale: 1.1 }"
+                    :while-press="{ scale: 0.9 }"
+                    :exit="{ opacity: 0 }"
+                    :transition="{ duration: 0.3, easing: 'ease-in-out' }"
+                    v-if="canGoNext"
+                > 
+                    <SvgIcon name="icon-arrow-right" height="20px" width="20px"/>
+                </motion.div>
+            </AnimatePresence>
         </div>
     </div>
 </template>
@@ -175,7 +179,7 @@
     .carousel-track {
         display: flex;
         gap: 24px;
-        transition: transform 0.32s cubic-bezier(.2,.9,.2,1);
+        transition: transform 0.45s cubic-bezier(.34,1.5,.64,1);
         will-change: transform;
     }
 
