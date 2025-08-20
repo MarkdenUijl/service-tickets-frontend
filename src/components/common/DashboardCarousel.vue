@@ -1,5 +1,6 @@
 <script setup>
     import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
+    import { motion } from 'motion-v';
     import SvgIcon from '../svg-icon/SvgIcon.vue';
 
     const props = defineProps({
@@ -111,14 +112,19 @@
 <template>
     <div class="carousel-wrapper">
         <div class="carousel" ref="containerEl">
-            <div 
+            <motion.div 
                 id="carousel-back-button" 
                 class="carousel-button"
                 @click="carouselBackward"
-                v-show="canGoBack"
+                :initial="{ opacity: 0 }"
+                :while-hover="{ opacity: 1, scale: 1.1 }"
+                :while-press="{ scale: 0.9 }"
+                :exit="{ opacity: 0 }"
+                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
+                v-if="canGoBack"
             >
                 <SvgIcon name="icon-arrow-left" height="20px" width="20px"/>
-            </div>
+            </motion.div>
     
             <div 
                 class="carousel-track" 
@@ -136,14 +142,19 @@
                 </div>
             </div>
     
-            <div 
+            <motion.div 
                 id="carousel-next-button" 
                 class="carousel-button"
                 @click="carouselForward"
-                v-show="canGoNext"
+                :initial="{ opacity: 0 }"
+                :while-hover="{ opacity: 1, scale: 1.1 }"
+                :while-press="{ scale: 0.9 }"
+                :exit="{ opacity: 0 }"
+                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
+                v-if="canGoNext"
             > 
                 <SvgIcon name="icon-arrow-right" height="20px" width="20px"/>
-            </div>
+            </motion.div>
         </div>
     </div>
 </template>
@@ -197,7 +208,8 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: none;
+        background: rgba(0,0,0,0.4);
+        color: white;
         opacity: 0;
         display: flex;
         align-items: center;
@@ -209,11 +221,11 @@
         cursor: pointer;
     }
 
-    .carousel-button:hover {
+    /* .carousel-button:hover {
         background-color: rgba(0,0,0,0.4);
         color: white;
         opacity: 1;
-    }
+    } */
 
     #carousel-next-button {
         right: 8px;

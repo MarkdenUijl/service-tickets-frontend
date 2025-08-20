@@ -33,6 +33,21 @@
         },{
             cardTitle: "Unlinked tickets",
             cardInfo: 4
+        },{
+            cardTitle: "Open tickets",
+            cardInfo: 52
+        },{
+            cardTitle: "Escalated tickets",
+            cardInfo: 10
+        },{
+            cardTitle: "Awaiting response",
+            cardInfo: 16
+        },{
+            cardTitle: "Client responded",
+            cardInfo: 22
+        },{
+            cardTitle: "Unlinked tickets",
+            cardInfo: 4
         }
     ];
 
