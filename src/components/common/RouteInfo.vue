@@ -1,14 +1,16 @@
 <script setup>
     import { computed } from 'vue';
     import { useRoute } from 'vue-router';
+    import { useI18n } from 'vue-i18n';
 
+    const { t } = useI18n();
     const route = useRoute();
 
     const pageName = computed(() => {
-        const rawName = route.path.split('/')[2];
-        const capitalized = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        const matched = route.matched[route.matched.length - 1];
+        const key = matched?.meta?.titleKey;
         
-        return capitalized;
+        return key ? t(key) : '';
     })
 </script>
 

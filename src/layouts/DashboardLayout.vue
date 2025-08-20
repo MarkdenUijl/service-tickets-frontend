@@ -1,104 +1,100 @@
 <script setup>
-    import { useRoute, useRouter } from 'vue-router';
-    import { computed, nextTick, ref, watch } from 'vue';
-    import { useI18n } from 'vue-i18n';
-    import { AnimatePresence, motion } from 'motion-v';
+  import { useRoute, useRouter } from 'vue-router';
+  import { computed, nextTick, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { AnimatePresence, motion } from 'motion-v';
 
-    import { useCurrentUser } from '@/utils/useCurrentUser';
-    import { logout } from '@/utils/auth';
-    import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue';
-    import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
-    import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
-    import UserInfoTile from '@/components/common/UserInfoTile.vue';
+  import { useCurrentUser } from '@/utils/useCurrentUser';
+  import { logout } from '@/utils/auth';
+  import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue';
+  import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
+  import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
+  import UserInfoTile from '@/components/common/UserInfoTile.vue';
 
-    const { t } = useI18n();
-    const { user } = useCurrentUser();
-    const router = useRouter();
-    const route = useRoute();
+  const { t } = useI18n();
+  const { user } = useCurrentUser();
+  const router = useRouter();
+  const route = useRoute();
 
-    const buttonRefs = ref([]);
-    const indicatorY = ref(-15);
-    const indicatorHeight = ref(60);
-    const wrapperRef = ref(null);
-    const menuOpen = ref(false);
+  const buttonRefs = ref([]);
+  const indicatorY = ref(-15);
+  const indicatorHeight = ref(60);
+  const wrapperRef = ref(null);
+  const menuOpen = ref(false);
 
-    const isMobile = ref(window.innerWidth <= 635);
+  const isMobile = ref(window.innerWidth <= 635);
 
-    const barTop = { open: { opacity: 0, y: 6 }, closed: { opacity: 1, y: 0, backgroundColor: 'var(--vt-c-white)' } }
-    const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
-    const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+  const barTop = { open: { opacity: 0, y: 6 }, closed: { opacity: 1, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+  const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+  const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 
 
-    window.addEventListener('resize', () => {
-      isMobile.value = window.innerWidth <= 635;
-    })
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth <= 635;
+  })
 
-    const showMenu = computed(() => !isMobile.value || menuOpen.value);
+  const showMenu = computed(() => !isMobile.value || menuOpen.value);
 
-    const handleLogout = () => {
-      logout();
-      router.push('/auth/login');
-    };
+  const handleLogout = () => {
+    logout();
+    router.push('/auth/login');
+  };
 
-    const handleBurgerMenuClick = () => {
-      menuOpen.value = !menuOpen.value;
-    };
+  const handleBurgerMenuClick = () => {
+    menuOpen.value = !menuOpen.value;
+  };
 
-    const pages = [
-      {label: t('dash.navOverviewText'), icon: 'overview-icon', to: '/dashboard/overview'},
-      {label: t('dash.navTicketsText'), icon: 'tickets-icon', to: '/dashboard/tickets'},
-      {label: t('dash.navProjectsText'), icon: 'projects-icon', to: '/dashboard/projects'},
-      {label: t('dash.navContractsText'), icon: 'contracts-icon', to: '/dashboard/contracts'},
-      {label: t('dash.navUsersText'), icon: 'users-icon', to: '/dashboard/users'},
-      {label: t('dash.navSettingsText'), icon: 'settings-icon', to: '/dashboard/settings'}
-    ];
+  const dashboardChildren = computed(() => {
+    const dashboardRoute = router.options.routes.find(r => r.name === 'dashboard');
+    return dashboardRoute?.children || [];
+  });
 
-    const userMenuOptions = [
-      {label: t('dash.logoutText'), action: handleLogout}
-    ];
+  const pages = computed(() => 
+    dashboardChildren.value.map(child => ({
+      label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
+      icon: `${child.name}-icon`,
+      to: `/dashboard/${child.path}`
+    }))
+  );
 
-    const selectedPages = computed(() => 
-      pages.map(page => ({
-        ...page,
-        selected: route.path.startsWith(page.to)
-      }))
-    );
+  const userMenuOptions = [
+    {label: t('dash.logoutText'), action: handleLogout}
+  ];
 
-    const selectedPageTitle = computed(() => { 
-      return selectedPages.value.find(p => p.selected).label 
+  const selectedPages = computed(() => 
+    pages.value.map(page => ({
+      ...page,
+      selected: route.path.startsWith(page.to)
+    }))
+  );
+
+  const updateIndicator = () => {
+    const selectedIndex = selectedPages.value.findIndex(p => p.selected);
+    const el = buttonRefs.value[selectedIndex];
+    if (!el) return;
+
+    const wrapperTop = wrapperRef.value.getBoundingClientRect().top;
+    const rect = el.getBoundingClientRect();
+    const newY = rect.top + rect.height / 2 - wrapperTop - 30;
+
+    indicatorHeight.value = 70;
+    indicatorY.value = newY;
+
+    setTimeout(() => {
+      indicatorHeight.value = 60;
+    }, 150);
+  };
+
+  watch(() => route.path, () => {
+    nextTick(() => {
+      updateIndicator();
+      if (menuOpen.value) menuOpen.value = false;
     });
+  }, { immediate: true });
 
-    const updateIndicator = () => {
-      const selectedIndex = selectedPages.value.findIndex(p => p.selected);
-      const el = buttonRefs.value[selectedIndex];
-
-      if(!el) return;
-
-      const wrapperTop = wrapperRef.value.getBoundingClientRect().top;
-      const rect = el.getBoundingClientRect();
-      const newY = rect.top + rect.height / 2 - wrapperTop - 30;
-      
-      indicatorHeight.value = 70;
-      indicatorY.value = newY;
-
-      setTimeout(() => {
-        indicatorHeight.value = 60;
-      }, 150);
-    };
-
-    watch(() => route.path, () => {
-      nextTick(() => {
-        updateIndicator();
-
-        if ( menuOpen.value ) menuOpen.value = false;
-      });
-    }, { immediate: true });
-
-    watch(showMenu, (visible) => {
-      if (visible) {
-        nextTick( () => updateIndicator() );
-      }
-    });
+  watch(showMenu, (visible) => {
+    if (visible) nextTick(() => updateIndicator());
+  });
 </script>
 
 <template>
@@ -182,7 +178,6 @@
       </motion.div>
     </AnimatePresence>
 
-    <!-- <div class="selected-page-info" style="color: white">{{ selectedPageTitle }}</div> -->
     <router-view id="dashboard-views" v-slot="{ Component }">
       <component :is="Component"/>
     </router-view>

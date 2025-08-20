@@ -52,32 +52,38 @@ const routes = [
             {
                 path: 'overview',
                 name: 'overview',
-                component: DashboardView
+                component: DashboardView,
+                meta: { titleKey: 'dash.navOverviewText' }
             },
             {
                 path: 'tickets',
                 name: 'tickets',
-                component: TicketView
+                component: TicketView,
+                meta: { titleKey: 'dash.navTicketsText' }
             },
             {
                 path: 'projects',
                 name: 'projects',
-                component: ProjectView
+                component: ProjectView,
+                meta: { titleKey: 'dash.navProjectsText' }
             },
             {
                 path: 'contracts',
                 name: 'contracts',
-                component: ContractView
+                component: ContractView,
+                meta: { titleKey: 'dash.navContractsText' }
             },
             {
                 path: 'users',
                 name: 'users',
-                component: UsersView
+                component: UsersView,
+                meta: { titleKey: 'dash.navUsersText' }
             },
             {
                 path: 'settings',
                 name: 'settings',
-                component: SettingsView
+                component: SettingsView,
+                meta: { titleKey: 'dash.navSettingsText' }
             },
         ]
     },
