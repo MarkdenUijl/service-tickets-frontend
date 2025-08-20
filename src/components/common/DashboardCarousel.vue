@@ -111,23 +111,23 @@
 
 <template>
     <div class="carousel-wrapper">
+        <AnimatePresence>
+            <motion.div 
+                id="carousel-back-button" 
+                class="carousel-button"
+                @click="carouselBackward"
+                :initial="{ opacity: 0 }"
+                :while-hover="{ opacity: 1, scale: 1.1 }"
+                :while-press="{ scale: 0.9 }"
+                :exit="{ opacity: 0 }"
+                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
+                v-if="canGoBack"
+            >
+                <SvgIcon name="icon-arrow-left" height="20px" width="20px"/>
+            </motion.div>
+        </AnimatePresence>
+
         <div class="carousel" ref="containerEl">
-            <AnimatePresence>
-                <motion.div 
-                    id="carousel-back-button" 
-                    class="carousel-button"
-                    @click="carouselBackward"
-                    :initial="{ opacity: 0 }"
-                    :while-hover="{ opacity: 1, scale: 1.1 }"
-                    :while-press="{ scale: 0.9 }"
-                    :exit="{ opacity: 0 }"
-                    :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-                    v-if="canGoBack"
-                >
-                    <SvgIcon name="icon-arrow-left" height="20px" width="20px"/>
-                </motion.div>
-            </AnimatePresence>
-    
             <div 
                 class="carousel-track" 
                 ref="trackEl"
@@ -143,23 +143,23 @@
                     <span id="carousel-card-info">{{ card.cardInfo }}</span>
                 </div>
             </div>
-    
-            <AnimatePresence>
-                <motion.div 
-                    id="carousel-next-button" 
-                    class="carousel-button"
-                    @click="carouselForward"
-                    :initial="{ opacity: 0 }"
-                    :while-hover="{ opacity: 1, scale: 1.1 }"
-                    :while-press="{ scale: 0.9 }"
-                    :exit="{ opacity: 0 }"
-                    :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-                    v-if="canGoNext"
-                > 
-                    <SvgIcon name="icon-arrow-right" height="20px" width="20px"/>
-                </motion.div>
-            </AnimatePresence>
         </div>
+
+        <AnimatePresence>
+            <motion.div 
+                id="carousel-next-button" 
+                class="carousel-button"
+                @click="carouselForward"
+                :initial="{ opacity: 0 }"
+                :while-hover="{ opacity: 1, scale: 1.1 }"
+                :while-press="{ scale: 0.9 }"
+                :exit="{ opacity: 0 }"
+                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
+                v-if="canGoNext"
+            > 
+                <SvgIcon name="icon-arrow-right" height="20px" width="20px"/>
+            </motion.div>
+        </AnimatePresence>
     </div>
 </template>
 
@@ -168,18 +168,19 @@
         width: 100%;
         padding: 10px;
         user-select: none;
+        position: relative;
     }
 
     .carousel {
         width: 100%;
-        overflow: hidden;
-        position: relative;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
     }
 
     .carousel-track {
         display: flex;
         gap: 24px;
-        transition: transform 0.45s cubic-bezier(.34,1.5,.64,1);
+        transition: transform 0.45s cubic-bezier(.34,1.56,.64,1);
         will-change: transform;
     }
 
@@ -220,24 +221,18 @@
         justify-content: center;
         position: absolute;
         top: 50%;
-        transform: translateY(-50%);
+        translate: 0 -50%;
         z-index: 3;
         cursor: pointer;
     }
 
-    /* .carousel-button:hover {
-        background-color: rgba(0,0,0,0.4);
-        color: white;
-        opacity: 1;
-    } */
-
     #carousel-next-button {
-        right: 8px;
+        right: 18px;
         padding-left: 4px;
     }
 
     #carousel-back-button {
-        left: 8px;
+        left: 18px;
         padding-right: 4px;
     }
 </style>
