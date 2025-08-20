@@ -174,7 +174,10 @@
     .carousel {
         width: 100%;
         overflow-x: auto;
-        scroll-snap-type: x mandatory;
+    }
+
+    .carousel::-webkit-scrollbar { 
+        display: none;
     }
 
     .carousel-track {
