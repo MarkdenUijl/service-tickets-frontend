@@ -127,7 +127,11 @@
             </motion.div>
         </AnimatePresence>
 
-        <div class="carousel" ref="containerEl">
+        <div 
+            class="carousel" 
+            ref="containerEl"
+            :class="{ 'can-go-back': canGoBack, 'can-go-next': canGoNext }"
+        >
             <div 
                 class="carousel-track" 
                 ref="trackEl"
@@ -171,10 +175,19 @@
         position: relative;
     }
 
-
     .carousel {
         width: 100%;
         overflow-x: auto;
+    }
+
+    .carousel.can-go-back {
+        mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 2.5%);
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        mask-position: 0 0;
+    }
+
+    .carousel.can-go-next {
         mask-image: linear-gradient(to right, rgba(0,0,0,1) 97.5%, rgba(0,0,0,0) 100%);
         mask-size: 100% 100%;
         mask-repeat: no-repeat;

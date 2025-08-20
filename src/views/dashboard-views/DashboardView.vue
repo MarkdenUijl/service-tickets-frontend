@@ -4,6 +4,7 @@
 
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
     import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
+import RouteInfo from '@/components/common/RouteInfo.vue';
 
     const containerWidth = ref(0);
     const colNum = 3;
@@ -19,21 +20,6 @@
 
     const cards = [
         {
-            cardTitle: "Open tickets",
-            cardInfo: 52
-        },{
-            cardTitle: "Escalated tickets",
-            cardInfo: 10
-        },{
-            cardTitle: "Awaiting response",
-            cardInfo: 16
-        },{
-            cardTitle: "Client responded",
-            cardInfo: 22
-        },{
-            cardTitle: "Unlinked tickets",
-            cardInfo: 4
-        },{
             cardTitle: "Open tickets",
             cardInfo: 52
         },{
@@ -157,6 +143,7 @@
 <template>
     <div class="dashboard-view-wrapper" >
         <div class="dashboard-nav-items">
+            <RouteInfo/>
             <button @click="addLayoutTile">ADD LAYOUT TILE</button>
         </div>
 
