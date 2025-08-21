@@ -21,6 +21,10 @@
 </template>
 
 <style scoped>
+    .route-info-container {
+        margin-left: 16px;
+    }
+
     .route-info-container span {
         font-family: 'Noto Sans JP';
         font-size: 32px;

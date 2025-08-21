@@ -4,7 +4,8 @@
 
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
     import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
-import RouteInfo from '@/components/common/RouteInfo.vue';
+    import RouteInfo from '@/components/common/RouteInfo.vue';
+    import SearchBar from '@/components/text-input/SearchBar.vue';
 
     const containerWidth = ref(0);
     const colNum = 3;
@@ -144,6 +145,7 @@ import RouteInfo from '@/components/common/RouteInfo.vue';
     <div class="dashboard-view-wrapper" >
         <div class="dashboard-nav-items">
             <RouteInfo/>
+            <SearchBar/>
             <button @click="addLayoutTile">ADD LAYOUT TILE</button>
         </div>
 
@@ -179,8 +181,11 @@ import RouteInfo from '@/components/common/RouteInfo.vue';
 <style>
     .dashboard-nav-items {
         width: 100%;
-        background-color: aqua;
-        height: 100px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 92px;
     }
 
     .dashboard-view-wrapper {
