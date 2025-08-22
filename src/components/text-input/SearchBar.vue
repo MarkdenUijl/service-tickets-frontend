@@ -2,6 +2,7 @@
     import { ref } from 'vue';
     import { motion, AnimatePresence } from 'motion-v';
     import { useI18n } from 'vue-i18n';
+import SvgIcon from '../svg-icon/SvgIcon.vue';
 
     const { t } = useI18n();
     let input = ref('');
@@ -18,8 +19,16 @@
 
 <template>
     <div class="search-bar-container">
-        <input class="search-bar" type="text" v-model="input" :placeholder="t('dash.searchProjectsText')"/>
+        <input class="search-bar" name="search-bar" type="text" v-model="input" :placeholder="t('dash.searchProjectsText')"/>
         
+        <SvgIcon 
+            v-if="!input"
+            class="search-icon"
+            name="search-icon" 
+            width="24px" 
+            height="24px"
+        />
+
         <AnimatePresence>
             <motion.div 
                 class="search-results" 
@@ -68,11 +77,19 @@
         color: var(--color-text);
         width: 100%;
         border-radius: 4px;
-        padding: 0 24px;
+        padding: 0 48px;
         height: 40px;
         font-size: 16px;
         box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
         outline: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        top: 50%;
+        translate: 0 -50%;
+        left: 16px;
+        color: var(--color-subtext);
     }
 
     .search-bar::placeholder {
