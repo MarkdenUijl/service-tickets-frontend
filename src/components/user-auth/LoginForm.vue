@@ -1,6 +1,6 @@
 <script setup>
     import { reactive, ref, computed, watch } from 'vue';
-    import ValidatedInput from '../text-input/ValidatedInput.vue';
+    import ValidatedInput from '../user-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
     import { useRouter } from 'vue-router';

@@ -5,7 +5,7 @@
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
     import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
     import RouteInfo from '@/components/common/RouteInfo.vue';
-    import SearchBar from '@/components/text-input/SearchBar.vue';
+    import SearchBar from '@/components/user-input/SearchBar.vue';
 
     const containerWidth = ref(0);
     const colNum = 3;

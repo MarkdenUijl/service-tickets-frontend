@@ -4,7 +4,7 @@
     import { useRouter } from 'vue-router';
     import api from '@/utils/api'
 
-    import ValidatedInput from '../text-input/ValidatedInput.vue';
+    import ValidatedInput from '../user-input/ValidatedInput.vue';
     import LoaderButton from '../buttons/LoaderButton.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
     import { isEmail, isStrongPassword } from '@/utils/validators';
