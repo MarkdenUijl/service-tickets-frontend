@@ -6,6 +6,7 @@
     import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
     import RouteInfo from '@/components/common/RouteInfo.vue';
     import SearchBar from '@/components/user-input/SearchBar.vue';
+import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
 
     const containerWidth = ref(0);
     const colNum = 3;
@@ -146,7 +147,8 @@
         <div class="dashboard-nav-items">
             <RouteInfo/>
             <SearchBar/>
-            <button @click="addLayoutTile">ADD LAYOUT TILE</button>
+            <!-- <button @click="addLayoutTile">ADD LAYOUT TILE</button> -->
+             <FilterDatePicker/>
         </div>
 
         <DashboardCarousel :cards="cards"/>

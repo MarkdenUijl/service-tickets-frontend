@@ -23,6 +23,7 @@
 <style scoped>
     .route-info-container {
         margin-left: 16px;
+        user-select: none;
     }
 
     .route-info-container span {

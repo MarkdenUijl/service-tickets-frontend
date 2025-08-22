@@ -14,5 +14,11 @@
     "tileDataDisplayText": "Widget inhoud",
     "tileDeleteText": "Widget verwijderen",
     "searchProjectsText": "Zoek project...",
-    "noResultsFoundText": "Geen resultaten gevonden..."
+    "noResultsFoundText": "Geen resultaten gevonden...",
+    "lastDayText": "Laatste dag",
+    "lastWeekText": "Laatste week",
+    "lastMonthText": "Laatste maand",
+    "lastYearText": "Laatste jaar",
+    "customRangeText": "Vrij bereik",
+    "fullRangeText": "Sinds begin"
 }

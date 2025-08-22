@@ -10,6 +10,7 @@
     "optimize:svg": "svgo -f src/assets/svg"
   },
   "dependencies": {
+    "@vuepic/vue-datepicker": "^11.0.2",
     "@vueuse/core": "^13.0.0",
     "axios": "^1.9.0",
     "grid-layout-plus": "^1.1.0",

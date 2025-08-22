@@ -14,5 +14,11 @@
     "tileDataDisplayText": "Widget content",
     "tileDeleteText": "Delete widget",
     "searchProjectsText": "Search project...",
-    "noResultsFoundText": "No results found..."
+    "noResultsFoundText": "No results found...",
+    "lastDayText": "Last day",
+    "lastWeekText": "Last week",
+    "lastMonthText": "Last month",
+    "lastYearText": "Last year",
+    "customRangeText": "Custom range",
+    "fullRangeText": "Since start"
 }
