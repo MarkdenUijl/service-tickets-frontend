@@ -12,5 +12,7 @@
     "tileMenuMediumTallSizeText": "Medium portret",
     "tileMenuLargeSizeText": "Groot",
     "tileDataDisplayText": "Widget inhoud",
-    "tileDeleteText": "Widget verwijderen"
+    "tileDeleteText": "Widget verwijderen",
+    "searchProjectsText": "Zoek projecten...",
+    "noResultsFoundText": "Geen resultaten gevonden..."
 }

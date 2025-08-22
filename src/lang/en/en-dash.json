@@ -12,5 +12,7 @@
     "tileMenuMediumTallSizeText": "Medium portrait",
     "tileMenuLargeSizeText": "Large",
     "tileDataDisplayText": "Widget content",
-    "tileDeleteText": "Delete widget"
+    "tileDeleteText": "Delete widget",
+    "searchProjectsText": "Search projects...",
+    "noResultsFoundText": "No results found..."
 }

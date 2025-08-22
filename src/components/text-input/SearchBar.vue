@@ -1,7 +1,9 @@
 <script setup> 
     import { ref } from 'vue';
-    import { motion, AnimatePresence } from 'motion-v'
+    import { motion, AnimatePresence } from 'motion-v';
+    import { useI18n } from 'vue-i18n';
 
+    const { t } = useI18n();
     let input = ref('');
 
     // temporary search bar filling
@@ -16,16 +18,16 @@
 
 <template>
     <div class="search-bar-container">
-        <input class="search-bar" type="text" v-model="input" placeholder="Search projects..."/>
+        <input class="search-bar" type="text" v-model="input" :placeholder="t('dash.searchProjectsText')"/>
         
         <AnimatePresence>
             <motion.div 
                 class="search-results" 
                 v-if="input"
                 layout
-                :initial="{ opacity: 0, scaleY: 0, transformOrigin: 'top' }"
-                :animate="{ opacity: 1, scaleY: 1, transformOrigin: 'top' }"
-                :exit="{ opacity: 0, scaleY: 0, transformOrigin: 'top' }"
+                :initial="{ opacity: 0, height: 0, transformOrigin: 'top' }"
+                :animate="{ opacity: 1, height: 'auto', transformOrigin: 'top' }"
+                :exit="{ opacity: 0, height: 0, transformOrigin: 'top' }"
                 :transition="{
                     type: 'spring',
                     stiffness: 200,
@@ -46,7 +48,7 @@
                 </motion.div>
             
                 <div class="search-item no-results" v-if="!filteredList().length">
-                    <p>No results found...</p>
+                    <p>{{ t('dash.noResultsFoundText') }}</p>
                 </div>
             </motion.div>
         </AnimatePresence>
@@ -66,7 +68,8 @@
         color: var(--color-text);
         width: 100%;
         border-radius: 4px;
-        padding: 16px 24px;
+        padding: 0 24px;
+        height: 40px;
         font-size: 16px;
         box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
         outline: none;
