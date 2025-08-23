@@ -278,7 +278,7 @@
 <style>
     .dashboard-tile {
         background-color: var(--color-menu-background);
-        padding: 16px;
+        padding: 20px 16px;
         border-radius: 12px;
         position: relative;
         transition: all 300ms cubic-bezier(0.25, 1.25, 0.5, 1);
@@ -287,9 +287,9 @@
     }
 
     .tile-header {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
+        font-family: 'Noto Sans JP';
+        font-size: 16px;
+        font-weight: 700;
     }
 
     .tile-header button {

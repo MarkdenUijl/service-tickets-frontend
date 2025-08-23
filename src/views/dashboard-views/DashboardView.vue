@@ -1,12 +1,13 @@
 <script setup>
     import { GridLayout } from 'grid-layout-plus';
     import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+    import { motion } from 'motion-v';
 
     import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
     import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
     import RouteInfo from '@/components/common/RouteInfo.vue';
     import SearchBar from '@/components/user-input/SearchBar.vue';
-import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
+    import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
 
     const containerWidth = ref(0);
     const colNum = 3;
@@ -14,6 +15,7 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
 
     const savedLayout = localStorage.getItem(STORAGE_KEY);
     const rowHeight = ref(100);
+    const isChecked = ref(false);
 
     const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
         { x: 0, y: 0, w: 1, h: 1, i: '0' },
@@ -42,6 +44,8 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
     const addLayoutTile = () => {
         const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+        isChecked.value = true;
+
         layout.value.push({
             x: 0,
             y: 0,
@@ -51,6 +55,10 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
         });
 
         layout.value = packLayout(layout.value);
+
+        setTimeout(() => {
+            isChecked.value = false;
+        }, 1500)
     };
 
     const deleteLayoutTile = (id) => {
@@ -139,7 +147,27 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
 
         layout.value = packLayout(updated);
     };
-    
+
+    const iconVariants = {
+    plus: {
+        d: "M12 5v14M5 12h14",
+        rotate: 0,
+        transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 20,
+        },
+    },
+    check: {
+        d: "M5 13l4 4L19 7",
+        rotate: 365,
+        transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 20,
+        },
+    },
+    };
 </script>
 
 <template>
@@ -147,7 +175,6 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
         <div class="dashboard-nav-items">
             <RouteInfo/>
             <SearchBar/>
-            <!-- <button @click="addLayoutTile">ADD LAYOUT TILE</button> -->
              <FilterDatePicker/>
         </div>
 
@@ -177,6 +204,38 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
                 {{ item.i }}
             </DashboardDataTile>
         </GridLayout>
+
+        <motion.button 
+            class="add-menu-tile-button"
+            :class="isChecked ? 'checked' : ''"
+            @click="addLayoutTile"
+            :disabled="isChecked"
+            :initial="false"
+            :animate="isChecked ? 'checked' : 'default'"
+            :variants="{
+                default: { backgroundColor: 'var(--color-highlight)' },
+                checked: { backgroundColor: 'var(--vt-c-green)' }
+            }"
+            :transition="{ duration: 0.5 }"
+        >
+            <motion.svg
+                class="add-menu-checkmark"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+            >
+                <motion.path
+                    stroke="white"
+                    fill="transparent"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    :initial="false"
+                    :animate="isChecked ? 'check' : 'plus'"
+                    :variants="iconVariants"
+                />
+            </motion.svg>
+        </motion.button>
     </div>
 </template>
 
@@ -196,5 +255,28 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
 
     .dashboard-view-wrapper::-webkit-scrollbar {
         display: none;
+    }
+
+    .add-menu-tile-button {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: 32px;
+        right: 0px;
+        padding: 8px 12px;
+        box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.25);
+        border-radius: 4px 0 0 4px;
+        cursor: pointer;
+    }
+
+    .add-menu-tile-button.checked {
+        cursor: default;
+    }
+
+    .add-menu-checkmark {
+        background: none;
+        overflow: visible;
+        pointer-events: none;
     }
 </style>
