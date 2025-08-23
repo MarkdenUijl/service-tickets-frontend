@@ -30,25 +30,6 @@
             : undefined
     )
 
-    const handleClickOutside = (e) => {
-        if (!tileRef.value) return;
-
-        const clickedOutside = !tileRef.value.contains(e.target);
-
-        if (clickedOutside && showMenu.value) {
-            showMenu.value = false;
-        }
-    };
-
-    onMounted(() => {
-        window.addEventListener('click', handleClickOutside);
-    });
-
-    onUnmounted(() => {
-        window.removeEventListener('click', handleClickOutside)
-    });
-
-    const tileRef = ref(null);
     const showMenu = ref(false);
     const hasMenu = computed(() => Array.isArray(props.menuOptions) && props.menuOptions.length > 0);
 
@@ -58,10 +39,10 @@
 </script>
 
 <template>
-    <div id="user-info-tile" ref="tileRef">
+    <div id="user-info-tile">
         <motion.div 
           id="user-info-picture-frame" 
-          @click="toggleMenu"
+          @click.stop="toggleMenu"
           :class="{ clickable: hasMenu }"
           :while-hover="hoverAnimation"
           :style="{ cursor: hasMenu ? 'pointer' : 'default' }"
@@ -72,6 +53,7 @@
         <AnimatePresence>
           <motion.div 
             v-if="hasMenu && showMenu" 
+            v-click-outside="() => showMenu = false"
             class="user-info-menu"
             @click.stop
             :initial="{ opacity: 0, y: 10 }"

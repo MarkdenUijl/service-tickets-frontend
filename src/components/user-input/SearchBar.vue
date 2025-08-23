@@ -1,11 +1,12 @@
 <script setup> 
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import { motion, AnimatePresence } from 'motion-v';
     import { useI18n } from 'vue-i18n';
 import SvgIcon from '../svg-icon/SvgIcon.vue';
 
     const { t } = useI18n();
-    let input = ref('');
+    const input = ref('');
+    const isFocused = ref(false);
 
     // temporary search bar filling
     const fruits = ['apple', 'pear', 'banana', 'orange', 'lemon', 'lime', 'potato', 'mandarin', 'tomato'];
@@ -15,14 +16,27 @@ import SvgIcon from '../svg-icon/SvgIcon.vue';
             fruit.toLowerCase().includes(input.value.toLowerCase())
         );
     };
+
+    const menuOpen = computed(() => input.value && isFocused.value);
 </script>
 
 <template>
-    <div class="search-bar-container">
-        <input class="search-bar" name="search-bar" type="text" v-model="input" :placeholder="t('dash.searchProjectsText')"/>
+    <div 
+        class="search-bar-container" 
+        v-click-outside="() => isFocused = false"
+    >
+        <input 
+            class="search-bar" 
+            name="search-bar" 
+            type="text" 
+            v-model="input" 
+            :placeholder="t('dash.searchProjectsText')"
+            @focus="isFocused = true"
+            @blur="isFocused = false"
+        />
         
         <SvgIcon 
-            v-if="!input"
+            v-if="!isFocused"
             class="search-icon"
             name="search-icon" 
             width="24px" 
@@ -32,7 +46,7 @@ import SvgIcon from '../svg-icon/SvgIcon.vue';
         <AnimatePresence>
             <motion.div 
                 class="search-results" 
-                v-if="input"
+                v-if="menuOpen"
                 layout
                 :initial="{ opacity: 0, height: 0, transformOrigin: 'top' }"
                 :animate="{ opacity: 1, height: 'auto', transformOrigin: 'top' }"
@@ -52,6 +66,7 @@ import SvgIcon from '../svg-icon/SvgIcon.vue';
                         backgroundColor: 'var(--color-shadow)',
                         paddingLeft: '24px' 
                     }"
+                    @click="input = listItem"
                 >
                     <p>{{ listItem }}</p>
                 </motion.div>

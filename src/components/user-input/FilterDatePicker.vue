@@ -106,7 +106,7 @@
 
         <div 
             class="date-range-presets" 
-            @click="handleToggleDateFilterMenu"
+            @click.stop="handleToggleDateFilterMenu"
             :class="{ 'open': isOpen }"
         >
             {{ selectedPresetName }}
@@ -128,6 +128,7 @@
             <motion.div
                 class="date-preset-selection-menu"
                 v-if="isOpen"
+                v-click-outside="() => isOpen = false"
                 :initial="'closed'"
                 :animate="'open'"
                 :exit="'closed'"
