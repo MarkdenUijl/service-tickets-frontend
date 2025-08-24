@@ -31,7 +31,7 @@
         
         <div class="route-info-nav">
             <span id="main-path-title">{{ mainPath }}</span>
-            <SvgIcon class="pointer-icon" name="nav-pointer-icon"/>
+            <SvgIcon class="pointer-icon" name="nav-pointer-icon" width="8px"/>
             <span id="current-path-title">{{ pageName }}</span>
         </div>
     </div>
