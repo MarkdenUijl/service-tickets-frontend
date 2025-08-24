@@ -10,20 +10,22 @@
     import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
 
     const containerWidth = ref(0);
-    const colNum = 3;
     const STORAGE_KEY = 'dashboardTileLayout';
+    const colNum = ref(3);
     const maxTilesAmount = 9;
-
     const savedLayout = localStorage.getItem(STORAGE_KEY);
-    const rowHeight = ref(100);
+    const rowHeight = ref(null);
+    
     const isChecked = ref(false);
-    const searchInput = ref('');
     const dateRange = ref(null);
+    const searchInput = ref('');
 
     const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
         { x: 0, y: 0, w: 1, h: 1, i: '0' },
         { x: 1, y: 0, w: 1, h: 1, i: '1' }
     ]);
+
+    const originalLayout = ref(null);
 
     const cards = [
         {
@@ -77,27 +79,30 @@
 
     const updateRowHeight = () => {
         if (containerWidth.value > 0) {
-            rowHeight.value = (containerWidth.value / colNum) * 0.7;
+            if (colNum.value === 1) {
+                rowHeight.value = window.innerWidth * 0.9;
+            } else {
+                rowHeight.value = (containerWidth.value / colNum.value) * 0.7;
+            }
         }
     };
 
     onMounted(() => {
         const wrapper = document.querySelector('.dashboard-view-wrapper');
         containerWidth.value = wrapper.clientWidth;
-        updateRowHeight();
 
-        window.addEventListener('resize', () => {
-            containerWidth.value = wrapper.clientWidth;
-            updateRowHeight();
-        });
+        handleScreenResize();
+        window.addEventListener('resize', handleScreenResize);
     });
 
     onBeforeUnmount(() => {
-        window.removeEventListener('resize', updateRowHeight);
+        window.removeEventListener('resize', handleScreenResize);
     });
 
     watch(layout, (newLayout) => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newLayout));
+        if (!originalLayout.value) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newLayout));
+        }
     }, { deep: true });
 
     const packLayout = (items) => {
@@ -127,7 +132,7 @@
             let placed = false;
 
             for (let y = 0; !placed; y++) {
-                for (let x = 0; x <= colNum - tile.w; x++) {
+                for (let x = 0; x <= colNum.value - tile.w; x++) {
                     if (isFree(x, y, tile.w, tile.h)) {
                         packed.push({ ...tile, x, y });
                         occupy(tile.i, x, y, tile.w, tile.h);
@@ -149,6 +154,29 @@
         updated.sort((a, b) => a.y - b.y || a.x - b.x);
 
         layout.value = packLayout(updated);
+    };
+
+    const handleScreenResize = () => {
+        containerWidth.value = document.querySelector('.dashboard-view-wrapper').clientWidth;
+        
+        if (window.innerWidth <= 635) {
+            colNum.value = 1;            
+
+            if (!originalLayout.value) {
+                originalLayout.value = JSON.parse(JSON.stringify(layout.value));
+            }
+            
+            layout.value = packLayout(layout.value.map(tile => ({ ...tile, w:1, h:1 })));
+        } else {
+            colNum.value = 3;
+
+            if (originalLayout.value) {
+                layout.value = JSON.parse(JSON.stringify(originalLayout.value));
+                originalLayout.value = null;
+            }
+        }
+
+        updateRowHeight();
     };
 
     const handleClearPreferences = () => {
@@ -310,5 +338,11 @@
         background: none;
         overflow: visible;
         pointer-events: none;
+    }
+
+    @media (max-width: 635px) {
+        .dashboard-header-items {
+            display: none;
+        }
     }
 </style>
