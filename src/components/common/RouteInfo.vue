@@ -3,6 +3,8 @@
     import { useRoute } from 'vue-router';
     import { useI18n } from 'vue-i18n';
 
+    import SvgIcon from '../svg-icon/SvgIcon.vue';
+
     const { t } = useI18n();
     const route = useRoute();
 
@@ -23,11 +25,13 @@
 
 <template>
     <div class="route-info-container">
-        <span class="route-info-title">{{ pageName }}</span>
+        <div>
+            <span class="route-info-title">{{ pageName }}</span>
+        </div>
         
         <div class="route-info-nav">
             <span id="main-path-title">{{ mainPath }}</span>
-            <span> > </span>
+            <SvgIcon class="pointer-icon" name="nav-pointer-icon"/>
             <span id="current-path-title">{{ pageName }}</span>
         </div>
     </div>
@@ -53,9 +57,10 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        align-items: center;
         font-size: 12px;
         gap: 16px;
-        max-width: 160px;
+        line-height: 12px;
     }
 
     #main-path-title {
