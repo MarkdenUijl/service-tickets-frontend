@@ -1,16 +1,20 @@
 <script setup>
     import { GridItem } from 'grid-layout-plus';
     import { motion, AnimatePresence } from 'motion-v';
-    import { reactive, ref } from 'vue';
+    import { reactive, ref, computed } from 'vue';
     import { useI18n } from 'vue-i18n';
 
+    import { useWindowSize } from '@/composables/useWindowSize';
+
     const { t } = useI18n();
+    const { windowWidth } = useWindowSize();
+
     const props = defineProps({
         x: { type: Number, required: true },
         y: { type: Number, required: true },
         w: { type: Number, required: true },
         h: { type: Number, required: true },
-        i: { type: String, required: true }
+        i: { type: String, required: true },
     });
 
     const emit = defineEmits(['resizeRequest', 'deletionRequest']);
@@ -43,7 +47,6 @@
                 newWidth = 1;
                 newHeight = 1;
                 break;
-
         }
 
         emit('resizeRequest', { id: props.i, w: newWidth, h: newHeight });
@@ -123,6 +126,7 @@
         { 
             title: t('dash.tileMenuTitleSizeText'),
             isOpen: false,
+            hideOnMobile: true,
             menuItems: [
                 {
                     optionTitle: t('dash.tileMenuSmallSizeText'),
@@ -141,6 +145,7 @@
         },{ 
             title: t('dash.tileDataDisplayText'),
             isOpen: false,
+            hideOnMobile: false,
             menuItems: [
                 {
                     optionTitle: t('dash.tileMenuSmallSizeText'),
@@ -158,6 +163,12 @@
             ]
         }
     ]);
+
+    const visibleTileMenuOptions = computed(() => {
+        return tileMenuOptions.filter(option =>
+            !(windowWidth.value <= 635 && option.hideOnMobile)
+        );
+    });
 
     const toggleOptionMenu = (option) => {
         option.isOpen = !option.isOpen;
@@ -217,7 +228,7 @@
                 }"
             >
                 <div 
-                    v-for="option in tileMenuOptions"
+                    v-for="option in visibleTileMenuOptions"
                     @click="toggleOptionMenu(option)"
                     class="tile-menu-option"
                 >
@@ -270,7 +281,11 @@
         
         <div class="tile-header">
             TILE HEADER
-        </div>  
+        </div>
+        <div class="tile-size-info">
+            <span>W: {{ props.w }}</span>
+            <span>H: {{ props.h }}</span>
+        </div>
         <slot />
     </GridItem>
 </template>
