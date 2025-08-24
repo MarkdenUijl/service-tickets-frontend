@@ -145,17 +145,18 @@
             firstName: () => formData.firstName ? '' : 'emptyFieldError',
             lastName: () => formData.lastName ? '' : 'emptyFieldError',
             email: () => {
-            if (!formData.email) return 'emptyFieldError';
-            if (!isEmail(formData.email)) return 'emailInvalid';
-            return '';
+                if (!formData.email) return 'emptyFieldError';
+                if (!isEmail(formData.email)) return 'emailInvalid';
+                return '';
             },
             password: () => formData.password ? '' : 'emptyFieldError',
             passwordConfirmation: () => formData.passwordConfirmation ? '' : 'emptyFieldError',
         }).forEach(([field, validator]) => {
             const error = validator();
+            
             if (error) {
-            errors[field] = error;
-            isValid = false;
+                errors[field] = error;
+                isValid = false;
             }
         });
 
@@ -166,7 +167,7 @@
         const payload = {
             firstName: capitalizeWords(formData.firstName),
             lastName: capitalizeWords(formData.lastName),
-            email: formData.email,
+            email: formData.email.toLowerCase(),
             password: formData.password,
         };
 
@@ -177,9 +178,9 @@
             router.push('confirmation');
         } catch (error) {
             if (error.originalError?.status === 409) {
-            errors.email = 'emailConflict';
+                errors.email = 'emailConflict';
             } else {
-            errors.email = 'serverError';
+                errors.email = 'serverError';
             }
         } finally {
             loading.value = false;

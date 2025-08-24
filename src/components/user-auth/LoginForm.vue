@@ -54,7 +54,7 @@
             loading.value = true
             
             const payload = {
-                username: formData.email,
+                username: formData.email.toLowerCase(),
                 password: formData.password,
                 tokenPersist: formData.tokenPersist
             }
