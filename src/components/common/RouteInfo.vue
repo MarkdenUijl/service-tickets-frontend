@@ -30,8 +30,11 @@
         </div>
         
         <div class="route-info-nav">
-            <span id="main-path-title">{{ mainPath }}</span>
-            <SvgIcon class="pointer-icon" name="nav-pointer-icon" width="8px"/>
+            <div class="main-route-info">
+                <span id="main-path-title">{{ mainPath }}</span>
+                <SvgIcon class="pointer-icon" name="nav-pointer-icon" width="8px"/>
+            </div>
+
             <span id="current-path-title">{{ pageName }}</span>
         </div>
     </div>
@@ -44,6 +47,7 @@
         display: flex;
         flex-direction: column;
         color: white;
+        max-width: 200px;
     }
 
     .route-info-title {
@@ -56,11 +60,17 @@
     .route-info-nav {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: center;
         font-size: 12px;
-        gap: 16px;
+        gap: 24px;
         line-height: 12px;
+    }
+
+    .main-route-info {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
     }
 
     #main-path-title {
