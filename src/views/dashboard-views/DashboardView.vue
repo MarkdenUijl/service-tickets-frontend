@@ -12,10 +12,13 @@
     const containerWidth = ref(0);
     const colNum = 3;
     const STORAGE_KEY = 'dashboardTileLayout';
+    const maxTilesAmount = 9;
 
     const savedLayout = localStorage.getItem(STORAGE_KEY);
     const rowHeight = ref(100);
     const isChecked = ref(false);
+    const searchInput = ref('');
+    const dateRange = ref(null);
 
     const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
         { x: 0, y: 0, w: 1, h: 1, i: '0' },
@@ -148,6 +151,11 @@
         layout.value = packLayout(updated);
     };
 
+    const handleClearPreferences = () => {
+        searchInput.value = '';
+        dateRange.value = null;
+    }
+
     const iconVariants = {
     plus: {
         d: "M12 5v14M5 12h14",
@@ -172,10 +180,19 @@
 
 <template>
     <div class="dashboard-view-wrapper" >
-        <div class="dashboard-nav-items">
+        <div class="dashboard-header-items">
             <RouteInfo/>
-            <SearchBar/>
-             <FilterDatePicker/>
+            <SearchBar v-model="searchInput"/>
+            <FilterDatePicker v-model="dateRange"/>
+            <motion.button 
+                class="clear-filter-button"
+                @click="handleClearPreferences"
+                :while-press="{
+                    scale: 0.97
+                }"
+            >
+                Clear preferences
+            </motion.button>
         </div>
 
         <DashboardCarousel :cards="cards"/>
@@ -206,6 +223,7 @@
         </GridLayout>
 
         <motion.button 
+            v-if="layout.length < maxTilesAmount"
             class="add-menu-tile-button"
             :class="isChecked ? 'checked' : ''"
             @click="addLayoutTile"
@@ -240,13 +258,27 @@
 </template>
 
 <style>
-    .dashboard-nav-items {
+    .dashboard-header-items {
         width: 100%;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        gap: 92px;
+        gap: 48px;
+        padding: 16px 0;
+    }
+
+    .clear-filter-button {
+        background-color: var(--color-menu-background);
+        color: var(--text-color);
+        font-size: 11px;
+        font-weight: 700;
+        font-family: 'Noto Sans JP';
+        padding: 6px 24px;
+        border: 1px solid var(--vt-c-offwhite);
+        border-radius: 4px;
+        cursor: pointer;
+        white-space: nowrap;
     }
 
     .dashboard-view-wrapper {

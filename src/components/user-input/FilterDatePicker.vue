@@ -1,18 +1,35 @@
 <script setup>
-    import { ref } from 'vue';
+    import { ref, watch } from 'vue';
     import { motion, AnimatePresence } from 'motion-v';
     import { useI18n } from 'vue-i18n';
     import VueDatePicker from '@vuepic/vue-datepicker';
     import '@vuepic/vue-datepicker/dist/main.css';
-
     import SvgIcon from '../svg-icon/SvgIcon.vue';
 
+    const props = defineProps({ modelValue: Array });
+    const emit = defineEmits([ 'update:modelValue' ]);
+
+    const date = ref(props.modelValue);
+
     const { t } = useI18n();
-    const date = ref();
+    // const date = ref();
     const isOpen = ref(false);
     const selectedPresetName = ref(t('dash.fullRangeText'));
 
     const now = () => new Date();
+
+    watch(
+        () => props.modelValue,
+        (val) => {
+            date.value = val;
+
+            if (!val) {
+                selectedPresetName.value = t('dash.fullRangeText');
+            } else {
+                selectedPresetName.value = t('dash.customRangeText');
+            }
+        }, { immediate: true }
+    );
 
     const presetMenuOptions = [
         {
@@ -62,6 +79,8 @@
         } else {
             selectedPresetName.value = t('dash.customRangeText');
         }
+
+        emit('update:modelValue', date.value);
     };
 
     const handleToggleDateFilterMenu = () => { isOpen.value = !isOpen.value };
@@ -157,7 +176,7 @@
                     :key="presetOption"
                     class="date-preset-option"
                     @click="() => {
-                        date = presetOption.getRange();
+                        handleDateChange(presetOption.getRange())
                         selectedPresetName = presetOption.name;
                         isOpen = false;
                     }"

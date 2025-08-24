@@ -2,11 +2,18 @@
     import { computed, ref } from 'vue';
     import { motion, AnimatePresence } from 'motion-v';
     import { useI18n } from 'vue-i18n';
-import SvgIcon from '../svg-icon/SvgIcon.vue';
+    import SvgIcon from '../svg-icon/SvgIcon.vue';
+
+    const props = defineProps({ modelValue: String });
+    const emit = defineEmits([ 'update:modelValue' ]);
 
     const { t } = useI18n();
-    const input = ref('');
     const isFocused = ref(false);
+
+    const input = computed({
+        get: () => props.modelValue,
+        set: (val) => emit( 'update:modelValue', val )
+    });
 
     // temporary search bar filling
     const fruits = ['apple', 'pear', 'banana', 'orange', 'lemon', 'lime', 'potato', 'mandarin', 'tomato'];
@@ -36,7 +43,7 @@ import SvgIcon from '../svg-icon/SvgIcon.vue';
         />
         
         <SvgIcon 
-            v-if="!isFocused"
+            v-if="!input"
             class="search-icon"
             name="search-icon" 
             width="24px" 
