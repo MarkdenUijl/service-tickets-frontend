@@ -41,7 +41,7 @@
         width: 200px;
         border: none;
         border-radius: 8px;
-        background-color: var(--vt-c-highlight);
+        background-color: var(--color-highlight);
         color: white;
         font-weight: bold;
         cursor: pointer;

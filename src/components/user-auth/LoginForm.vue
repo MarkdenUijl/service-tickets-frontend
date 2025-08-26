@@ -1,6 +1,6 @@
 <script setup>
     import { reactive, ref, computed, watch } from 'vue';
-    import ValidatedInput from '../text-input/ValidatedInput.vue';
+    import ValidatedInput from '../user-input/ValidatedInput.vue';
     import { useI18n } from 'vue-i18n';
     import api from '@/utils/api';
     import { useRouter } from 'vue-router';
@@ -54,7 +54,7 @@
             loading.value = true
             
             const payload = {
-                username: formData.email,
+                username: formData.email.toLowerCase(),
                 password: formData.password,
                 tokenPersist: formData.tokenPersist
             }
@@ -162,8 +162,8 @@
     }
 
     #remember-me input:checked {
-        background-color: var(--vt-c-highlight);
-        border: var(--vt-c-highlight);
+        background-color: var(--color-highlight);
+        border: var(--color-highlight);
     }
 
     #remember-me input[type="checkbox"]:checked::after {
@@ -180,6 +180,6 @@
     }
 
     #forgot-password {
-        color: var(--vt-c-highlight);
+        color: var(--color-highlight);
     }
 </style>

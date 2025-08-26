@@ -5,5 +5,20 @@
     "navContractsText": "Contracts",
     "navUsersText": "Users",
     "navSettingsText": "Settings",
-    "logoutText": "Logout"
+    "logoutText": "Logout",
+    "tileMenuTitleSizeText": "Widget size",
+    "tileMenuSmallSizeText": "Small",
+    "tileMenuMediumWideSizeText": "Medium landscape",
+    "tileMenuMediumTallSizeText": "Medium portrait",
+    "tileMenuLargeSizeText": "Large",
+    "tileDataDisplayText": "Widget content",
+    "tileDeleteText": "Delete widget",
+    "searchProjectsText": "Search project...",
+    "noResultsFoundText": "No results found...",
+    "lastDayText": "Last day",
+    "lastWeekText": "Last week",
+    "lastMonthText": "Last month",
+    "lastYearText": "Last year",
+    "customRangeText": "Custom range",
+    "fullRangeText": "Since start"
 }

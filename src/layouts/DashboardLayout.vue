@@ -1,165 +1,187 @@
 <script setup>
-    import { useRoute, useRouter } from 'vue-router';
-    import { computed, nextTick, ref, watch } from 'vue';
-    import { useI18n } from 'vue-i18n';
-    import { motion, AnimatePresence } from 'motion-v';
+  import { useRoute, useRouter } from 'vue-router';
+  import { computed, nextTick, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { AnimatePresence, motion } from 'motion-v';
 
-    import { useCurrentUser } from '@/utils/useCurrentUser';
-    import { logout } from '@/utils/auth';
-    import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue';
-    import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
-    import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
-    
-    
-    const { t } = useI18n();
-    const { user } = useCurrentUser();
-    const router = useRouter();
-    const route = useRoute();
+  import { useCurrentUser } from '@/utils/useCurrentUser';
+  import { logout } from '@/utils/auth';
+  import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue';
+  import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue';
+  import SvgIcon from '@/components/svg-icon/SvgIcon.vue';
+  import UserInfoTile from '@/components/common/UserInfoTile.vue';
 
-    const showMenu = ref(false);
-    const buttonRefs = ref([]);
-    const indicatorY = ref(-15);
-    const indicatorHeight = ref(60);
-    const wrapperRef = ref(null);
+  const { t } = useI18n();
+  const { user } = useCurrentUser();
+  const router = useRouter();
+  const route = useRoute();
 
-    const handleLogout = () => {
-      logout();
-      router.push('/auth/login');
-    };
+  const buttonRefs = ref([]);
+  const indicatorY = ref(-15);
+  const indicatorHeight = ref(60);
+  const wrapperRef = ref(null);
+  const menuOpen = ref(false);
 
-    const pages = [
-      {label: t('dash.navOverviewText'), icon: 'overview-icon', to: '/dashboard/overview'},
-      {label: t('dash.navTicketsText'), icon: 'tickets-icon', to: '/dashboard/tickets'},
-      {label: t('dash.navProjectsText'), icon: 'projects-icon', to: '/dashboard/projects'},
-      {label: t('dash.navContractsText'), icon: 'contracts-icon', to: '/dashboard/contracts'},
-      {label: t('dash.navUsersText'), icon: 'users-icon', to: '/dashboard/users'},
-      {label: t('dash.navSettingsText'), icon: 'settings-icon', to: '/dashboard/settings'}
-    ];
+  const isMobile = ref(window.innerWidth <= 635);
 
-    const userMenuOptions = [
-      {label: t('dash.logoutText'), action: handleLogout}
-    ];
+  const barTop = { open: { opacity: 0, y: 6 }, closed: { opacity: 1, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+  const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
+  const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 
-    const selectedPages = computed(() => 
-      pages.map(page => ({
-        ...page,
-        selected: route.path.startsWith(page.to)
-      }))
-    );
 
-    const userInfo = computed(() => {
-      const userVal = user.value;
-      if (!userVal) {
-        return {
-          fullName: '',
-          email: '',
-          initials: '--'
-        };
-      }
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth <= 635;
+  })
 
-      const firstName = userVal.firstName ?? '';
-      const lastName = userVal.lastName ?? '';
-      const fullName = `${firstName} ${lastName}`.trim();
-      const email = userVal.email ?? '';
-      const initials = `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
+  const showMenu = computed(() => !isMobile.value || menuOpen.value);
 
-      return { fullName, email, initials };
+  const handleLogout = () => {
+    logout();
+    router.push('/auth/login');
+  };
+
+  const handleBurgerMenuClick = () => {
+    menuOpen.value = !menuOpen.value;
+  };
+
+  const dashboardChildren = computed(() => {
+    const dashboardRoute = router.options.routes.find(r => r.name === 'dashboard');
+    return dashboardRoute?.children || [];
+  });
+
+  const pages = computed(() => 
+    dashboardChildren.value.map(child => ({
+      label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
+      icon: `${child.name}-icon`,
+      to: `/dashboard/${child.path}`
+    }))
+  );
+
+  const userMenuOptions = [
+    {label: t('dash.logoutText'), action: handleLogout}
+  ];
+
+  const selectedPages = computed(() => 
+    pages.value.map(page => ({
+      ...page,
+      selected: route.path.startsWith(page.to)
+    }))
+  );
+
+  const updateIndicator = () => {
+    const selectedIndex = selectedPages.value.findIndex(p => p.selected);
+    const el = buttonRefs.value[selectedIndex];
+    if (!el) return;
+
+    const wrapperTop = wrapperRef.value.getBoundingClientRect().top;
+    const rect = el.getBoundingClientRect();
+    const newY = rect.top + rect.height / 2 - wrapperTop - 30;
+
+    indicatorHeight.value = 70;
+    indicatorY.value = newY;
+
+    setTimeout(() => {
+      indicatorHeight.value = 60;
+    }, 150);
+  };
+
+  watch(() => route.path, () => {
+    nextTick(() => {
+      updateIndicator();
+      if (menuOpen.value) menuOpen.value = false;
     });
+  }, { immediate: true });
 
-    const toggleMenu = () => {
-      showMenu.value = !showMenu.value;
-    };
-
-    watch(() => route.path, () => {
-      nextTick(() => {
-        const selectedIndex = selectedPages.value.findIndex(p => p.selected);
-        const el = buttonRefs.value[selectedIndex];
-
-        if(!el) return;
-
-        const wrapperTop = wrapperRef.value.getBoundingClientRect().top;
-        const rect = el.getBoundingClientRect();
-        const newY = rect.top + rect.height / 2 - wrapperTop - 30;
-        
-        indicatorHeight.value = 70;
-        indicatorY.value = newY;
-
-        setTimeout(() => {
-          indicatorHeight.value = 60;
-        }, 150);
-      });
-    }, { immediate: true });
+  watch(showMenu, (visible) => {
+    if (visible) nextTick(() => updateIndicator());
+  });
 </script>
 
 <template>
   <div class="dashboard-page">
-    <div class="dashboard-index-background">
-      <div id="dashboard-branding">
-        <LogoIconLarge />
-        <span style="font-weight: 700; font-size: 50px; font-family: 'Noto Sans JP'; user-select: none;">Helvar</span>
-      </div>
+    <SvgIcon name="gradient-background-banner" height="184px" class="page-background"/>
 
-      <div class="selection-menu-wrapper" ref="wrapperRef">
-        <motion.div
-          class="selection-menu-indicator"
-          :animate="{ y: indicatorY, height: indicatorHeight + 'px' }"
-          :transition="{ type: 'spring', stiffness: 300, damping: 25 }"
-        >
-          <SvgIcon name="selection-indicator"/>
-        </motion.div>
+    <motion.div
+      id="menu-toggle-button" 
+      @click="handleBurgerMenuClick"
+      :initial="false"
+      :animate="menuOpen ? 'open' : 'closed'"
+    >
+      <motion.span class="bar" :variants="barTop"/>
+      <motion.span class="bar" :variants="barMid"/>
+      <motion.span class="bar" :variants="barBot"/>
+    </motion.div>
 
-        <div id="dashboard-selection-menu">
-          <DashboardPageSelectorButton
-            v-for="( page, index ) in selectedPages"
-            :key="page.to"
-            :label="page.label"
-            :icon="page.icon"
-            :to="page.to"
-            :selected="page.selected"
-            :ref="el => buttonRefs[index] = el?.$el"
-          />
+    <UserInfoTile
+      v-if="isMobile"
+      :first-name="user.firstName ?? ''" 
+      :last-name="user.lastName ?? ''" 
+      :email="user.email ?? ''"
+      :text-color="'var(--vt-c-white)'"
+    />
+
+    <AnimatePresence>
+      <motion.div
+        v-if="showMenu"
+        class="dashboard-index-background"
+        :class="{'menu-open': menuOpen}"
+        :initial="{ opacity: 0 }"
+        :animate="{ opacity: 1 }"
+        :exit="{ opacity: 0 }"
+        :transition="{ duration: 0.15 }"
+      >
+        <div id="dashboard-branding">
+          <LogoIconLarge />
+          <span style="font-weight: 700; font-size: 50px; font-family: 'Noto Sans JP'; user-select: none;">Helvar</span>
         </div>
-      </div>
 
-      <div id="user-info-tile">
-        <motion.div 
-          id="user-info-picture-frame" 
-          @click="toggleMenu"
-          :while-hover="{ scale: 1.1, boxShadow: '0px 0px 8px rgba(255, 255, 255, 0.3)' }"
-        >
-          {{ userInfo.initials }}
-        </motion.div>
-
-        <AnimatePresence>
-          <motion.div 
-            v-if="showMenu" 
-            class="user-info-menu"
-            :initial="{ opacity: 0, y: 10 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :exit="{ opacity: 0, y: 10 }"
-            :transition="{ duration: 0.3, ease: 'easeOut' }"
+        <div class="selection-menu-wrapper" ref="wrapperRef">
+          <motion.div
+            class="selection-menu-indicator"
+            :animate="{ y: indicatorY, height: indicatorHeight + 'px' }"
+            :transition="{ type: 'spring', stiffness: 300, damping: 25 }"
           >
-            <div
-              class="user-info-menu-item"
-              v-for="option in userMenuOptions"
-              :key="option.label"
-              @click="option.action"
-            >
-              {{ option.label }}
-            </div>
+            <SvgIcon name="selection-indicator"/>
           </motion.div>
-        </AnimatePresence>
-        
-        <div id="user-info-contact">
-          <span style="font-family: 'Noto Sans JP'; font-size: 16px; font-weight: 800;">{{ userInfo.fullName }}</span>
-          <span style="font-size: 13px; font-weight: 300;">{{ userInfo.email }}</span>
-        </div>
-      </div>
-    </div>
 
-    <router-view v-slot="{ Component }">
+          <div id="dashboard-selection-menu">
+            <DashboardPageSelectorButton
+              v-for="( page, index ) in selectedPages"
+              :key="page.to"
+              :label="page.label"
+              :icon="page.icon"
+              :to="page.to"
+              :selected="page.selected"
+              :ref="el => buttonRefs[index] = el?.$el"
+            />
+
+            <DashboardPageSelectorButton
+              v-if="isMobile"
+              key="LogoutButton"
+              :label="t('dash.logoutText')"
+              icon="logout-icon"
+              to="/"
+              :selected="false"
+              ref="99"
+              @click="handleLogout"
+            />
+          </div>
+        </div>
+
+        <UserInfoTile
+          v-if="!isMobile"
+          :first-name="user.firstName ?? ''" 
+          :last-name="user.lastName ?? ''" 
+          :email="user.email ?? ''" 
+          :menu-options="userMenuOptions"
+        />
+      </motion.div>
+    </AnimatePresence>
+
+    <router-view id="dashboard-views" v-slot="{ Component }">
       <component :is="Component"/>
     </router-view>
+    
   </div>
 </template>
 
@@ -170,25 +192,38 @@
         flex-direction: row;
         justify-content: flex-start;
         align-items: stretch;
-        min-height: 100dvh;
+        height: 100dvh;
+        overflow-y: hidden;
         width: 100%;
         box-sizing: border-box;
     }
 
+    .selected-page-info {
+      position: absolute;
+      left: 400px;
+      z-index: 3;
+    }
+
+    #dashboard-views {
+      padding: 20px;
+      z-index: 1;
+      width: 100%;
+    }
+
     .dashboard-index-background {
-        background-color: var(--color-menu-background);
-        /* min-width: 400px; */
-        width: 21%;
-        height: 100dvh;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-start;
-        gap: 84px;
-        z-index: 1;
-        border-radius: 0;
-        position: relative;
+      background-color: var(--color-menu-background);
+      min-width: 280px;
+      width: 20%;
+      height: 100dvh;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 84px;
+      z-index: 1;
+      border-radius: 0;
+      position: relative;
     }
 
     #dashboard-branding {
@@ -208,73 +243,6 @@
       width: 100%;
     }
 
-    #user-info-tile {
-      border-top: 1px solid var(--color-subtext);
-      width: 90%;
-      max-width: 320px;
-      padding: 10px;
-      align-self: center;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-      position: absolute;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #user-info-picture-frame {
-      height: 40px;
-      width: 40px;
-      background-color: var(--vt-c-red);
-      border-radius: 20px;
-      box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
-      font-family: 'Noto Sans JP';
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--vt-c-white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      cursor: pointer;
-    }
-
-    #user-info-contact {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-    }
-
-    .user-info-menu {
-      position: absolute;
-      left: 0;
-      bottom: 56px;
-      background: var(--color-menu-background);
-      border: 1px solid var(--color-subtext);
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 8px 0px;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      z-index: 10;
-    }
-
-    .user-info-menu-item {
-      padding: 6px 16px;
-      font-size: 14px;
-      font-weight: 400;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .user-info-menu-item:hover {
-      background-color: var(--color-background);
-    }
-
     .selection-menu-wrapper {
       position: relative;
     }
@@ -285,5 +253,51 @@
       left: 0;
       width: 8px;
       height: 60px;
+    }
+
+    .page-background {
+      position: absolute;
+      z-index: 0;
+    }
+
+    #menu-toggle-button {
+      display: none;
+      width: 24px;
+      height: 18px;
+      position: absolute;
+      top: 32px;
+      right: 20px;
+      cursor: pointer;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 100;
+    }
+
+    #menu-toggle-button .bar {
+      height: 3px;
+      width: 100%;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 635px) {
+      #menu-toggle-button {
+        display: flex;
+      }
+
+      .dashboard-index-background.menu-open{
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        z-index: 99;
+        overflow-y: auto;
+        padding-bottom: 80px;
+      }
+
+      #dashboard-views {
+        padding-top: 80px;
+      }
     }
 </style>

@@ -4,7 +4,7 @@
     import { useRouter } from 'vue-router';
     import api from '@/utils/api'
 
-    import ValidatedInput from '../text-input/ValidatedInput.vue';
+    import ValidatedInput from '../user-input/ValidatedInput.vue';
     import LoaderButton from '../buttons/LoaderButton.vue';
     import { capitalizeWords } from '@/utils/capitalizeWords';
     import { isEmail, isStrongPassword } from '@/utils/validators';
@@ -145,17 +145,18 @@
             firstName: () => formData.firstName ? '' : 'emptyFieldError',
             lastName: () => formData.lastName ? '' : 'emptyFieldError',
             email: () => {
-            if (!formData.email) return 'emptyFieldError';
-            if (!isEmail(formData.email)) return 'emailInvalid';
-            return '';
+                if (!formData.email) return 'emptyFieldError';
+                if (!isEmail(formData.email)) return 'emailInvalid';
+                return '';
             },
             password: () => formData.password ? '' : 'emptyFieldError',
             passwordConfirmation: () => formData.passwordConfirmation ? '' : 'emptyFieldError',
         }).forEach(([field, validator]) => {
             const error = validator();
+            
             if (error) {
-            errors[field] = error;
-            isValid = false;
+                errors[field] = error;
+                isValid = false;
             }
         });
 
@@ -166,7 +167,7 @@
         const payload = {
             firstName: capitalizeWords(formData.firstName),
             lastName: capitalizeWords(formData.lastName),
-            email: formData.email,
+            email: formData.email.toLowerCase(),
             password: formData.password,
         };
 
@@ -177,9 +178,9 @@
             router.push('confirmation');
         } catch (error) {
             if (error.originalError?.status === 409) {
-            errors.email = 'emailConflict';
+                errors.email = 'emailConflict';
             } else {
-            errors.email = 'serverError';
+                errors.email = 'serverError';
             }
         } finally {
             loading.value = false;
@@ -276,7 +277,7 @@
 
     #return-button {
         display: flex;
-        border: solid var(--vt-c-highlight) 2px;
+        border: solid var(--color-highlight) 2px;
         align-items: center;
         justify-content: center;
         width: 300px;
@@ -286,7 +287,7 @@
     }
 
     #register-return-link {
-        color: var(--vt-c-highlight);
+        color: var(--color-highlight);
         font-family: 'Ubuntu';
         font-weight: 700;
         font-size: 16px;
