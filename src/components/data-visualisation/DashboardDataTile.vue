@@ -282,11 +282,10 @@
         <div class="tile-header">
             TILE HEADER
         </div>
-        <div class="tile-size-info">
-            <span>W: {{ props.w }}</span>
-            <span>H: {{ props.h }}</span>
+        
+        <div class="tile-content">
+            <slot />
         </div>
-        <slot />
     </GridItem>
 </template>
 
@@ -299,6 +298,9 @@
         transition: all 300ms cubic-bezier(0.25, 1.25, 0.5, 1);
         overflow: hidden;
         user-select: none;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
 
     .tile-header {
@@ -402,5 +404,11 @@
 
     .tile-submenu-option:hover {
         border-left: 4px var(--color-highlight) solid;
+    }
+
+    .tile-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
     }
 </style>

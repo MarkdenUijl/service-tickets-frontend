@@ -2,9 +2,21 @@
     import { GridLayout } from 'grid-layout-plus';
     import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
     import { motion } from 'motion-v';
+    import DataVisualisation from '@/components/data-visualisation/DataVisualisation.vue';
+    
+    const demoSeries = [
+        { name: 'created', data: [10, 20, 5, 30, 40, 25] },
+        { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
+    ];
 
-    import DashboardDataTile from '@/components/common/DashboardDataTile.vue';
-    import DashboardCarousel from '@/components/common/DashboardCarousel.vue';
+    const demoOptions = {
+        chart: { id: 'tickets-by-month' },
+        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+        yaxis: { title: { text: 'Count' } }
+    }
+
+    import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue';
+    import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue';
     import RouteInfo from '@/components/common/RouteInfo.vue';
     import SearchBar from '@/components/user-input/SearchBar.vue';
     import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
@@ -246,7 +258,12 @@
                 @resizeRequest="handleResizeRequest"
                 @deletionRequest="deleteLayoutTile"
             >
-                {{ item.i }}
+                <DataVisualisation
+                    :chartId="item.i"
+                    type="bar"
+                    :series="demoSeries"
+                    :options="demoOptions"
+                />
             </DashboardDataTile>
         </GridLayout>
 
