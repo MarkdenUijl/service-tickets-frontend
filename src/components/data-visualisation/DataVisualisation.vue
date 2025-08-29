@@ -18,6 +18,12 @@
     const isCartesian = computed(() => ['bar', 'line', 'area', 'scatter'].includes(String(props.type || '').toLowerCase()));
 
     const baseOptions = {
+        plotOptions: {
+            bar: {
+                borderRadius: 2,
+                borderRadiusApplication: 'end'
+            }
+        },
         chart: {
             fontFamily: 'Ubuntu',
             foreColor: 'var(--color-text)',
@@ -25,6 +31,7 @@
             animations: { enabled: true },
             redrawOnParentResize: true,
             redrawOnWindowResize: true,
+            offsetY: 8,
             events: {
                 mounted: () => {
                     requestAnimationFrame(() => {
@@ -43,12 +50,20 @@
             position: 'top',
             horizontalAlign: 'left',
             fontSize: '10px',
-            markers: { shape: 'circle', offsetX: -4, size: 4 },
+            markers: { shape: 'circle', offsetX: -4, size: 4, strokeWidth: 0 },
             itemMargin: { horizontal: 40 }
         },
-        tooltip: { shared: true, intersect: false },
         noData: { text: 'No data' },
-        grid: { borderColor: 'var(--color-subtext)' }
+        grid: { borderColor: 'var(--color-subtext)' },
+        states: {
+            hover:  { filter: { type: 'none' } },
+            active: { filter: { type: 'none' } }
+        },
+        tooltip: {
+            x: {
+                show: false
+            }
+        }
     };
 
     const deepMerge = (target, source) => {
@@ -233,7 +248,7 @@
     </div>
 </template>
 
-<style scoped>
+<style  >
     .dv-container {
         position: relative;
         width: 100%;
@@ -264,5 +279,11 @@
         text-align: center;
         line-height: 6px;
         white-space: nowrap;
+    }
+
+    .apexcharts-tooltip {
+        color: var(--color-menu-background);
+        background-color: var(--color-text) !important;
+        border: none !important;
     }
 </style>
