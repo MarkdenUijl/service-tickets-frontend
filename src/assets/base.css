@@ -1,10 +1,12 @@
 /* Color palette */
 :root {
   --vt-c-white: #FFFFFF;
+  --vt-c-white-transparent: rgba(255, 255, 255, 0.90);
   --vt-c-ghost-white: #F3F3F3;
   --vt-c-offwhite: #B0B1B5;
   --vt-c-darkwhite: #C1C1C1;
   --vt-c-black: #36373F;
+  --vt-c-black-transparent: rgba(54, 55, 63, 0.90);
   --vt-c-pure-black: #000000;
   --vt-c-red: #B91228;
   --vt-c-pink: #F4C6CD;
@@ -17,6 +19,7 @@
 
   /* Default to light mode variables */
   --color-menu-background: var(--vt-c-white);
+  --color-menu-background-transparent: var(--vt-c-white-transparent);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
@@ -28,6 +31,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-menu-background: var(--vt-c-black);
+    --color-menu-background-transparent: var(--vt-c-black-transparent);
     --color-background: var(--vt-c-pure-black);
     --color-text: var(--vt-c-white);
     --color-subtext: var(--vt-c-offwhite);
@@ -39,6 +43,7 @@
 /* Manual dark override */
 :root.theme-dark {
   --color-menu-background: var(--vt-c-black);
+  --color-menu-background-transparent: var(--vt-c-black-transparent);
   --color-background: var(--vt-c-pure-black);
   --color-text: var(--vt-c-white);
   --color-subtext: var(--vt-c-offwhite);
@@ -49,6 +54,7 @@
 /* Manual light override */
 :root.theme-light {
   --color-menu-background: var(--vt-c-white);
+  --color-menu-background-transparent: var(--vt-c-white-transparent);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);

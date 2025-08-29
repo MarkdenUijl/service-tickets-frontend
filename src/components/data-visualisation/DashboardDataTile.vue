@@ -381,6 +381,10 @@
         pointer-events: none;
     }
 
+    .tile-menu::-webkit-scrollbar {
+        display: none;
+    }
+
     .tile-menu {
         width: 100%;
         height: 100%;
@@ -391,25 +395,16 @@
         z-index: 2;
         padding: 20px 0;
         overflow: scroll;
+        background-color: var(--color-menu-background-transparent);
     }
 
-    .tile-menu::-webkit-scrollbar {
-        display: none;
-    }
-
-    .tile-menu::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-color: var(--color-menu-background);
-        opacity: 0.9;
-        z-index: -1;
-    }
+    .tile-menu > * { position: relative; z-index: 1; }
 
     .tile-menu-option {
         padding-left: 16px;
         cursor: pointer;
         max-width: 75%;
+        z-index: 1;
     }
 
     .menu-option-title {
