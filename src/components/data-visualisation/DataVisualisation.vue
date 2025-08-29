@@ -1,8 +1,9 @@
 <script setup>
-    import { computed } from 'vue';
+    import { computed, ref } from 'vue';
     import VueApexCharts from 'vue3-apexcharts';
 
     const apexchart = VueApexCharts;
+    const chartRef = ref(false);
 
     const props = defineProps({
         type: { type: String, default: 'bar' },
@@ -16,7 +17,21 @@
     const baseOptions = {
         chart: {
             toolbar: { show: false },
-            animations: { enabled: true }
+            animations: { enabled: true },
+            redrawOnParentResize: true,
+            redrawOnWindowResize: true,
+            events: {
+                mounted: () => {
+                    requestAnimationFrame(() => {
+                        const inst = chartRef.value?.chart;
+                        if (inst?.updateOptions) {
+                            inst.updateOptions({}, true, true);
+                        } else {
+                            window.dispatchEvent(new Event('resize'));
+                        }
+                    });
+                }
+            }
         },
         colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
         dataLabels: { enabled: false },
@@ -99,6 +114,8 @@
 <template>
     <div class="chart-container">
         <apexchart
+            ref="chartRef"
+            :key="chartId || 'chart'"
             :type="type"
             :options="mergedOptions"
             :series="normalized.series"
@@ -113,5 +130,6 @@
         background-color: aquamarine;
         width: 100%;
         height: 100%;
+        min-height: 0;
     }
 </style>

@@ -5,6 +5,7 @@
     import { useI18n } from 'vue-i18n';
 
     import { useWindowSize } from '@/composables/useWindowSize';
+    import { useStableSize } from '@/composables/useStableSize';
 
     const { t } = useI18n();
     const { windowWidth } = useWindowSize();
@@ -173,6 +174,9 @@
     const toggleOptionMenu = (option) => {
         option.isOpen = !option.isOpen;
     };
+
+    const contentEl = ref(null);
+    const { ready: contentReady } = useStableSize(contentEl, 200)
 </script>
 
 <template>
@@ -283,8 +287,8 @@
             TILE HEADER
         </div>
         
-        <div class="tile-content">
-            <slot />
+        <div class="tile-content" ref="contentEl">
+            <slot v-if="contentReady"/>
         </div>
     </GridItem>
 </template>
@@ -410,5 +414,6 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 </style>
