@@ -16,6 +16,8 @@
 
     const baseOptions = {
         chart: {
+            fontFamily: 'Ubuntu',
+            foreColor: 'var(--color-text)',
             toolbar: { show: false },
             animations: { enabled: true },
             redrawOnParentResize: true,
@@ -36,10 +38,27 @@
         colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
         dataLabels: { enabled: false },
         stroke: { width: 2 },
-        legend: { show: true },
-        grid: { strokeDashArray: 3 },
-        tooltip: { shared: true, intersect: false },
+        legend: { 
+            show: true,
+            position: 'top',
+            horizontalAlign: 'left',
+            fontSize: '10px',
+            markers: {
+                shape: 'circle',
+                offsetX: -4
+            },
+            itemMargin: {
+                horizontal: 40
+            }
+        },
+        tooltip: { 
+            shared: true, 
+            intersect: false 
+        },
         noData: { text: 'No data' },
+        grid: {
+            borderColor: 'var(--color-subtext)'
+        }
     };
 
     const deepMerge = (target, source) => {
@@ -127,7 +146,6 @@
 
 <style scoped>
     .chart-container {
-        background-color: aquamarine;
         width: 100%;
         height: 100%;
         min-height: 0;

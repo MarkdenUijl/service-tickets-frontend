@@ -1,7 +1,7 @@
 <script setup>
     import { GridItem } from 'grid-layout-plus';
     import { motion, AnimatePresence } from 'motion-v';
-    import { reactive, ref, computed } from 'vue';
+    import { reactive, ref, computed, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import { useWindowSize } from '@/composables/useWindowSize';
@@ -59,9 +59,27 @@
 
     const menuOpen = ref(false);
 
+    const closeAllSubmenus = () => {
+        tileMenuOptions.forEach((option) => { option.isOpen = false; });
+    };
+
     const handleTileMenuClick = () => {
+        if (menuOpen.value === true) {
+            closeAllSubmenus();
+        }
+
         menuOpen.value = !menuOpen.value;
     };
+
+    const onClickOutside = () => {
+        if (!menuOpen.value) return;
+        menuOpen.value = false;
+        closeAllSubmenus();
+    };
+
+    watch(menuOpen, (isOpen) => {
+        if (!isOpen) closeAllSubmenus();
+    });
 
     const dotMid = {
         open: { 
@@ -131,16 +149,28 @@
             menuItems: [
                 {
                     optionTitle: t('dash.tileMenuSmallSizeText'),
-                    clickAction: () => setSize('small')
+                    clickAction: () => {
+                        setSize('small');
+                        handleTileMenuClick();
+                    }
                 },{
                     optionTitle: t('dash.tileMenuMediumWideSizeText'),
-                    clickAction: () => setSize('medium-wide')
+                    clickAction: () => {
+                        setSize('medium-wide');
+                        handleTileMenuClick();
+                    }
                 },{
                     optionTitle: t('dash.tileMenuMediumTallSizeText'),
-                    clickAction: () => setSize('medium-tall')
+                    clickAction: () => {
+                        setSize('medium-tall');
+                        handleTileMenuClick();
+                    }
                 },{
                     optionTitle: t('dash.tileMenuLargeSizeText'),
-                    clickAction: () => setSize('large')
+                    clickAction: () => {
+                        setSize('large');
+                        handleTileMenuClick();
+                    }
                 }
             ]
         },{ 
@@ -191,7 +221,7 @@
     >
         <motion.div 
             class="tile-menu-button"
-            @click="handleTileMenuClick"
+            @click.stop="handleTileMenuClick"
             :initial="false"
             :animate="menuOpen ? 'open' : 'closed'"
         >
@@ -222,6 +252,7 @@
             <motion.div 
                 class="tile-menu"
                 v-if="menuOpen"
+                v-click-outside="onClickOutside"
                 :initial="{ opacity: 0, x: '100%' }"
                 :animate="{ opacity: 1, x: 0 }"
                 :exit="{ opacity: 0, x: '100%' }"

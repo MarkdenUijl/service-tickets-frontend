@@ -12,7 +12,6 @@
     const demoOptions = {
         chart: { id: 'tickets-by-month' },
         xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-        yaxis: { title: { text: 'Count' } }
     }
 
     import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue';
