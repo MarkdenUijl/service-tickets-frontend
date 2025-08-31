@@ -15,15 +15,7 @@
         showTotals: { type: Boolean, default: true }
     });
 
-    const isCartesian = computed(() => ['bar', 'line', 'area', 'scatter'].includes(String(props.type || '').toLowerCase()));
-
     const baseOptions = {
-        plotOptions: {
-            bar: {
-                borderRadius: 2,
-                borderRadiusApplication: 'end'
-            }
-        },
         chart: {
             fontFamily: 'Ubuntu',
             foreColor: 'var(--color-text)',
@@ -40,9 +32,12 @@
                         else window.dispatchEvent(new Event('resize'));
                     });
                 }
+            },
+            zoom: {
+                enabled: false
             }
         },
-        colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+        colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
         dataLabels: { enabled: false },
         stroke: { width: 2 },
         legend: {
@@ -63,8 +58,20 @@
             x: {
                 show: false
             }
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                gradientToColors: ['var(--color-menu-background)'],
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0,
+                stops: [0, 85, 100]
+            }
         }
     };
+
+    const isCartesian = computed(() => ['bar', 'line', 'area', 'scatter'].includes(String(props.type || '').toLowerCase()));
 
     const deepMerge = (target, source) => {
         const out = Array.isArray(target) ? [...target] : { ...target };

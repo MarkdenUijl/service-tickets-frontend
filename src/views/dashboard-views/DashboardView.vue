@@ -4,16 +4,6 @@
     import { motion } from 'motion-v';
     import DataVisualisation from '@/components/data-visualisation/DataVisualisation.vue';
     
-    const demoSeries = [
-        { name: 'created', data: [10, 20, 5, 30, 40, 25] },
-        { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
-    ];
-
-    const demoOptions = {
-        chart: { id: 'tickets-by-month' },
-        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-    }
-
     import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue';
     import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue';
     import RouteInfo from '@/components/common/RouteInfo.vue';
@@ -196,24 +186,35 @@
     }
 
     const iconVariants = {
-    plus: {
-        d: "M12 5v14M5 12h14",
-        rotate: 0,
-        transition: {
-        type: "spring",
-        stiffness: 200,
-        damping: 20,
+        plus: {
+            d: "M12 5v14M5 12h14",
+            rotate: 0,
+            transition: {
+            type: "spring",
+            stiffness: 200,
+            damping: 20,
+            },
         },
-    },
-    check: {
-        d: "M5 13l4 4L19 7",
-        rotate: 365,
-        transition: {
-        type: "spring",
-        stiffness: 200,
-        damping: 20,
+        check: {
+            d: "M5 13l4 4L19 7",
+            rotate: 365,
+            transition: {
+            type: "spring",
+            stiffness: 200,
+            damping: 20,
+            },
         },
-    },
+    };
+
+    // TEST DATA:
+    const demoSeries = [
+        { name: 'created', data: [10, 20, 5, 30, 40, 25] },
+        { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
+    ];
+
+    const demoOptions = {
+        chart: { id: 'tickets-by-month' },
+        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
     };
 </script>
 
@@ -259,7 +260,7 @@
             >
                 <DataVisualisation
                     :chartId="item.i"
-                    type="bar"
+                    type="area"
                     :series="demoSeries"
                     :options="demoOptions"
                 />
