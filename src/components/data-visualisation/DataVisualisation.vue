@@ -4,6 +4,7 @@
 
     const apexchart = VueApexCharts;
     const chartRef = ref(null);
+    const pieOffsetY = ref(0);
 
     const props = defineProps({
         type: { type: String, default: 'bar' },
@@ -23,52 +24,30 @@
             animations: { enabled: true },
             redrawOnParentResize: true,
             redrawOnWindowResize: true,
-            offsetY: 8,
+            offsetY: 8, // default (overridden by donut)
             events: {
-                mounted: () => {
-                    requestAnimationFrame(() => {
-                        const inst = chartRef.value?.chart;
-                        if (inst?.updateOptions) inst.updateOptions({}, true, true);
-                        else window.dispatchEvent(new Event('resize'));
-                    });
-                }
-            },
-            zoom: {
-                enabled: false
+            mounted: () => {
+                requestAnimationFrame(() => {
+                const inst = chartRef.value?.chart;
+                if (inst?.updateOptions) inst.updateOptions({}, true, true);
+                else window.dispatchEvent(new Event('resize'));
+                });
             }
+            },
+            zoom: { enabled: false } // safe default
         },
-        colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
         dataLabels: { enabled: false },
-        stroke: { width: 2 },
         legend: {
             show: true,
-            position: 'top',
-            horizontalAlign: 'left',
             fontSize: '10px',
-            markers: { shape: 'circle', offsetX: -4, size: 4, strokeWidth: 0 },
-            itemMargin: { horizontal: 40 }
+            markers: { shape: 'circle', offsetX: -4, size: 4, strokeWidth: 0 }
         },
         noData: { text: 'No data' },
-        grid: { borderColor: 'var(--color-subtext)' },
         states: {
-            hover:  { filter: { type: 'none' } },
+            hover: { filter: { type: 'none' } },
             active: { filter: { type: 'none' } }
         },
-        tooltip: {
-            x: {
-                show: false
-            }
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                gradientToColors: ['var(--color-menu-background)'],
-                shadeIntensity: 1,
-                opacityFrom: 0.4,
-                opacityTo: 0,
-                stops: [0, 85, 100]
-            }
-        }
+        tooltip: { x: { show: false } }
     };
 
     const isCartesian = computed(() => ['bar', 'line', 'area', 'scatter'].includes(String(props.type || '').toLowerCase()));
@@ -123,9 +102,20 @@
         return { series: seriesOut, extraOptions };
     });
 
+    const isSemiDonut = computed(() => {
+        const userPie = props.options?.plotOptions?.pie || {};
+        const basePie = baseOptions.plotOptions?.pie || {};
+        const start = (userPie.startAngle ?? basePie.startAngle);
+        const end = (userPie.endAngle ?? basePie.endAngle);
+        const t = String(props.type || '').toLowerCase();
+        const isPieType = ['pie', 'donut'].includes(t);
+        return isPieType && typeof start === 'number' && typeof end === 'number' && Math.abs(end - start) === 180;
+    });
+
     const mergedOptions = computed(() => {
         const withId = props.chartId ? deepMerge(baseOptions, { chart: { id: props.chartId } }) : { ...baseOptions };
-        return deepMerge(withId, { ...props.options, ...normalized.value.extraOptions });
+        const dynamic = isSemiDonut.value ? { plotOptions: { pie: { offsetY: pieOffsetY.value } } } : {};
+        return deepMerge(withId, deepMerge({ ...props.options, ...normalized.value.extraOptions }, dynamic));
     });
 
     const containerRef = ref(null);
@@ -188,7 +178,24 @@
         else window.dispatchEvent(new Event('resize'));
     };
 
-    const handleResize = () => requestAnimationFrame(() => { updateChartSize(); recomputeLegendBoxes(); });
+    const recomputeSemiDonutOffset = () => {
+        if (!isSemiDonut.value) { pieOffsetY.value = 0; return; }
+        
+        const container = containerRef.value;
+        const svg = container?.querySelector('.apexcharts-svg');
+       
+        if (!svg) { pieOffsetY.value = 0; return; }
+        
+        const h = svg.getBoundingClientRect().height || 0;
+        
+        pieOffsetY.value = Math.round(h * 0.2);
+    };
+
+    const handleResize = () => requestAnimationFrame(() => { 
+        updateChartSize(); 
+        recomputeLegendBoxes(); 
+        recomputeSemiDonutOffset();
+    });
 
     onMounted(async () => {
         await nextTick();
@@ -289,8 +296,26 @@
     }
 
     .apexcharts-tooltip {
-        color: var(--color-menu-background);
+        color: var(--color-menu-background) !important;
         background-color: var(--color-text) !important;
         border: none !important;
+    }
+
+    .apexcharts-datalabel-value { font-weight: 800 !important; }
+    .apexcharts-datalabel-label { font-weight: 400 !important; }
+
+    .chart-holder .apexcharts-pie .apexcharts-series {
+        transition: transform 160ms ease;
+        transform-origin: 50% 50%;
+        will-change: transform;
+    }
+
+    .chart-holder .apexcharts-pie .apexcharts-series:hover {
+        transform: scale(1.035);
+    }
+
+    .chart-holder .apexcharts-svg,
+    .chart-holder .apexcharts-canvas {
+        overflow: visible !important;
     }
 </style>

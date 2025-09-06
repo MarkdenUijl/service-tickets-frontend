@@ -212,9 +212,118 @@
         { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
     ];
 
-    const demoOptions = {
+     const donutSeries = [
+       { label: 'Open', value: 52 }, { label: 'Escalated', value: 10 }, { label: 'Awaiting response', value: 16 },
+       { label: 'Client responded', value: 22 }, { label: 'Unlinked', value: 4 }
+    ];
+
+    const barOptions = {
         chart: { id: 'tickets-by-month' },
         xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+        plotOptions: {
+            bar: {
+            borderRadius: 2,
+            borderRadiusApplication: 'end'
+            }
+        },
+        colors: [
+            'var(--vt-c-pink)',
+            'var(--vt-c-red)',
+            'var(--vt-c-salmon)',
+            'var(--vt-c-gold)',
+            'var(--vt-c-teal)'
+        ],
+        stroke: { width: 2 },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'left',
+            itemMargin: { horizontal: 40 }
+        },
+        grid: { borderColor: 'var(--color-subtext)' }
+    };
+
+    const areaOptions = {
+        chart: { id: 'tickets-by-month' },
+        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+        colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
+        stroke: { width: 2 },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'left',
+            itemMargin: { horizontal: 40 }
+        },
+        grid: { borderColor: 'var(--color-subtext)' },
+        fill: {
+            type: 'gradient',
+            gradient: {
+            gradientToColors: ['var(--color-menu-background)'],
+            shadeIntensity: 1,
+            opacityFrom: 0.4,
+            opacityTo: 0,
+            stops: [0, 85, 100]
+            }
+        }
+    };
+
+    const donutOptions = {
+        chart: {
+            fontFamily: 'Noto Sans JP',
+            offsetY: 0,
+            id: 'ticket-type-breakdown'
+        },
+        colors: [
+            'var(--vt-c-pink)',
+            'var(--vt-c-red)',
+            'var(--vt-c-salmon)',
+            'var(--vt-c-gold)',
+            'var(--vt-c-teal)'
+        ],
+        stroke: {
+            width: 4,
+            colors: ['var(--color-menu-background)']
+        },
+        legend: {
+            position: 'bottom',
+            horizontalAlign: 'center',
+            itemMargin: { horizontal: 8, vertical: 4 },
+            formatter(seriesName) {
+            const s = String(seriesName ?? '');
+            return s.length > 32 ? `${s.slice(0, 29)}…` : s;
+            }
+        },
+        tooltip: { fillSeriesColor: false },
+        plotOptions: {
+            pie: {
+            startAngle: -90,
+            endAngle: 90,
+            expandOnClick: false,
+            offsetY: 0,
+            customScale: 1.06,
+            donut: {
+                size: '75%',
+                labels: {
+                show: true,
+                name: { show: true },
+                value: {
+                    show: true,
+                    fontSize: 48,
+                    fontFamily: 'Ubuntu',
+                    color: 'var(--color-text)',
+                    offsetY: 24
+                },
+                total: {
+                    show: true,
+                    showAlways: true,
+                    fontSize: 14,
+                    label: 'Total tickets',
+                    fontFamily: 'Noto Sans JP',
+                    color: 'var(--color-text)',
+                    fontWeight: 700
+                }
+                }
+            }
+            }
+        }
     };
 </script>
 
@@ -258,11 +367,28 @@
                 @resizeRequest="handleResizeRequest"
                 @deletionRequest="deleteLayoutTile"
             >
+                <!-- <DataVisualisation
+                    :chartId="item.i"
+                    type="donut"
+                    :series="donutSeries"
+                    :options="donutOptions"
+                    :showTotals="false"
+                /> -->
+
+                <!-- <DataVisualisation
+                    :chartId="item.i"
+                    type="bar"
+                    :series="demoSeries"
+                    :options="barOptions"
+                    :showTotals="false"
+                /> -->
+
                 <DataVisualisation
                     :chartId="item.i"
                     type="area"
                     :series="demoSeries"
-                    :options="demoOptions"
+                    :options="areaOptions"
+                    :showTotals="false"
                 />
             </DashboardDataTile>
         </GridLayout>
