@@ -42,3 +42,34 @@ export const makeBaseOptions = (chartRef) => deepMerge(baseOptions, {
     }
   }
 });
+
+export const updateChartSize = (chartRef) => {
+  const inst = chartRef.value?.chart
+  if (inst?.updateOptions) inst.updateOptions({}, true, true)
+  else window.dispatchEvent(new Event('resize'))
+}
+
+export const normalizeCartesianSeries = (series) => {
+  if (isNumberArray(series)) {
+    return [{ name: 'Series 1', data: series }]
+  }
+  return series
+}
+
+export const normalizeRadialSeries = (series, options) => {
+  if (isNumberArray(series)) return { series, extraOptions: {} }
+  if (Array.isArray(series) && series.length && typeof series[0] === 'object') {
+    const labels = []
+    const values = []
+    for (const item of series) {
+      const label = item.label ?? item.name
+      const value = item.value ?? item.y
+      if (typeof value === 'number') {
+        values.push(value)
+        labels.push(label ?? String(values.length))
+      }
+    }
+    return { series: values, extraOptions: options?.labels ? {} : { labels } }
+  }
+  return { series, extraOptions: {} }
+}

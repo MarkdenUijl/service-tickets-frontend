@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
-import { baseOptions, deepMerge, isNumberArray } from '@/utils/chartUtils.js'
+import { baseOptions, deepMerge, isNumberArray, updateChartSize, normalizeRadialSeries } from '@/utils/chartUtils.js'
 
 const apexchart = VueApexCharts
 const chartRef = ref(null)
@@ -18,32 +18,7 @@ const props = defineProps({
   showTotals: { type: Boolean, default: false }
 })
 
-const normalized = computed(() => {
-  let seriesOut = props.series
-  const extraOptions = {}
-
-  if (isNumberArray(props.series)) {
-    seriesOut = props.series
-  } else if (Array.isArray(props.series) && props.series.length && typeof props.series[0] === 'object') {
-    const labels = []
-    const values = []
-    for (const item of props.series) {
-      const label = item.label ?? item.name
-      const value = item.value ?? item.y
-      if (typeof value === 'number') {
-        values.push(value)
-        labels.push(label ?? String(values.length))
-      }
-    }
-    if (values.length) {
-      seriesOut = values
-      if (!props.options?.labels) {
-        extraOptions.labels = labels
-      }
-    }
-  }
-  return { series: seriesOut, extraOptions }
-})
+const normalizedSeries = computed(() => normalizeRadialSeries(props.series, props.options))
 
 const pieOffsetY = ref(0)
 const isSemiDonut = computed(() => {
@@ -59,55 +34,8 @@ const isSemiDonut = computed(() => {
 const mergedOptions = computed(() => {
   const withId = props.chartId ? deepMerge(baseOptions, { chart: { id: props.chartId } }) : { ...baseOptions }
   const dynamic = isSemiDonut.value ? { plotOptions: { pie: { offsetY: pieOffsetY.value } } } : {}
-  return deepMerge(withId, deepMerge(props.options, deepMerge(normalized.value.extraOptions, dynamic)))
+  return deepMerge(withId, deepMerge(props.options, deepMerge(normalizedSeries.value.extraOptions, dynamic)))
 })
-
-const legendBoxes = ref([])
-const canShowTotals = computed(() => props.showTotals && Array.isArray(normalized.value.series))
-const seriesTotals = computed(() => {
-  if (!canShowTotals.value) return []
-  return normalized.value.series.map(v => (typeof v === 'number' ? v : 0))
-})
-
-const recomputeLegendBoxes = () => {
-  if (!canShowTotals.value) {
-    legendBoxes.value = []
-    return
-  }
-  const container = containerRef.value
-  if (!container) return
-  const legend = container.querySelector('.apexcharts-legend')
-  if (!legend) {
-    legendBoxes.value = []
-    return
-  }
-  const containerRect = container.getBoundingClientRect()
-  const items = Array.from(legend.querySelectorAll('.apexcharts-legend-series'))
-  legendBoxes.value = items.map(el => {
-    const r = el.getBoundingClientRect()
-    return {
-      left: (r.left + r.width / 2) - containerRect.left,
-      top: (r.bottom - containerRect.top) + 4
-    }
-  })
-}
-
-let legendObserver = null
-const attachLegendObserver = () => {
-  const legend = containerRef.value?.querySelector('.apexcharts-legend')
-  if (!legend) return
-  legendObserver = new MutationObserver(() => requestAnimationFrame(recomputeLegendBoxes))
-  legendObserver.observe(legend, { attributes: true, childList: true, subtree: true, characterData: true })
-}
-const detachLegendObserver = () => {
-  if (legendObserver) { legendObserver.disconnect(); legendObserver = null }
-}
-
-const updateChartSize = () => {
-  const inst = chartRef.value?.chart
-  if (inst?.updateOptions) inst.updateOptions({}, true, true)
-  else window.dispatchEvent(new Event('resize'))
-}
 
 const recomputeSemiDonutOffset = () => {
   if (!isSemiDonut.value) { pieOffsetY.value = 0; return }
@@ -119,14 +47,12 @@ const recomputeSemiDonutOffset = () => {
 }
 
 const handleResize = () => requestAnimationFrame(() => {
-  updateChartSize()
-  recomputeLegendBoxes()
+  updateChartSize(chartRef)
   recomputeSemiDonutOffset()
 })
 
 onMounted(async () => {
   await nextTick()
-  attachLegendObserver()
   if (containerRef.value && 'ResizeObserver' in window) {
     resizeObs = new ResizeObserver(() => handleResize())
     resizeObs.observe(containerRef.value)
@@ -136,7 +62,6 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  detachLegendObserver()
   if (resizeObs) { resizeObs.disconnect(); resizeObs = null }
   window.removeEventListener('resize', handleResize)
 })
@@ -156,16 +81,11 @@ watch(
         :key="chartId || 'radial-chart'"
         :id="chartId"
         :type="type"
-        :series="normalized.series"
+        :series="normalizedSeries.series"
         :options="mergedOptions"
         :width="width"
         :height="height"
         class="radial-chart"
-        @mounted="recomputeLegendBoxes"
-        @updated="recomputeLegendBoxes"
-        @animationEnd="recomputeLegendBoxes"
-        @dataPointSelection="recomputeLegendBoxes"
-        @legendClick="recomputeLegendBoxes"
       />
     </div>
   </div>

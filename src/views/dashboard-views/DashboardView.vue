@@ -2,7 +2,6 @@
     import { GridLayout } from 'grid-layout-plus';
     import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
     import { motion } from 'motion-v';
-    import DataVisualisation from '@/components/data-visualisation/DataVisualisation.vue';
     import CartesianChart from '@/components/data-visualisation/CartesianChart.vue';
     import RadialChart from '@/components/data-visualisation/RadialChart.vue';
     
@@ -397,30 +396,6 @@
                 @changeTypeRequest="handleChangeType"
                 @deletionRequest="deleteLayoutTile"
             >
-                <!-- <DataVisualisation
-                    :chartId="item.i"
-                    type="donut"
-                    :series="donutSeries"
-                    :options="donutOptions"
-                    :showTotals="true"
-                /> -->
-
-                <!-- <DataVisualisation
-                    :chartId="item.i"
-                    type="bar"
-                    :series="demoSeries"
-                    :options="barOptions"
-                    :showTotals="true"
-                /> -->
-
-                <!-- <DataVisualisation
-                    :chartId="item.i"
-                    type="area"
-                    :series="demoSeries"
-                    :options="areaOptions"
-                    :showTotals="false"
-                /> -->
-
                 <component
                     :is="['bar','line','area','scatter'].includes(item.type) ? CartesianChart : RadialChart"
                     :chartId="item.i"
