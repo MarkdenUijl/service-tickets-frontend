@@ -3,6 +3,8 @@
     import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
     import { motion } from 'motion-v';
     import DataVisualisation from '@/components/data-visualisation/DataVisualisation.vue';
+    import CartesianChart from '@/components/data-visualisation/CartesianChart.vue';
+    import RadialChart from '@/components/data-visualisation/RadialChart.vue';
     
     import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue';
     import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue';
@@ -22,8 +24,8 @@
     const searchInput = ref('');
 
     const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
-        { x: 0, y: 0, w: 1, h: 1, i: '0' },
-        { x: 1, y: 0, w: 1, h: 1, i: '1' }
+        { x: 0, y: 0, w: 1, h: 1, i: '0', type: 'bar' },
+        { x: 1, y: 0, w: 1, h: 1, i: '1', type: 'bar' }
     ]);
 
     const originalLayout = ref(null);
@@ -57,7 +59,8 @@
             y: 0,
             w: 1,
             h: 1,
-            i: uniqueId
+            i: uniqueId,
+            type: 'bar'
         });
 
         layout.value = packLayout(layout.value);
@@ -83,7 +86,7 @@
             if (colNum.value === 1) {
                 rowHeight.value = window.innerWidth * 0.9;
             } else {
-                rowHeight.value = (containerWidth.value / colNum.value) * 0.7;
+                rowHeight.value = (containerWidth.value / colNum.value) * 0.75;
             }
         }
     };
@@ -156,6 +159,16 @@
 
         layout.value = packLayout(updated);
     };
+
+    const handleChangeType = ({ id, type }) => {
+        const updated = layout.value.map(tile =>
+            tile.i === id ? { ...tile, type } : tile
+        );
+
+        updated.sort((a, b) => a.y - b.y || a.x - b.x);
+
+        layout.value = packLayout(updated);
+    }
 
     const handleScreenResize = () => {
         containerWidth.value = document.querySelector('.dashboard-view-wrapper').clientWidth;
@@ -325,6 +338,22 @@
             }
         }
     };
+
+    const getSeriesForType = (type) => {
+        switch (type) {
+            case 'donut': return donutSeries;
+            default: return demoSeries;
+        }
+    };
+
+    const getOptionsForType = (type) => {
+        switch (type) {
+            case 'bar': return barOptions;
+            case 'area': return areaOptions;
+            case 'donut': return donutOptions;
+            default: return {};
+        }
+    };
 </script>
 
 <template>
@@ -365,6 +394,7 @@
                 :h="item.h"
                 :i="item.i"
                 @resizeRequest="handleResizeRequest"
+                @changeTypeRequest="handleChangeType"
                 @deletionRequest="deleteLayoutTile"
             >
                 <!-- <DataVisualisation
@@ -372,7 +402,7 @@
                     type="donut"
                     :series="donutSeries"
                     :options="donutOptions"
-                    :showTotals="false"
+                    :showTotals="true"
                 /> -->
 
                 <!-- <DataVisualisation
@@ -380,16 +410,25 @@
                     type="bar"
                     :series="demoSeries"
                     :options="barOptions"
-                    :showTotals="false"
+                    :showTotals="true"
                 /> -->
 
-                <DataVisualisation
+                <!-- <DataVisualisation
                     :chartId="item.i"
                     type="area"
                     :series="demoSeries"
                     :options="areaOptions"
                     :showTotals="false"
+                /> -->
+
+                <component
+                    :is="['bar','line','area','scatter'].includes(item.type) ? CartesianChart : RadialChart"
+                    :chartId="item.i"
+                    :type="item.type"
+                    :series="getSeriesForType(item.type)"
+                    :options="getOptionsForType(item.type)"
                 />
+                
             </DashboardDataTile>
         </GridLayout>
 

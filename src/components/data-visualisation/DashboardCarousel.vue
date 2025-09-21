@@ -24,6 +24,7 @@
         if (!trackEl.value || !containerEl.value) return;
 
         const cards = Array.from(trackEl.value.querySelectorAll('.carousel-card'));
+        
         if (!cards.length) {
             cardPositions.value = [];
             maxOffset.value = 0;
@@ -45,6 +46,7 @@
 
         if (props.cards.length <= visibleCount.value) {
             const totalGap = gap * (props.cards.length - 1);
+
             cardDynamicWidth.value = (viewportWidth - totalGap) / props.cards.length;
         } else {
             cardDynamicWidth.value = null;

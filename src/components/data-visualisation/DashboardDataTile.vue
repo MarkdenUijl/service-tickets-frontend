@@ -18,7 +18,7 @@
         i: { type: String, required: true },
     });
 
-    const emit = defineEmits(['resizeRequest', 'deletionRequest']);
+    const emit = defineEmits(['resizeRequest', 'changeTypeRequest', 'deletionRequest']);
 
     const setSize = (size) => {
         let newWidth, newHeight;
@@ -52,6 +52,10 @@
 
         emit('resizeRequest', { id: props.i, w: newWidth, h: newHeight });
     };
+
+    const setType = (type) => {
+        emit('changeTypeRequest', { id: props.i, type: type })
+    }
 
     const deleteTile = () => {
         emit('deletionRequest', props.i);
@@ -179,17 +183,14 @@
             hideOnMobile: false,
             menuItems: [
                 {
-                    optionTitle: t('dash.tileMenuSmallSizeText'),
-                    clickAction: () => setSize('small')
+                    optionTitle: 'Bar',
+                    clickAction: () => setType('bar')
                 },{
-                    optionTitle: t('dash.tileMenuMediumWideSizeText'),
-                    clickAction: () => setSize('medium-wide')
+                    optionTitle: 'Area',
+                    clickAction: () => setType('area')
                 },{
-                    optionTitle: t('dash.tileMenuMediumTallSizeText'),
-                    clickAction: () => setSize('medium-tall')
-                },{
-                    optionTitle: t('dash.tileMenuLargeSizeText'),
-                    clickAction: () => setSize('large')
+                    optionTitle: 'Donut',
+                    clickAction: () => setType('donut')
                 }
             ]
         }
