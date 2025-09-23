@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
-import { baseOptions, deepMerge, isNumberArray, makeBaseOptions, updateChartSize, normalizeCartesianSeries } from '@/utils/chartUtils.js'
+import { baseOptions, deepMerge, makeBaseOptions, updateChartSize, normalizeCartesianSeries } from '@/utils/chartUtils.js'
 import { useLegendTotals } from '@/composables/useLegendTotals'
 
 const apexchart = VueApexCharts
@@ -10,15 +10,6 @@ const containerRef = ref(null)
 
 let resizeObs = null
 let legendObserver = null
-
-const normalizedSeries = computed(() => normalizeCartesianSeries(props.series))
-
-const { legendBoxes, canShowTotals, seriesTotals, recomputeLegendBoxes } =
-  useLegendTotals(
-    containerRef,
-    normalizedSeries,
-    computed(() => props.showTotals)
-  );
 
 const props = defineProps({
   type: { type: String, default: 'bar' },
@@ -30,18 +21,34 @@ const props = defineProps({
   showTotals: { type: Boolean, default: true }
 })
 
+const normalizedSeries = computed(() => normalizeCartesianSeries(props.series))
+
+const { legendBoxes, canShowTotals, seriesTotals, recomputeLegendBoxes } =
+  useLegendTotals(
+    containerRef,
+    normalizedSeries,
+    computed(() => props.showTotals)
+  )
 
 const mergedOptions = computed(() => {
-  const withId = props.chartId ? deepMerge(baseOptions, { chart: { id: props.chartId } }) : { ...baseOptions }
+  const withId = props.chartId
+    ? deepMerge(baseOptions, { chart: { id: props.chartId } })
+    : { ...baseOptions }
   return deepMerge(deepMerge(withId, makeBaseOptions(chartRef)), props.options)
 })
-
 
 const attachLegendObserver = () => {
   const legend = containerRef.value?.querySelector('.apexcharts-legend')
   if (!legend) return
-  legendObserver = new MutationObserver(() => requestAnimationFrame(recomputeLegendBoxes))
-  legendObserver.observe(legend, { attributes: true, childList: true, subtree: true, characterData: true })
+  legendObserver = new MutationObserver(() =>
+    requestAnimationFrame(recomputeLegendBoxes)
+  )
+  legendObserver.observe(legend, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+    characterData: true
+  })
 }
 
 const detachLegendObserver = () => {
@@ -51,10 +58,11 @@ const detachLegendObserver = () => {
   }
 }
 
-const handleResize = () => requestAnimationFrame(() => {
-  updateChartSize(chartRef)
-  recomputeLegendBoxes()
-})
+const handleResize = () =>
+  requestAnimationFrame(() => {
+    updateChartSize(chartRef)
+    recomputeLegendBoxes()
+  })
 
 onMounted(async () => {
   await nextTick()
@@ -69,13 +77,26 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   detachLegendObserver()
-  if (resizeObs) { resizeObs.disconnect(); resizeObs = null }
+  if (resizeObs) {
+    resizeObs.disconnect()
+    resizeObs = null
+  }
   window.removeEventListener('resize', handleResize)
 })
 
 watch(
-  () => [props.series, props.options, props.showTotals, props.type, props.width, props.height],
-  async () => { await nextTick(); handleResize() },
+  () => [
+    props.series,
+    props.options,
+    props.showTotals,
+    props.type,
+    props.width,
+    props.height
+  ],
+  async () => {
+    await nextTick()
+    handleResize()
+  },
   { deep: true }
 )
 </script>
@@ -104,7 +125,6 @@ watch(
     <div
       class="legend-totals-layer"
       v-show="canShowTotals && legendBoxes.length"
-      aria-hidden="false"
     >
       <template v-for="(pos, idx) in legendBoxes" :key="`legend-total-${idx}`">
         <div

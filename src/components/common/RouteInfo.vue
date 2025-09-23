@@ -25,16 +25,12 @@
 
 <template>
     <div class="route-info-container">
-        <div>
-            <span class="route-info-title">{{ pageName }}</span>
-        </div>
-        
+        <div><span class="route-info-title">{{ pageName }}</span></div>
         <div class="route-info-nav">
             <div class="main-route-info">
                 <span id="main-path-title">{{ mainPath }}</span>
                 <SvgIcon class="pointer-icon" name="nav-pointer-icon" width="8px"/>
             </div>
-
             <span id="current-path-title">{{ pageName }}</span>
         </div>
     </div>
