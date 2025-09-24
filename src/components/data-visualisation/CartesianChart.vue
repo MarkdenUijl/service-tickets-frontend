@@ -34,7 +34,7 @@ const mergedOptions = computed(() => {
   const withId = props.chartId
     ? deepMerge(baseOptions, { chart: { id: props.chartId } })
     : { ...baseOptions }
-  return deepMerge(deepMerge(withId, makeBaseOptions(chartRef)), props.options)
+  return deepMerge(deepMerge(withId, makeBaseOptions(chartRef)), props.options, )
 })
 
 const attachLegendObserver = () => {
@@ -165,7 +165,7 @@ watch(
   transform: translateX(-50%);
   padding: 2px 6px;
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 24px;
   font-weight: 700;
   text-align: center;
   white-space: nowrap;

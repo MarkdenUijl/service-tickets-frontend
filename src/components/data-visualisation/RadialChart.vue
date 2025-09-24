@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
-import { baseOptions, deepMerge, isNumberArray, updateChartSize, normalizeRadialSeries } from '@/utils/chartUtils.js'
+import { baseOptions, deepMerge, updateChartSize, normalizeRadialSeries } from '@/utils/chartUtils.js'
 
 const apexchart = VueApexCharts
 const chartRef = ref(null)
