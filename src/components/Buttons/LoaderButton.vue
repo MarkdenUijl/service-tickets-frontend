@@ -5,7 +5,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   label: { type: String, required: true },
   type: { type: String, default: 'button' },
-  disabled: { type: Boolean, default: true }
+  disabled: { type: Boolean, default: false }
 })
 </script>
 
@@ -24,7 +24,7 @@ const props = defineProps({
       <motion.div
         class="spinner"
         :animate="{ rotate: 360 }"
-        transition="repeat: Infinity, ease: 'linear', duration: 1"
+        :transition="{ repeat: Infinity, ease: 'linear', duration: 1 }"
       />
     </template>
   </motion.button>

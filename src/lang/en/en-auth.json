@@ -2,6 +2,7 @@
     "loginHeaderSubtext" : "Welcome to the Helvar Service Tickets web app, log in now to register a new ticket, view your submitted ticket status, or manage outstanding tickets.",
     "registerHeaderSubtext" : "Please fill in your details to register your account.",
     "welcome" : "Welcome!",
+    "email": "Email",
     "password" : "Password",
     "passwordConfirm" : "Confirm password",
     "loginButtonText" : "SIGN IN",

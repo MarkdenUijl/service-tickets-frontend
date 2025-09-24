@@ -20,7 +20,6 @@ const props = defineProps({
 
 const emit = defineEmits(['resizeRequest', 'changeTypeRequest', 'deletionRequest'])
 
-// DRY: single source of truth for tile sizes
 const SIZE_MAP = {
   small: { w: 1, h: 1 },
   'medium-wide': { w: 2, h: 1 },
