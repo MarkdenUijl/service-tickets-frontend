@@ -1,505 +1,385 @@
 <script setup>
-    import { GridLayout } from 'grid-layout-plus';
-    import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-    import { motion } from 'motion-v';
-    import CartesianChart from '@/components/data-visualisation/CartesianChart.vue';
-    import RadialChart from '@/components/data-visualisation/RadialChart.vue';
-    
-    import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue';
-    import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue';
-    import RouteInfo from '@/components/common/RouteInfo.vue';
-    import SearchBar from '@/components/user-input/SearchBar.vue';
-    import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue';
+import { GridLayout } from 'grid-layout-plus'
+import { ref, computed, watch } from 'vue'
+import { motion } from 'motion-v'
 
-    const containerWidth = ref(0);
-    const STORAGE_KEY = 'dashboardTileLayout';
-    const colNum = ref(3);
-    const maxTilesAmount = 9;
-    const savedLayout = localStorage.getItem(STORAGE_KEY);
-    const rowHeight = ref(null);
-    
-    const isChecked = ref(false);
-    const dateRange = ref(null);
-    const searchInput = ref('');
+import CartesianChart from '@/components/data-visualisation/CartesianChart.vue'
+import RadialChart from '@/components/data-visualisation/RadialChart.vue'
+import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue'
+import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue'
+import RouteInfo from '@/components/common/RouteInfo.vue'
+import SearchBar from '@/components/user-input/SearchBar.vue'
+import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue'
 
-    const layout = ref( savedLayout ? JSON.parse(savedLayout) : [
+import { useWindowSize } from '@/composables/useWindowSize'
+import { useStableSize } from '@/composables/useStableSize'
+
+// --- UI State
+const STORAGE_KEY = 'dashboardTileLayout'
+const maxTilesAmount = 9
+
+const isChecked = ref(false)
+const dateRange = ref(null)
+const searchInput = ref('')
+
+// layout state
+const savedLayout = localStorage.getItem(STORAGE_KEY)
+const layout = ref(
+  savedLayout
+    ? JSON.parse(savedLayout)
+    : [
         { x: 0, y: 0, w: 1, h: 1, i: '0', type: 'bar' },
         { x: 1, y: 0, w: 1, h: 1, i: '1', type: 'bar' }
-    ]);
+      ]
+)
 
-    const originalLayout = ref(null);
+// Keep a copy of the original grid to restore after mobile single-column mode
+const originalLayout = ref(null)
 
-    const cards = [
-        {
-            cardTitle: "Open tickets",
-            cardInfo: 52
-        },{
-            cardTitle: "Escalated tickets",
-            cardInfo: 10
-        },{
-            cardTitle: "Awaiting response",
-            cardInfo: 16
-        },{
-            cardTitle: "Client responded",
-            cardInfo: 22
-        },{
-            cardTitle: "Unlinked tickets",
-            cardInfo: 4
-        }
-    ];
+// Header cards
+const cards = [
+  { cardTitle: 'Open tickets', cardInfo: 52 },
+  { cardTitle: 'Escalated tickets', cardInfo: 10 },
+  { cardTitle: 'Awaiting response', cardInfo: 16 },
+  { cardTitle: 'Client responded', cardInfo: 22 },
+  { cardTitle: 'Unlinked tickets', cardInfo: 4 }
+]
 
-    const addLayoutTile = () => {
-        const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+// --- Responsive sizing (computed; no imperative resize handlers)
+const wrapperRef = ref(null)
+const { width: wrapperWidth } = useStableSize(wrapperRef, 150)
+const { windowWidth } = useWindowSize()
 
-        isChecked.value = true;
+const isMobile = computed(() => windowWidth.value <= 635)
+const colNum = computed(() => (isMobile.value ? 1 : 3))
 
-        layout.value.push({
-            x: 0,
-            y: 0,
-            w: 1,
-            h: 1,
-            i: uniqueId,
-            type: 'bar'
-        });
+// Row height rule kept from original: 90% of viewport width on 1-col, else 0.75 * (containerWidth / cols)
+const rowHeight = computed(() => {
+  const fallback = 240
+  if (colNum.value === 1) return Math.floor((windowWidth.value || 0) * 0.9) || fallback
+  const w = wrapperWidth.value || 0
+  return w > 0 ? Math.floor((w / colNum.value) * 0.75) : fallback
+})
 
-        layout.value = packLayout(layout.value);
-
-        setTimeout(() => {
-            isChecked.value = false;
-        }, 1500)
-    };
-
-    const deleteLayoutTile = (id) => {
-        const index = layout.value.findIndex( tile => tile.i === id );
-
-        if (index > -1) {
-            layout.value.splice(index, 1);
-        };
-
-        layout.value = packLayout(layout.value);
-    };
-
-
-    const updateRowHeight = () => {
-        if (containerWidth.value > 0) {
-            if (colNum.value === 1) {
-                rowHeight.value = window.innerWidth * 0.9;
-            } else {
-                rowHeight.value = (containerWidth.value / colNum.value) * 0.75;
-            }
-        }
-    };
-
-    onMounted(() => {
-        const wrapper = document.querySelector('.dashboard-view-wrapper');
-        containerWidth.value = wrapper.clientWidth;
-
-        handleScreenResize();
-        window.addEventListener('resize', handleScreenResize);
-    });
-
-    onBeforeUnmount(() => {
-        window.removeEventListener('resize', handleScreenResize);
-    });
-
-    watch(layout, (newLayout) => {
-        if (!originalLayout.value) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(newLayout));
-        }
-    }, { deep: true });
-
-    const packLayout = (items) => {
-        const grid = [];
-        const packed = [];
-
-        const isFree = (x, y, w, h) => {
-            for (let dy = 0; dy < h; dy++) {
-                for (let dx = 0; dx < w; dx++) {
-                    const row = grid[y + dy] || [];
-                    if (row[x + dx]) return false;
-                }
-            }
-            return true;
-        };
-
-        const occupy = (id, x, y, w, h) => {
-            for (let dy = 0; dy < h; dy++) {
-                if (!grid[y + dy]) grid[y + dy] = [];
-                for (let dx = 0; dx < w; dx++) {
-                    grid[y + dy][x + dx] = id;
-                }
-            }
-        };
-
-        for (const tile of items) {
-            let placed = false;
-
-            for (let y = 0; !placed; y++) {
-                for (let x = 0; x <= colNum.value - tile.w; x++) {
-                    if (isFree(x, y, tile.w, tile.h)) {
-                        packed.push({ ...tile, x, y });
-                        occupy(tile.i, x, y, tile.w, tile.h);
-                        placed = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return packed;
-    };
-
-    const handleResizeRequest = ({ id, w, h }) => {
-        const updated = layout.value.map(tile =>
-            tile.i === id ? { ...tile, w, h } : tile
-        );
-
-        updated.sort((a, b) => a.y - b.y || a.x - b.x);
-
-        layout.value = packLayout(updated);
-    };
-
-    const handleChangeType = ({ id, type }) => {
-        const updated = layout.value.map(tile =>
-            tile.i === id ? { ...tile, type } : tile
-        );
-
-        updated.sort((a, b) => a.y - b.y || a.x - b.x);
-
-        layout.value = packLayout(updated);
+// --- Persistence
+watch(
+  layout,
+  (newLayout) => {
+    // Do not overwrite saved layout while we are in mobile compact mode
+    if (!originalLayout.value) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newLayout))
     }
+  },
+  { deep: true }
+)
 
-    const handleScreenResize = () => {
-        containerWidth.value = document.querySelector('.dashboard-view-wrapper').clientWidth;
-        
-        if (window.innerWidth <= 635) {
-            colNum.value = 1;            
+// --- Grid packing (kept local for clarity; small & self-contained)
+const packLayout = (items, cols) => {
+  const grid = []
+  const packed = []
 
-            if (!originalLayout.value) {
-                originalLayout.value = JSON.parse(JSON.stringify(layout.value));
-            }
-            
-            layout.value = packLayout(layout.value.map(tile => ({ ...tile, w:1, h:1 })));
-        } else {
-            colNum.value = 3;
-
-            if (originalLayout.value) {
-                layout.value = JSON.parse(JSON.stringify(originalLayout.value));
-                originalLayout.value = null;
-            }
-        }
-
-        updateRowHeight();
-    };
-
-    const handleClearPreferences = () => {
-        searchInput.value = '';
-        dateRange.value = null;
+  const isFree = (x, y, w, h) => {
+    for (let dy = 0; dy < h; dy++) {
+      for (let dx = 0; dx < w; dx++) {
+        const row = grid[y + dy] || []
+        if (row[x + dx]) return false
+      }
     }
+    return true
+  }
 
-    const iconVariants = {
-        plus: {
-            d: "M12 5v14M5 12h14",
-            rotate: 0,
-            transition: {
-            type: "spring",
-            stiffness: 200,
-            damping: 20,
-            },
-        },
-        check: {
-            d: "M5 13l4 4L19 7",
-            rotate: 365,
-            transition: {
-            type: "spring",
-            stiffness: 200,
-            damping: 20,
-            },
-        },
-    };
+  const occupy = (id, x, y, w, h) => {
+    for (let dy = 0; dy < h; dy++) {
+      if (!grid[y + dy]) grid[y + dy] = []
+      for (let dx = 0; dx < w; dx++) grid[y + dy][x + dx] = id
+    }
+  }
 
-    // TEST DATA:
-    const demoSeries = [
-        { name: 'created', data: [10, 20, 5, 30, 40, 25] },
-        { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
-    ];
-
-     const donutSeries = [
-       { label: 'Open', value: 52 }, { label: 'Escalated', value: 10 }, { label: 'Awaiting response', value: 16 },
-       { label: 'Client responded', value: 22 }, { label: 'Unlinked', value: 4 }
-    ];
-
-    const barOptions = {
-        chart: { id: 'tickets-by-month' },
-        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-        plotOptions: {
-            bar: {
-            borderRadius: 2,
-            borderRadiusApplication: 'end'
-            }
-        },
-        colors: [
-            'var(--vt-c-pink)',
-            'var(--vt-c-red)',
-            'var(--vt-c-salmon)',
-            'var(--vt-c-gold)',
-            'var(--vt-c-teal)'
-        ],
-        stroke: { width: 2 },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left',
-            itemMargin: { horizontal: 40 }
-        },
-        grid: { borderColor: 'var(--color-subtext)' }
-    };
-
-    const areaOptions = {
-        chart: { id: 'tickets-by-month' },
-        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-        colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
-        stroke: { width: 2 },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left',
-            itemMargin: { horizontal: 40 }
-        },
-        grid: { borderColor: 'var(--color-subtext)' },
-        fill: {
-            type: 'gradient',
-            gradient: {
-            gradientToColors: ['var(--color-menu-background)'],
-            shadeIntensity: 1,
-            opacityFrom: 0.4,
-            opacityTo: 0,
-            stops: [0, 85, 100]
-            }
+  for (const tile of items) {
+    let placed = false
+    for (let y = 0; !placed; y++) {
+      for (let x = 0; x <= cols - tile.w; x++) {
+        if (isFree(x, y, tile.w, tile.h)) {
+          packed.push({ ...tile, x, y })
+          occupy(tile.i, x, y, tile.w, tile.h)
+          placed = true
+          break
         }
-    };
+      }
+    }
+  }
 
-    const donutOptions = {
-        chart: {
-            fontFamily: 'Noto Sans JP',
-            offsetY: 0,
-            id: 'ticket-type-breakdown'
-        },
-        colors: [
-            'var(--vt-c-pink)',
-            'var(--vt-c-red)',
-            'var(--vt-c-salmon)',
-            'var(--vt-c-gold)',
-            'var(--vt-c-teal)'
-        ],
-        stroke: {
-            width: 4,
-            colors: ['var(--color-menu-background)']
-        },
-        legend: {
-            position: 'bottom',
-            horizontalAlign: 'center',
-            itemMargin: { horizontal: 8, vertical: 4 },
-            formatter(seriesName) {
-            const s = String(seriesName ?? '');
-            return s.length > 32 ? `${s.slice(0, 29)}…` : s;
-            }
-        },
-        tooltip: { fillSeriesColor: false },
-        plotOptions: {
-            pie: {
-            startAngle: -90,
-            endAngle: 90,
-            expandOnClick: false,
-            offsetY: 0,
-            customScale: 1.06,
-            donut: {
-                size: '75%',
-                labels: {
-                show: true,
-                name: { show: true },
-                value: {
-                    show: true,
-                    fontSize: 48,
-                    fontFamily: 'Ubuntu',
-                    color: 'var(--color-text)',
-                    offsetY: 24
-                },
-                total: {
-                    show: true,
-                    showAlways: true,
-                    fontSize: 14,
-                    label: 'Total tickets',
-                    fontFamily: 'Noto Sans JP',
-                    color: 'var(--color-text)',
-                    fontWeight: 700
-                }
-                }
-            }
-            }
-        }
-    };
+  return packed
+}
 
-    const getSeriesForType = (type) => {
-        switch (type) {
-            case 'donut': return donutSeries;
-            default: return demoSeries;
-        }
-    };
+// --- DRY helper to update & repack the layout
+const applyLayoutUpdate = (mapper) => {
+  const updated = layout.value.map(mapper)
+  // keep visual order stable (top-left first) before packing
+  updated.sort((a, b) => a.y - b.y || a.x - b.x)
+  layout.value = packLayout(updated, colNum.value)
+}
 
-    const getOptionsForType = (type) => {
-        switch (type) {
-            case 'bar': return barOptions;
-            case 'area': return areaOptions;
-            case 'donut': return donutOptions;
-            default: return {};
+// --- Actions
+const addLayoutTile = () => {
+  const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`
+  isChecked.value = true
+  layout.value = packLayout(
+    [
+      ...layout.value,
+      { x: 0, y: 0, w: 1, h: 1, i: uniqueId, type: 'bar' }
+    ],
+    colNum.value
+  )
+  setTimeout(() => (isChecked.value = false), 1500)
+}
+
+const deleteLayoutTile = (id) => {
+  layout.value = packLayout(layout.value.filter((t) => t.i !== id), colNum.value)
+}
+
+const handleResizeRequest = ({ id, w, h }) => {
+  applyLayoutUpdate((tile) => (tile.i === id ? { ...tile, w, h } : tile))
+}
+
+const handleChangeType = ({ id, type }) => {
+  applyLayoutUpdate((tile) => (tile.i === id ? { ...tile, type } : tile))
+}
+
+const handleClearPreferences = () => {
+  searchInput.value = ''
+  dateRange.value = null
+}
+
+// On mobile switch: compress to 1x1 and remember original; restore when leaving mobile
+watch(
+  isMobile,
+  (mobile) => {
+    if (mobile) {
+      if (!originalLayout.value) originalLayout.value = JSON.parse(JSON.stringify(layout.value))
+      layout.value = packLayout(
+        layout.value.map((t) => ({ ...t, w: 1, h: 1 })),
+        colNum.value
+      )
+    } else if (originalLayout.value) {
+      layout.value = JSON.parse(JSON.stringify(originalLayout.value))
+      originalLayout.value = null
+      layout.value = packLayout(layout.value, colNum.value)
+    }
+  },
+  { immediate: true }
+)
+
+// --- Demo chart data & options (kept local; can be moved to utils later if reused)
+const demoSeries = [
+  { name: 'created', data: [10, 20, 5, 30, 40, 25] },
+  { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
+]
+
+const donutSeries = [
+  { label: 'Open', value: 52 },
+  { label: 'Escalated', value: 10 },
+  { label: 'Awaiting response', value: 16 },
+  { label: 'Client responded', value: 22 },
+  { label: 'Unlinked', value: 4 }
+]
+
+const barOptions = {
+  chart: { id: 'tickets-by-month' },
+  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+  plotOptions: { bar: { borderRadius: 2, borderRadiusApplication: 'end' } },
+  colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+  stroke: { width: 2 },
+  legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
+  grid: { borderColor: 'var(--color-subtext)' }
+}
+
+const areaOptions = {
+  chart: { id: 'tickets-by-month' },
+  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+  colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
+  stroke: { width: 2 },
+  legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
+  grid: { borderColor: 'var(--color-subtext)' },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      gradientToColors: ['var(--color-menu-background)'],
+      shadeIntensity: 1,
+      opacityFrom: 0.4,
+      opacityTo: 0,
+      stops: [0, 85, 100]
+    }
+  }
+}
+
+const donutOptions = {
+  chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-type-breakdown' },
+  colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+  stroke: { width: 4, colors: ['var(--color-menu-background)'] },
+  legend: {
+    position: 'bottom',
+    horizontalAlign: 'center',
+    itemMargin: { horizontal: 8, vertical: 4 },
+    formatter(seriesName) {
+      const s = String(seriesName ?? '')
+      return s.length > 32 ? `${s.slice(0, 29)}…` : s
+    }
+  },
+  tooltip: { fillSeriesColor: false },
+  plotOptions: {
+    pie: {
+      startAngle: -90,
+      endAngle: 90,
+      expandOnClick: false,
+      offsetY: 0,
+      customScale: 1.06,
+      donut: {
+        size: '75%',
+        labels: {
+          show: true,
+          name: { show: true },
+          value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
+          total: { show: true, showAlways: true, fontSize: 14, label: 'Total tickets', fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
         }
-    };
+      }
+    }
+  }
+}
+
+const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
+const DEFAULT_SERIES_TYPES = new Set(['bar', 'line', 'area', 'scatter'])
+
+const getSeriesForType = (type) => (type === 'donut' ? donutSeries : demoSeries)
+const getOptionsForType = (type) => OPTIONS_BY_TYPE[type] || {}
+
+// Add button icon variants
+const iconVariants = {
+  plus: { d: 'M12 5v14M5 12h14', rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 20 } },
+  check: { d: 'M5 13l4 4L19 7', rotate: 365, transition: { type: 'spring', stiffness: 200, damping: 20 } }
+}
 </script>
 
 <template>
-    <div class="dashboard-view-wrapper" >
-        <div class="dashboard-header-items">
-            <RouteInfo/>
-            <SearchBar v-model="searchInput"/>
-            <FilterDatePicker v-model="dateRange"/>
-            <motion.button 
-                class="clear-filter-button"
-                @click="handleClearPreferences"
-                :while-press="{
-                    scale: 0.97
-                }"
-            >
-                Clear preferences
-            </motion.button>
-        </div>
-
-        <DashboardCarousel :cards="cards"/>
-
-        <GridLayout
-            v-model:layout="layout"
-            :col-num="colNum"
-            :row-height="rowHeight"
-            is-draggable
-            :is-resizable="false"
-            vertical-compact
-            use-css-transforms
-            :prevent-collision="false"
-        >
-            <DashboardDataTile
-                v-for="item in layout"
-                :key="item.i"
-                :x="item.x"
-                :y="item.y"
-                :w="item.w"
-                :h="item.h"
-                :i="item.i"
-                @resizeRequest="handleResizeRequest"
-                @changeTypeRequest="handleChangeType"
-                @deletionRequest="deleteLayoutTile"
-            >
-                <component
-                    :is="['bar','line','area','scatter'].includes(item.type) ? CartesianChart : RadialChart"
-                    :chartId="item.i"
-                    :type="item.type"
-                    :series="getSeriesForType(item.type)"
-                    :options="getOptionsForType(item.type)"
-                />
-                
-            </DashboardDataTile>
-        </GridLayout>
-
-        <motion.button 
-            v-if="layout.length < maxTilesAmount"
-            class="add-menu-tile-button"
-            :class="isChecked ? 'checked' : ''"
-            @click="addLayoutTile"
-            :disabled="isChecked"
-            :initial="false"
-            :animate="isChecked ? 'checked' : 'default'"
-            :variants="{
-                default: { backgroundColor: 'var(--color-highlight)' },
-                checked: { backgroundColor: 'var(--vt-c-green)' }
-            }"
-            :transition="{ duration: 0.5 }"
-        >
-            <motion.svg
-                class="add-menu-checkmark"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-            >
-                <motion.path
-                    stroke="white"
-                    fill="transparent"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    :initial="false"
-                    :animate="isChecked ? 'check' : 'plus'"
-                    :variants="iconVariants"
-                />
-            </motion.svg>
-        </motion.button>
+  <div class="dashboard-view-wrapper" ref="wrapperRef">
+    <div class="dashboard-header-items">
+      <RouteInfo />
+      <SearchBar v-model="searchInput" />
+      <FilterDatePicker v-model="dateRange" />
+      <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
+        Clear preferences
+      </motion.button>
     </div>
+
+    <DashboardCarousel :cards="cards" />
+
+    <GridLayout
+      v-model:layout="layout"
+      :col-num="colNum"
+      :row-height="rowHeight"
+      is-draggable
+      :is-resizable="false"
+      vertical-compact
+      use-css-transforms
+      :prevent-collision="false"
+    >
+      <DashboardDataTile
+        v-for="item in layout"
+        :key="item.i"
+        :x="item.x"
+        :y="item.y"
+        :w="item.w"
+        :h="item.h"
+        :i="item.i"
+        @resizeRequest="handleResizeRequest"
+        @changeTypeRequest="handleChangeType"
+        @deletionRequest="deleteLayoutTile"
+      >
+        <component
+          :is="DEFAULT_SERIES_TYPES.has(item.type) ? CartesianChart : RadialChart"
+          :chartId="item.i"
+          :type="item.type"
+          :series="getSeriesForType(item.type)"
+          :options="getOptionsForType(item.type)"
+        />
+      </DashboardDataTile>
+    </GridLayout>
+
+    <motion.button
+      v-if="layout.length < maxTilesAmount"
+      class="add-menu-tile-button"
+      :class="isChecked ? 'checked' : ''"
+      @click="addLayoutTile"
+      :disabled="isChecked"
+      :initial="false"
+      :animate="isChecked ? 'checked' : 'default'"
+      :variants="{ default: { backgroundColor: 'var(--color-highlight)' }, checked: { backgroundColor: 'var(--vt-c-green)' } }"
+      :transition="{ duration: 0.5 }"
+    >
+      <motion.svg class="add-menu-checkmark" viewBox="0 0 24 24" width="24" height="24">
+        <motion.path
+          stroke="white"
+          fill="transparent"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          :initial="false"
+          :animate="isChecked ? 'check' : 'plus'"
+          :variants="iconVariants"
+        />
+      </motion.svg>
+    </motion.button>
+  </div>
 </template>
 
 <style>
-    .dashboard-header-items {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 48px;
-        padding: 16px 0;
-    }
+.dashboard-header-items {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 48px;
+  padding: 16px 0;
+}
 
-    .clear-filter-button {
-        background-color: var(--color-menu-background);
-        color: var(--text-color);
-        font-size: 11px;
-        font-weight: 700;
-        font-family: 'Noto Sans JP';
-        padding: 6px 24px;
-        border: 1px solid var(--vt-c-offwhite);
-        border-radius: 4px;
-        cursor: pointer;
-        white-space: nowrap;
-    }
+.clear-filter-button {
+  background-color: var(--color-menu-background);
+  color: var(--text-color);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Noto Sans JP';
+  padding: 6px 24px;
+  border: 1px solid var(--vt-c-offwhite);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
 
-    .dashboard-view-wrapper {
-        overflow-y: auto;
-    }
+.dashboard-view-wrapper {
+  overflow-y: auto;
+}
 
-    .dashboard-view-wrapper::-webkit-scrollbar {
-        display: none;
-    }
+.dashboard-view-wrapper::-webkit-scrollbar { display: none; }
 
-    .add-menu-tile-button {
-        position: absolute;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        bottom: 32px;
-        right: 0px;
-        padding: 8px 12px;
-        box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.25);
-        border-radius: 4px 0 0 4px;
-        cursor: pointer;
-    }
+.add-menu-tile-button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 32px;
+  right: 0px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.25);
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
+}
 
-    .add-menu-tile-button.checked {
-        cursor: default;
-    }
+.add-menu-tile-button.checked { cursor: default; }
 
-    .add-menu-checkmark {
-        background: none;
-        overflow: visible;
-        pointer-events: none;
-    }
+.add-menu-checkmark { background: none; overflow: visible; pointer-events: none; }
 
-    @media (max-width: 635px) {
-        .dashboard-header-items {
-            display: none;
-        }
-    }
+@media (max-width: 635px) {
+  .dashboard-header-items { display: none; }
+}
 </style>

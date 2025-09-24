@@ -168,6 +168,7 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
         type="button"
         aria-label="Open tile menu"
         :aria-expanded="menuOpen"
+        @pointerdown.stop
         @click.stop="handleTileMenuClick"
         :initial="false"
         :animate="menuOpen ? 'open' : 'closed'"
