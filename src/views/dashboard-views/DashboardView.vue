@@ -362,8 +362,4 @@ const iconVariants = {
 .add-menu-tile-button.checked { cursor: default; }
 
 .add-menu-checkmark { background: none; overflow: visible; pointer-events: none; }
-
-@media (max-width: 635px) {
-  .dashboard-header-items { display: none; }
-}
 </style>

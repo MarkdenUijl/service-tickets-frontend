@@ -35,14 +35,19 @@ const handleButtonClick = async () => {
     </div>
 
     <div class="ticket-layout">
-      <div id="ticket-filter-bar">
+      <!-- <div id="ticket-filter-bar">
         <button id="ticket-filter-button">
           <SvgIcon name="filter-icon" height="20px" width="20px"/>
           <span>{{ t('ticket.filterButtonText') }}</span>
         </button>
         <SearchBar variant="inline" v-model="searchInput"/>
       </div>
-      <button @click="handleButtonClick">CLICK ME</button>
+
+      <div id="ticket-sort-bar">
+        
+      </div>
+
+      <button @click="handleButtonClick">CLICK ME</button> -->
     </div>
   </div>
 </template>
@@ -54,6 +59,9 @@ const handleButtonClick = async () => {
   margin: 12px;
   padding: 24px;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 #ticket-filter-bar {
@@ -79,5 +87,11 @@ const handleButtonClick = async () => {
 #ticket-filter-button span {
   font-size: 13px;
   font-weight: 700;
+}
+
+#ticket-sort-bar {
+  height: 40px;
+  width: 100%;
+  background-color: aquamarine;
 }
 </style>
