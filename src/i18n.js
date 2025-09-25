@@ -5,14 +5,19 @@ import nlAuth from './lang/nl/nl-auth.json';
 import enDash from './lang/en/en-dash.json';
 import nlDash from './lang/nl/nl-dash.json';
 
+import enTicket from './lang/en/en-ticket.json';
+import nlTicket from './lang/nl/nl-ticket.json';
+
 const messages = {
   en: {
     auth: enAuth,
-    dash: enDash
+    dash: enDash,
+    ticket: enTicket
   },
   nl: {
     auth: nlAuth,
-    dash: nlDash
+    dash: nlDash,
+    ticket: nlTicket
   }
 };
 

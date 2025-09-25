@@ -269,6 +269,7 @@ watch(showMenu, (visible) => {
   left: 0;
   width: 8px;
   height: 60px;
+  color: var(--color-highlight);
 }
 
 .page-background {

@@ -4,11 +4,20 @@ import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import SvgIcon from '../svg-icon/SvgIcon.vue'
 
-const props = defineProps({ modelValue: String })
+const props = defineProps({ 
+  modelValue: String,
+  variant: {
+    type: String,
+    default: 'standalone',
+    validator: (v) => ['inline', 'standalone'].includes(v) // Inline for connected look, Standalone to separate from background
+  }
+})
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 const isFocused = ref(false)
+
+const variantClass = computed(() => `search-bar-container--${props.variant}`)
 
 // v-model proxy
 const input = computed({
@@ -50,7 +59,8 @@ const selectItem = (item) => {
 <template>
   <div
     class="search-bar-container"
-    v-click-outside="() => (isFocused = false)"
+    :class="variantClass"
+    v-click-outside="() => ( isFocused = false )"
   >
     <input
       class="search-bar"
@@ -111,18 +121,39 @@ const selectItem = (item) => {
   position: relative;
 }
 
+.search-bar-container {
+  --sb-radius: 4px;
+  --sb-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  --sb-border: none;
+}
+
+.search-bar-container--standalone {
+  --sb-radius: 4px;
+  --sb-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  --sb-border: none;
+}
+
+.search-bar-container--inline {
+  --sb-radius: 0 4px 4px 0;
+  --sb-shadow: none;
+  --sb-border: var(--color-subtext) 1px solid;
+}
+
 .search-bar {
   font-family: 'Ubuntu', sans-serif;
   background-color: var(--color-menu-background);
   border: none;
   color: var(--color-text);
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--sb-radius);
+  box-shadow: var(--sb-shadow);
+  border: var(--sb-border);
+  outline: none;
+  /* border-radius: 4px; */
+  /* box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25); */
   padding: 0 48px;
   height: 40px;
   font-size: 16px;
-  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-  outline: none;
 }
 
 .search-icon {

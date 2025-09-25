@@ -264,7 +264,7 @@ const iconVariants = {
   <div class="dashboard-view-wrapper" ref="wrapperRef">
     <div class="dashboard-header-items">
       <RouteInfo />
-      <SearchBar v-model="searchInput" />
+      <SearchBar variant="standalone" v-model="searchInput" />
       <FilterDatePicker v-model="dateRange" />
       <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
         Clear preferences
@@ -332,7 +332,7 @@ const iconVariants = {
   </div>
 </template>
 
-<style>
+<style scoped>
 .clear-filter-button {
   background-color: var(--color-menu-background);
   color: var(--text-color);
