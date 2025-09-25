@@ -2,6 +2,7 @@
     "loginHeaderSubtext" : "Welkom bij de Helvar Service Tickets web app, log nu in om een nieuw ticket aan te melden, je ticket status in te zien, of beheer openstaande tickets.",
     "registerHeaderSubtext" : "Vul gegevens in om een account aan te maken.",
     "welcome" : "Welkom!",
+    "email" : "Email",
     "password" : "Wachtwoord",
     "passwordConfirm" : "Bevestig wachtwoord",
     "loginButtonText" : "INLOGGEN",

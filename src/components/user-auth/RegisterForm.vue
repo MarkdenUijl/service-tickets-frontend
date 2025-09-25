@@ -1,307 +1,286 @@
 <script setup>
-    import { reactive, computed, watch, ref, onMounted, onUnmounted  } from 'vue';
-    import { useI18n } from 'vue-i18n';
-    import { useRouter } from 'vue-router';
-    import api from '@/utils/api'
+import { reactive, computed, watch, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import api from '@/utils/api'
 
-    import ValidatedInput from '../user-input/ValidatedInput.vue';
-    import LoaderButton from '../buttons/LoaderButton.vue';
-    import { capitalizeWords } from '@/utils/capitalizeWords';
-    import { isEmail, isStrongPassword } from '@/utils/validators';
+import ValidatedInput from '../user-input/ValidatedInput.vue'
+import LoaderButton from '../buttons/LoaderButton.vue'
+import { capitalizeWords } from '@/utils/capitalizeWords'
+import { isEmail, isStrongPassword } from '@/utils/validators'
 
-    const inputWidth = ref('60%');
+const formData = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  passwordConfirmation: ''
+})
 
-    const updateInputWidth = () => {
-        inputWidth.value = window.innerWidth <= 635 ? '100%' : '60%';
-    };
+const errors = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  passwordConfirmation: ''
+})
 
-    onMounted(() => {
-        updateInputWidth();
-        window.addEventListener('resize', updateInputWidth);
-    });
+const { t } = useI18n()
+const router = useRouter()
+const emit = defineEmits(['form-progress'])
+const loading = ref(false)
 
-    onUnmounted(() => {
-        window.removeEventListener('resize', updateInputWidth);
-    });
+// --- Field-level validity (for UI states)
+const isFirstNameValid = computed(() => formData.firstName.trim().length > 0)
+const isLastNameValid = computed(() => formData.lastName.trim().length > 0)
+const isEmailValid = computed(() => isEmail(formData.email) && !errors.email)
+const isPasswordValid = computed(() => isStrongPassword(formData.password))
+const isPasswordConfirmationValid = computed(
+  () =>
+    formData.password.length > 0 &&
+    formData.passwordConfirmation.length > 0 &&
+    formData.password === formData.passwordConfirmation
+)
 
-    const formData = reactive({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        passwordConfirmation: '',
-    });
+const formCompletion = computed(() => {
+  const checks = [
+    isFirstNameValid.value,
+    isLastNameValid.value,
+    isEmailValid.value,
+    isPasswordValid.value,
+    isPasswordConfirmationValid.value
+  ]
+  return (checks.filter(Boolean).length / checks.length) * 100
+})
 
-    const errors = reactive({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        passwordConfirmation: '',
-    });
+watch(formCompletion, (val) => emit('form-progress', val))
 
-    const { t } = useI18n();
-    const router = useRouter();
-    const emit = defineEmits(['form-progress'])
-    const loading = ref(false);
+// --- DRY validators that return i18n error keys (or empty string)
+const validateEmail = (val) => {
+  if (!val) return 'emptyFieldError'
+  if (!isEmail(val)) return 'emailInvalid'
+  return ''
+}
 
-    const resetForm = () => {
-        Object.keys(formData).forEach(key => formData[key] = '');
-        Object.keys(errors).forEach(key => errors[key] = '');
-    };
+const validatePassword = (val) => {
+  if (!val) return 'emptyFieldError'
+  if (val.length < 8) return 'passwordTooShort'
+  if (!/[A-Z]/.test(val)) return 'passwordMissingUppercase'
+  if (!/[a-z]/.test(val)) return 'passwordMissingLowercase'
+  if (!/\d/.test(val)) return 'passwordMissingDigit'
+  if (!/[^A-Za-z\d]/.test(val)) return 'passwordMissingSpecial'
+  if (!isStrongPassword(val)) return 'passwordInvalid'
+  return ''
+}
 
-    const isFirstNameValid = computed(() => formData.firstName.length > 0);
-    const isLastNameValid = computed(() => formData.lastName.length > 0);
-    const isEmailValid = computed(() => isEmail(formData.email) && !errors.email);
-    const isPasswordValid = computed(() => isStrongPassword(formData.password))
+const validatePasswordConfirmation = (pass, confirm) => {
+  if (!confirm) return 'emptyFieldError'
+  if (!pass) return 'emptyFieldError'
+  if (pass !== confirm) return 'passwordMismatch'
+  return ''
+}
 
-    const isPasswordConfirmationValid = computed(() =>
-        formData.password.length > 0 &&
-        formData.passwordConfirmation.length > 0 &&
-        formData.password === formData.passwordConfirmation
-    );
+// --- "Soft" live validation (don’t shout when empty while typing)
+watch(
+  () => formData.firstName,
+  () => {
+    errors.firstName = ''
+  }
+)
 
-    const formCompletion = computed(() => {
-        const validations = [
-            isFirstNameValid.value,
-            isLastNameValid.value,
-            isEmailValid.value,
-            isPasswordValid.value,
-            isPasswordConfirmationValid.value,
-        ];
+watch(
+  () => formData.lastName,
+  () => {
+    errors.lastName = ''
+  }
+)
 
-        return (validations.filter(Boolean).length / validations.length) * 100;
-    });
+watch(
+  () => formData.email,
+  (val) => {
+    errors.email = val.length === 0 ? '' : validateEmail(val)
+  }
+)
 
-    watch(formCompletion, (val) => {
-        emit('form-progress', val)
-    });
+watch(
+  () => formData.password,
+  (val) => {
+    errors.password = val.length === 0 ? '' : validatePassword(val)
+  }
+)
 
-    watch(() => formData.firstName, () => {
-        errors.firstName = '';
-    });
+watch(
+  [() => formData.password, () => formData.passwordConfirmation],
+  ([pass, confirm]) => {
+    errors.passwordConfirmation =
+      confirm.length === 0 ? '' : validatePasswordConfirmation(pass, confirm)
+  }
+)
 
-        watch(() => formData.lastName, () => {
-        errors.lastName = '';
-    });
+const resetForm = () => {
+  Object.keys(formData).forEach((k) => (formData[k] = ''))
+  Object.keys(errors).forEach((k) => (errors[k] = ''))
+}
 
-    watch(() => formData.email, (val) => {
-        if (isEmailValid.value) {
-            errors.email = '';
-            return;
-        }
+const register = async () => {
+  if (loading.value) return
 
-        if (val.length === 0) {
-            errors.email = '';
-        } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(val)) {
-            errors.email = 'emailInvalid';
-        } else {
-            errors.email = '';
-        }
-    });
+  // Strict validation on submit
+  errors.firstName = formData.firstName ? '' : 'emptyFieldError'
+  errors.lastName = formData.lastName ? '' : 'emptyFieldError'
+  errors.email = validateEmail(formData.email)
+  errors.password = validatePassword(formData.password)
+  errors.passwordConfirmation = validatePasswordConfirmation(
+    formData.password,
+    formData.passwordConfirmation
+  )
 
-    watch(() => formData.password, (val) => {
-        if (isPasswordValid.value) {
-            errors.password = '';
-            return;
-        }
+  const hasErrors = Object.values(errors).some(Boolean)
+  if (hasErrors) return
 
-        if (val.length === 0) {
-            errors.password = '';
-        } else if (val.length < 8) {
-            errors.password = 'passwordTooShort';
-        } else if (!/[A-Z]/.test(val)) {
-            errors.password = 'passwordMissingUppercase';
-        } else if (!/[a-z]/.test(val)) {
-            errors.password = 'passwordMissingLowercase';
-        } else if (!/\d/.test(val)) {
-            errors.password = 'passwordMissingDigit';
-        } else if (!/[^A-Za-z\d]/.test(val)) {
-            errors.password = 'passwordMissingSpecial';
-        } else {
-            errors.password = 'passwordInvalid';
-        }
-    });
+  loading.value = true
 
-   watch(
-        [() => formData.password, () => formData.passwordConfirmation],
-        ([newPassword, newConfirmation]) => {
-            if (newConfirmation.length === 0) {
-                errors.passwordConfirmation = '';
-            } else if (newPassword.length === 0) {
-                errors.passwordConfirmation = 'emptyFieldError';
-            } else if (newPassword !== newConfirmation) {
-                errors.passwordConfirmation = 'passwordMismatch';
-            } else {
-                errors.passwordConfirmation = '';
-            }
-        }
-    );
+  const payload = {
+    firstName: capitalizeWords(formData.firstName.trim()),
+    lastName: capitalizeWords(formData.lastName.trim()),
+    email: formData.email.trim().toLowerCase(),
+    password: formData.password
+  }
 
-    const register = async () => {
-        let isValid = true;
-
-        Object.entries({
-            firstName: () => formData.firstName ? '' : 'emptyFieldError',
-            lastName: () => formData.lastName ? '' : 'emptyFieldError',
-            email: () => {
-                if (!formData.email) return 'emptyFieldError';
-                if (!isEmail(formData.email)) return 'emailInvalid';
-                return '';
-            },
-            password: () => formData.password ? '' : 'emptyFieldError',
-            passwordConfirmation: () => formData.passwordConfirmation ? '' : 'emptyFieldError',
-        }).forEach(([field, validator]) => {
-            const error = validator();
-            
-            if (error) {
-                errors[field] = error;
-                isValid = false;
-            }
-        });
-
-        if (!isValid) return;
-
-        loading.value = true;
-
-        const payload = {
-            firstName: capitalizeWords(formData.firstName),
-            lastName: capitalizeWords(formData.lastName),
-            email: formData.email.toLowerCase(),
-            password: formData.password,
-        };
-
-        try {
-            await api.post('/users', payload);
-            resetForm();
-
-            router.push('confirmation');
-        } catch (error) {
-            if (error.originalError?.status === 409) {
-                errors.email = 'emailConflict';
-            } else {
-                errors.email = 'serverError';
-            }
-        } finally {
-            loading.value = false;
-        }
-    };
+  try {
+    await api.post('/users', payload)
+    resetForm()
+    router.push('confirmation')
+  } catch (error) {
+    const status = error?.response?.status
+    if (status === 409) {
+      errors.email = 'emailConflict'
+    } else {
+      errors.email = 'serverError'
+    }
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
-    <form id="registration-form" @submit.prevent="register">
-        <div id="registration-name-form">
-            <ValidatedInput
-                id="firstname"
-                v-model="formData.firstName"
-                :placeholder="t('auth.registerFirstName')"
-                type="text"
-                :isValid="isFirstNameValid"
-                :validationText="errors.firstName ? t(`auth.${errors.firstName}`) : ''"
-                validationMode="both"
-                :style="{
-                    width: inputWidth
-                }"
-            />
-            
-            <ValidatedInput
-                id="lastname"
-                v-model="formData.lastName"
-                :placeholder="t('auth.registerLastName')"
-                type="text"
-                :isValid="isLastNameValid"
-                :validationText="errors.lastName ? t(`auth.${errors.lastName}`) : ''"
-                validationMode="both"
-            />
-        </div>
-        
-        <ValidatedInput
-            id="email"
-            v-model="formData.email"
-            placeholder="Email"
-            type="text"
-            :isValid="isEmailValid"
-            :validationText="errors.email ? t(`auth.${errors.email}`) : ''"
-            validationMode="both"
-        />
+  <form id="registration-form" @submit.prevent="register">
+    <div id="registration-name-form">
+      <ValidatedInput
+        id="firstname"
+        v-model="formData.firstName"
+        :placeholder="t('auth.registerFirstName')"
+        type="text"
+        name="given-name"
+        autocomplete="given-name"
+        :isValid="isFirstNameValid"
+        :validationText="errors.firstName ? t(`auth.${errors.firstName}`) : ''"
+        validationMode="both"
+      />
 
-        <ValidatedInput
-            id="password"
-            v-model="formData.password"
-            :placeholder="t('auth.password')"
-            type="password"
-            :isValid="isPasswordValid"
-            :validationText="errors.password ? t(`auth.${errors.password}`) : ''"
-            validationMode="both"
-        />
+      <ValidatedInput
+        id="lastname"
+        v-model="formData.lastName"
+        :placeholder="t('auth.registerLastName')"
+        type="text"
+        name="family-name"
+        autocomplete="family-name"
+        :isValid="isLastNameValid"
+        :validationText="errors.lastName ? t(`auth.${errors.lastName}`) : ''"
+        validationMode="both"
+      />
+    </div>
 
-        <ValidatedInput
-            id="confirm-password"
-            v-model="formData.passwordConfirmation"
-            :placeholder="t('auth.passwordConfirm')"
-            type="password"
-            :isValid="isPasswordConfirmationValid"
-            :validationText="errors.passwordConfirmation? t(`auth.${errors.passwordConfirmation}`) : ''"
-            validationMode="both"
-        />
+    <ValidatedInput
+      id="email"
+      v-model="formData.email"
+      :placeholder="t('auth.email')"
+      type="email"
+      name="email"
+      autocomplete="email"
+      :isValid="isEmailValid"
+      :validationText="errors.email ? t(`auth.${errors.email}`) : ''"
+      validationMode="both"
+    />
 
-        <LoaderButton
-            :loading="loading"
-            :label="t('auth.submitButtonText')"
-            type="submit"
-        />
-    </form>
+    <ValidatedInput
+      id="password"
+      v-model="formData.password"
+      :placeholder="t('auth.password')"
+      type="password"
+      name="new-password"
+      autocomplete="new-password"
+      :isValid="isPasswordValid"
+      :validationText="errors.password ? t(`auth.${errors.password}`) : ''"
+      validationMode="both"
+    />
+
+    <ValidatedInput
+      id="confirm-password"
+      v-model="formData.passwordConfirmation"
+      :placeholder="t('auth.passwordConfirm')"
+      type="password"
+      name="new-password"
+      autocomplete="new-password"
+      :isValid="isPasswordConfirmationValid"
+      :validationText="errors.passwordConfirmation ? t(`auth.${errors.passwordConfirmation}`) : ''"
+      validationMode="both"
+    />
+
+    <LoaderButton :loading="loading" :label="t('auth.submitButtonText')" type="submit" />
+  </form>
 </template>
 
 <style>
-    #registration-form {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-    }
+#registration-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
 
-    #registration-name-form {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-    }
+#registration-name-form {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
 
-    .firstname {
-        width: 60%;
-    }
+#registration-name-form > * {
+  flex: 1;
+}
 
-    #return-button {
-        display: flex;
-        border: solid var(--color-highlight) 2px;
-        align-items: center;
-        justify-content: center;
-        width: 300px;
-        height: 44px;
-        border-radius: 8px;
-        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-    }
+#return-button {
+  display: flex;
+  border: solid var(--color-highlight) 2px;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  height: 44px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+}
 
-    #register-return-link {
-        color: var(--color-highlight);
-        font-family: 'Ubuntu';
-        font-weight: 700;
-        font-size: 16px;
-        text-decoration: none;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+#register-return-link {
+  color: var(--color-highlight);
+  font-family: 'Ubuntu';
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    @media (max-width: 635px) {
-        #registration-name-form {
-            flex-direction: column;
-        }
-    }
+@media (max-width: 635px) {
+  #registration-name-form {
+    flex-direction: column;
+  }
+}
 </style>

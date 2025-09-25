@@ -1,14 +1,27 @@
 export default {
   beforeMount(el, binding) {
-    el.clickOutsideHandler = (event) => {
+    if (typeof document === 'undefined') return
+
+    // Only attach if value is a function
+    if (typeof binding.value !== 'function') {
+      console.warn('v-click-outside expects a function as the value')
+      return
+    }
+
+    el.__clickOutsideHandler__ = (event) => {
+      // Check if the click target is outside the element
       if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event);
+        binding.value(event)
       }
-    };
-    
-    document.addEventListener("click", el.clickOutsideHandler);
+    }
+
+    // Use pointerdown to catch both mouse & touch early
+    document.addEventListener('pointerdown', el.__clickOutsideHandler__)
   },
   unmounted(el) {
-    document.removeEventListener("click", el.clickOutsideHandler);
-  },
-};
+    if (el.__clickOutsideHandler__) {
+      document.removeEventListener('pointerdown', el.__clickOutsideHandler__)
+      delete el.__clickOutsideHandler__
+    }
+  }
+}

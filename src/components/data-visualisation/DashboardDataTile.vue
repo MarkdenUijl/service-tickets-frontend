@@ -1,0 +1,385 @@
+<script setup>
+import { GridItem } from 'grid-layout-plus'
+import { motion, AnimatePresence } from 'motion-v'
+import { reactive, ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import { useWindowSize } from '@/composables/useWindowSize'
+import { useStableSize } from '@/composables/useStableSize'
+
+const { t } = useI18n()
+const { windowWidth } = useWindowSize()
+
+const props = defineProps({
+  x: { type: Number, required: true },
+  y: { type: Number, required: true },
+  w: { type: Number, required: true },
+  h: { type: Number, required: true },
+  i: { type: String, required: true }
+})
+
+const emit = defineEmits(['resizeRequest', 'changeTypeRequest', 'deletionRequest'])
+
+const SIZE_MAP = {
+  small: { w: 1, h: 1 },
+  'medium-wide': { w: 2, h: 1 },
+  'medium-tall': { w: 1, h: 2 },
+  large: { w: 2, h: 2 }
+}
+
+const setSize = (size) => {
+  const target = SIZE_MAP[size] || SIZE_MAP.small
+  emit('resizeRequest', { id: props.i, w: target.w, h: target.h })
+}
+
+const setType = (type) => {
+  emit('changeTypeRequest', { id: props.i, type })
+}
+
+const deleteTile = () => {
+  emit('deletionRequest', props.i)
+}
+
+// Tile menu state & behavior
+const menuOpen = ref(false)
+
+const closeAllSubmenus = () => {
+  tileMenuOptions.forEach((option) => {
+    option.isOpen = false
+  })
+}
+
+const handleTileMenuClick = () => {
+  if (menuOpen.value) closeAllSubmenus()
+  menuOpen.value = !menuOpen.value
+}
+
+const onClickOutside = () => {
+  if (!menuOpen.value) return
+  menuOpen.value = false
+  closeAllSubmenus()
+}
+
+watch(menuOpen, (isOpen) => {
+  if (!isOpen) closeAllSubmenus()
+})
+
+// Animation springs (shared to avoid repetition)
+const SPRING_TIGHT = { type: 'spring', stiffness: 600, damping: 32 }
+const SPRING_SOFT = { type: 'spring', stiffness: 300, damping: 16, bounce: 0.1 }
+
+const dotMid = {
+  open: { width: 24, height: 3, transition: SPRING_TIGHT },
+  closed: { width: 6, height: 6, transition: SPRING_SOFT }
+}
+
+const topPath = {
+  closed: { d: 'M12 3 L12 3', transition: SPRING_SOFT },
+  open: { d: 'M0 12 6 7', transition: SPRING_TIGHT }
+}
+
+const botPath = {
+  closed: { d: 'M12 9 L12 9', transition: SPRING_SOFT },
+  open: { d: 'M0 0 6 5', transition: SPRING_TIGHT }
+}
+
+// Menu options
+const tileMenuOptions = reactive([
+  {
+    id: 'size',
+    title: t('dash.tileMenuTitleSizeText'),
+    isOpen: false,
+    hideOnMobile: true,
+    menuItems: [
+      {
+        id: 'sm',
+        optionTitle: t('dash.tileMenuSmallSizeText'),
+        clickAction: () => {
+          setSize('small')
+          handleTileMenuClick()
+        }
+      },
+      {
+        id: 'mw',
+        optionTitle: t('dash.tileMenuMediumWideSizeText'),
+        clickAction: () => {
+          setSize('medium-wide')
+          handleTileMenuClick()
+        }
+      },
+      {
+        id: 'mt',
+        optionTitle: t('dash.tileMenuMediumTallSizeText'),
+        clickAction: () => {
+          setSize('medium-tall')
+          handleTileMenuClick()
+        }
+      },
+      {
+        id: 'lg',
+        optionTitle: t('dash.tileMenuLargeSizeText'),
+        clickAction: () => {
+          setSize('large')
+          handleTileMenuClick()
+        }
+      }
+    ]
+  },
+  {
+    id: 'display',
+    title: t('dash.tileDataDisplayText'),
+    isOpen: false,
+    hideOnMobile: false,
+    menuItems: [
+      { id: 'bar', optionTitle: 'Bar', clickAction: () => setType('bar') },
+      { id: 'area', optionTitle: 'Area', clickAction: () => setType('area') },
+      { id: 'donut', optionTitle: 'Donut', clickAction: () => setType('donut') }
+    ]
+  }
+])
+
+const visibleTileMenuOptions = computed(() =>
+  tileMenuOptions.filter((option) => !(windowWidth.value <= 635 && option.hideOnMobile))
+)
+
+const toggleOptionMenu = (option) => {
+  option.isOpen = !option.isOpen
+}
+
+// Content area becomes interactive when the size stabilizes
+const contentEl = ref(null)
+const { ready: contentReady } = useStableSize(contentEl, 200)
+</script>
+
+<template>
+  <GridItem
+    :key="i"
+    :x="x"
+    :y="y"
+    :w="w"
+    :h="h"
+    :i="i"
+    class="dashboard-tile"
+  >
+    <!-- Menu toggle button: button element for a11y, animation via variants -->
+    <AnimatePresence>
+      <motion.button
+        class="tile-menu-button"
+        type="button"
+        aria-label="Open tile menu"
+        :aria-expanded="menuOpen"
+        @pointerdown.stop
+        @click.stop="handleTileMenuClick"
+        :initial="false"
+        :animate="menuOpen ? 'open' : 'closed'"
+      >
+        <svg class="svg-dot" width="24" height="12" viewBox="0 0 24 12">
+          <motion.path
+            stroke="var(--color-text)"
+            :stroke-width="menuOpen ? 3 : 6"
+            fill="transparent"
+            stroke-linecap="round"
+            :variants="topPath"
+          />
+        </svg>
+
+        <motion.span class="dot" :variants="dotMid" />
+
+        <svg class="svg-dot" width="24" height="12" viewBox="0 0 24 12">
+          <motion.path
+            stroke="var(--color-text)"
+            :stroke-width="menuOpen ? 3 : 6"
+            fill="transparent"
+            stroke-linecap="round"
+            :variants="botPath"
+          />
+        </svg>
+      </motion.button>
+    </AnimatePresence>
+
+    <AnimatePresence>
+      <motion.div
+        class="tile-menu"
+        v-if="menuOpen"
+        v-click-outside="onClickOutside"
+        role="menu"
+        :initial="{ opacity: 0, x: '100%' }"
+        :animate="{ opacity: 1, x: 0 }"
+        :exit="{ opacity: 0, x: '100%' }"
+        :transition="{ type: 'spring', stiffness: 600, damping: 32 }"
+      >
+        <div
+          v-for="(option, oIdx) in visibleTileMenuOptions"
+          :key="option.id || oIdx"
+          @click="toggleOptionMenu(option)"
+          class="tile-menu-option"
+        >
+          <div class="menu-option-title" :class="{ open: option.isOpen }">
+            {{ option.title }}
+          </div>
+
+          <AnimatePresence>
+            <motion.div
+              v-if="option.isOpen"
+              class="tile-option-submenu"
+              :initial="{ opacity: 0.3, maxHeight: 0 }"
+              :animate="{ opacity: 1, maxHeight: 200 }"
+              :exit="{ opacity: 0.3, maxHeight: 0 }"
+              :transition="{ type: 'spring', stiffness: 100, damping: 16, bounce: 0.1 }"
+            >
+              <div class="submenu-inner">
+                <div
+                  v-for="(item, iIdx) in option.menuItems"
+                  :key="item.id || iIdx"
+                  @click.stop="item.clickAction"
+                  class="tile-submenu-option"
+                >
+                  {{ item.optionTitle }}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div @click="deleteTile()" class="tile-menu-option">
+          <div class="menu-option-title">
+            {{ t('dash.tileDeleteText') }}
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+
+    <div class="tile-header">
+      <slot name="header">TILE HEADER</slot>
+    </div>
+
+    <div class="tile-content" ref="contentEl">
+      <slot v-if="contentReady" />
+    </div>
+  </GridItem>
+</template>
+
+<style>
+.dashboard-tile {
+  background-color: var(--color-menu-background);
+  padding: 20px 16px;
+  border-radius: 12px;
+  position: relative;
+  transition: all 300ms cubic-bezier(0.25, 1.25, 0.5, 1);
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tile-header {
+  font-family: 'Noto Sans JP';
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tile-header button {
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.tile-menu-button {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  padding: 3px;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 4px;
+  z-index: 10;
+  border: none;            /* button reset for a11y switch */
+  background: transparent; /* button reset for a11y switch */
+}
+
+.tile-menu-button .dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 6px;
+  background-color: var(--color-text);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.svg-dot {
+  background: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.tile-menu::-webkit-scrollbar {
+  display: none;
+}
+
+.tile-menu {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 12px;
+  z-index: 2;
+  padding: 20px 0;
+  overflow: scroll;
+  background-color: var(--color-menu-background-transparent);
+}
+
+.tile-menu > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tile-menu-option {
+  padding-left: 16px;
+  cursor: pointer;
+  max-width: 75%;
+  z-index: 1;
+}
+
+.menu-option-title {
+  font-weight: 500;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.menu-option-title.open {
+  background-color: var(--color-highlight);
+  color: var(--vt-c-white);
+}
+
+.tile-option-submenu {
+  overflow: hidden;
+}
+
+.submenu-inner {
+  margin: 8px;
+}
+
+.tile-submenu-option {
+  cursor: pointer;
+  padding: 4px 16px;
+  border-left: 2px var(--color-text) solid;
+}
+
+.tile-submenu-option:hover {
+  border-left: 4px var(--color-highlight) solid;
+}
+
+.tile-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+</style>

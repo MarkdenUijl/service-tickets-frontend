@@ -5,10 +5,10 @@
 </script>
 
 <template>
-   <div>
-        <RouteInfo/>
-        <h1>Dashboard Page</h1>
-        <p>Welcome to your projects.</p>
+    <div class="dashboard-view-wrapper">
+        <div class="dashboard-header-items">
+          <RouteInfo />
+        </div>
     </div>
 </template>
 

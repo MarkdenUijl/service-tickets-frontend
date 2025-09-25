@@ -25,16 +25,12 @@
 
 <template>
     <div class="route-info-container">
-        <div>
-            <span class="route-info-title">{{ pageName }}</span>
-        </div>
-        
+        <div><span class="route-info-title">{{ pageName }}</span></div>
         <div class="route-info-nav">
             <div class="main-route-info">
                 <span id="main-path-title">{{ mainPath }}</span>
-                <SvgIcon class="pointer-icon" name="nav-pointer-icon" width="8px"/>
+                <SvgIcon class="pointer-icon" name="nav-pointer-icon" width="10px" height="12px"/>
             </div>
-
             <span id="current-path-title">{{ pageName }}</span>
         </div>
     </div>
@@ -42,12 +38,12 @@
 
 <style scoped>
     .route-info-container {
-        margin-left: 16px;
         user-select: none;
         display: flex;
         flex-direction: column;
         color: white;
         max-width: 200px;
+        gap: 4px;
     }
 
     .route-info-title {
