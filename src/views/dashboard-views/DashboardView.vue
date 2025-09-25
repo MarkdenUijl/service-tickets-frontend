@@ -333,16 +333,6 @@ const iconVariants = {
 </template>
 
 <style>
-.dashboard-header-items {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 48px;
-  padding: 16px 0;
-}
-
 .clear-filter-button {
   background-color: var(--color-menu-background);
   color: var(--text-color);
@@ -355,12 +345,6 @@ const iconVariants = {
   cursor: pointer;
   white-space: nowrap;
 }
-
-.dashboard-view-wrapper {
-  overflow-y: auto;
-}
-
-.dashboard-view-wrapper::-webkit-scrollbar { display: none; }
 
 .add-menu-tile-button {
   position: absolute;
