@@ -6,6 +6,10 @@ import SvgIcon from '../svg-icon/SvgIcon.vue'
 
 const props = defineProps({ 
   modelValue: String,
+  placeholder: {
+    type: String,
+    default: '',
+  },
   variant: {
     type: String,
     default: 'standalone',
@@ -26,18 +30,18 @@ const input = computed({
 })
 
 // More realistic demo data for your service-ticket domain
-const demoItems = [
-  'Lighting commissioning - Building A',
-  'Emergency callout - Plant room',
-  'Fault diagnostics - Floor 3',
-  'Sensor calibration - West wing',
-  'DALI loop check - Warehouse',
-  'As-built update - Atrium',
-  'Driver replacement - Block C',
-  'Energy audit - HQ campus',
-  'Scene programming - Auditorium',
-  'Warranty ticket - Panel LCP-12'
-]
+// const demoItems = [
+//   'Lighting commissioning - Building A',
+//   'Emergency callout - Plant room',
+//   'Fault diagnostics - Floor 3',
+//   'Sensor calibration - West wing',
+//   'DALI loop check - Warehouse',
+//   'As-built update - Atrium',
+//   'Driver replacement - Block C',
+//   'Energy audit - HQ campus',
+//   'Scene programming - Auditorium',
+//   'Warranty ticket - Panel LCP-12'
+// ]
 
 // Computed list to avoid recreating a function each render
 const filteredList = computed(() => {
@@ -67,7 +71,7 @@ const selectItem = (item) => {
       name="search-bar"
       type="search"
       v-model="input"
-      :placeholder="t('dash.searchProjectsText')"
+      :placeholder="props.placeholder"
       autocomplete="off"
       role="combobox"
       :aria-expanded="menuOpen ? 'true' : 'false'"

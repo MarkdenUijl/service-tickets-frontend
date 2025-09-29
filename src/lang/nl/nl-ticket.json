@@ -1,3 +1,17 @@
 {
-    "filterButtonText" : "Filters"
+    "filterButtonText" : "Filters",
+    "searchTicketText" : "Zoek ticket...",
+    "columnIdText": "ID",
+    "columnTicketTitleText": "Incident titel",
+    "columnTypeText": "Type",
+    "columnCallTimeText": "Ticket meldtijd",
+    "columnProjectTitleText": "Project titel",
+    "columnContractTypeText": "Contract type",
+    "columnLastUpdatedText": "Laatste update",
+    "columnStatusText": "Status",
+    "typeHardwareText": "Hardware",
+    "typeSoftwareText": "Software",
+    "typeChangeText": "Aanpassing",
+    "typeQuestionText": "Vraag",
+    "typeUnknownText": "Onbekend"
 }

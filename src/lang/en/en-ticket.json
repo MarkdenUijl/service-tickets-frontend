@@ -1,3 +1,17 @@
 {
-    "filterButtonText" : "Filters"
+    "filterButtonText": "Filters",
+    "searchTicketText": "Search ticket...",
+    "columnIdText": "ID",
+    "columnTicketTitleText": "Incident title",
+    "columnTypeText": "Type",
+    "columnCallTimeText": "Ticket creation date",
+    "columnProjectTitleText": "Project title",
+    "columnContractTypeText": "Contract type",
+    "columnLastUpdatedText": "Last updated",
+    "columnStatusText": "Status",
+    "typeHardwareText": "Hardware",
+    "typeSoftwareText": "Software",
+    "typeChangeText": "Change",
+    "typeQuestionText": "Question",
+    "typeUnknownText": "Unknown"
 }

@@ -2,6 +2,7 @@
 import { GridLayout } from 'grid-layout-plus'
 import { ref, computed, watch } from 'vue'
 import { motion } from 'motion-v'
+import { useI18n } from 'vue-i18n'
 
 import CartesianChart from '@/components/data-visualisation/CartesianChart.vue'
 import RadialChart from '@/components/data-visualisation/RadialChart.vue'
@@ -21,6 +22,7 @@ const maxTilesAmount = 9
 const isChecked = ref(false)
 const dateRange = ref(null)
 const searchInput = ref('')
+const { t } = useI18n()
 
 // layout state
 const savedLayout = localStorage.getItem(STORAGE_KEY)
@@ -188,7 +190,7 @@ const barOptions = {
   chart: { id: 'tickets-by-month' },
   xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
   plotOptions: { bar: { borderRadius: 2, borderRadiusApplication: 'end' } },
-  colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+  colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
   stroke: { width: 2 },
   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
   grid: { borderColor: 'var(--color-subtext)' }
@@ -197,7 +199,7 @@ const barOptions = {
 const areaOptions = {
   chart: { id: 'tickets-by-month' },
   xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-  colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
+  colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
   stroke: { width: 2 },
   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
   grid: { borderColor: 'var(--color-subtext)' },
@@ -215,7 +217,7 @@ const areaOptions = {
 
 const donutOptions = {
   chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-type-breakdown' },
-  colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+  colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
   stroke: { width: 4, colors: ['var(--color-menu-background)'] },
   legend: {
     position: 'bottom',
@@ -264,7 +266,7 @@ const iconVariants = {
   <div class="dashboard-view-wrapper" ref="wrapperRef">
     <div class="dashboard-header-items">
       <RouteInfo />
-      <SearchBar variant="standalone" v-model="searchInput" />
+      <SearchBar :placeholder="t('dash.searchProjectsText')" variant="standalone" v-model="searchInput" />
       <FilterDatePicker v-model="dateRange" />
       <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
         Clear preferences
