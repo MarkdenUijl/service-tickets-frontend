@@ -13,5 +13,10 @@
     "typeSoftwareText": "Software",
     "typeChangeText": "Aanpassing",
     "typeQuestionText": "Vraag",
-    "typeUnknownText": "Onbekend"
+    "typeUnknownText": "Onbekend",
+    "statusOpenText": "Open",
+    "statusClosedText": "Gesloten",
+    "statusPendingText": "In afwachting",
+    "statusIn_progressText": "In behandeling",
+    "statusEscalatedText": "Geëscaleerd"
 }

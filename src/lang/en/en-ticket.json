@@ -13,5 +13,10 @@
     "typeSoftwareText": "Software",
     "typeChangeText": "Change",
     "typeQuestionText": "Question",
-    "typeUnknownText": "Unknown"
+    "typeUnknownText": "Unknown",
+    "statusOpenText": "Open",
+    "statusClosedText": "Closed",
+    "statusPendingText": "Pending",
+    "statusIn_progressText": "In progress",
+    "statusEscalatedText": "Escalated"
 }
