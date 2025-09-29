@@ -18,5 +18,8 @@
     "statusClosedText": "Closed",
     "statusPendingText": "Pending",
     "statusIn_progressText": "In progress",
-    "statusEscalatedText": "Escalated"
+    "statusEscalatedText": "Escalated",
+    "contractOfficehoursText": "office hours",
+    "contractFulltimeText": "full time",
+    "contractNoneText": "none"
 }

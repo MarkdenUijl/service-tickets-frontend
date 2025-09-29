@@ -18,5 +18,8 @@
     "statusClosedText": "Gesloten",
     "statusPendingText": "In afwachting",
     "statusIn_progressText": "In behandeling",
-    "statusEscalatedText": "Geëscaleerd"
+    "statusEscalatedText": "Geëscaleerd",
+    "contractOfficehoursText": "kantoortijden",
+    "contractFulltimeText": "24/7",
+    "contractNoneText": "geen"
 }
