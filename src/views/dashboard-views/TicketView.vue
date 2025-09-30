@@ -15,7 +15,6 @@ const itemsSelected = ref([])
 const sortBy = ref("lastUpdated");
 const sortType = ref("desc");
 
-// NOTE: Make headers reactive to locale changes
 const { t, locale } = useI18n()
 const columns = computed(() => {
   // Depend explicitly on locale for recompute
@@ -27,7 +26,7 @@ const columns = computed(() => {
     { text: t('ticket.columnTypeText'), value: 'type', sortable: true },
     { text: t('ticket.columnCallTimeText'), value: 'creationDate', sortable: true },
     { text: t('ticket.columnProjectTitleText'), value: 'projectName', sortable: true },
-    { text: t('ticket.columnContractTypeText'), value: 'contractTypeDisplay', sortable: true },
+    { text: t('ticket.columnContractTypeText'), value: 'contractTypeValue', sortable: true },
     { text: t('ticket.columnLastUpdatedText'), value: 'lastUpdated', sortable: true },
     { text: t('ticket.columnStatusText'), value: 'status', sortable: true }
   ]
@@ -119,13 +118,6 @@ function formatIsoDate(isoString) {
   const time = dateObj.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false })
   return { date, time }
 }
-
-// function formatLastResponse(responses) {
-//   if (Array.isArray(responses) && responses.length) {
-//     return formatIsoDate(responses[responses.length - 1].creationDate)
-//   }
-//   return null
-// }
 
 onMounted(() => {
   fetchTickets()
