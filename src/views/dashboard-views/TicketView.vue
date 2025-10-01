@@ -1,11 +1,12 @@
 <script setup>
 import RouteInfo from '@/components/common/RouteInfo.vue'
-import api from '@/utils/api'
-import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import SearchBar from '@/components/user-input/SearchBar.vue'
 import { useI18n } from 'vue-i18n'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import { capitalizeWords } from '@/utils/capitalizeWords'
+import { connectToTickets, disconnectFromTickets } from '@/services/websocket'
 
 const loading = ref(false)
 const searchInput = ref('')
@@ -120,8 +121,37 @@ function formatIsoDate(isoString) {
 }
 
 onMounted(() => {
-  fetchTickets()
-})
+  fetchTickets();
+
+  // Listen for real-time updates
+  connectToTickets((ticket) => {
+    // naive implementation: replace if exists, otherwise add
+    const index = items.value.findIndex(t => t.id === ticket.id);
+    if (index !== -1) {
+      items.value[index] = {
+        ...items.value[index],
+        ...ticket,
+        lastUpdated: resolveLastUpdated(ticket)
+      };
+    } else {
+      items.value.push({
+        ...ticket,
+        projectName: ticket.project?.name || '',
+        contractTypeValue: ticket.project?.serviceContract?.type || 'NONE',
+        contractTypeDisplay: capitalizeWords(
+          (ticket.project?.serviceContract?.type || 'NONE')
+            .replaceAll('_', ' ')
+            .toLowerCase()
+        ),
+        lastUpdated: resolveLastUpdated(ticket)
+      });
+    }
+  });
+});
+
+onUnmounted(() => {
+  disconnectFromTickets();
+});
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 import { reactive, computed, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api'
+import api from '@/services/api'
 
 import ValidatedInput from '../user-input/ValidatedInput.vue'
 import LoaderButton from '../buttons/LoaderButton.vue'

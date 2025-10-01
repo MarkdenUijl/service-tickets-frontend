@@ -2,7 +2,7 @@
 import { reactive, ref, computed, watch } from 'vue'
 import ValidatedInput from '../user-input/ValidatedInput.vue'
 import { useI18n } from 'vue-i18n'
-import api from '@/utils/api'
+import api from '@/services/api'
 import { useRouter } from 'vue-router'
 import { isEmail } from '@/utils/validators'
 import LoaderButton from '../buttons/LoaderButton.vue'
