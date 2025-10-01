@@ -1,4 +1,6 @@
 {
+    "createTicketText": "Create Ticket",
+    "deleteTicketsText": "Delete tickets",
     "filterButtonText": "Filters",
     "searchTicketText": "Search ticket...",
     "columnIdText": "ID",
@@ -21,5 +23,6 @@
     "statusEscalatedText": "Escalated",
     "contractOfficehoursText": "office hours",
     "contractFulltimeText": "full time",
-    "contractNoneText": "none"
+    "contractNoneText": "none",
+    "noDataFoundText": "No tickets found in database."
 }

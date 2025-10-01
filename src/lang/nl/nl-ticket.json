@@ -1,4 +1,6 @@
 {
+    "createTicketText": "Maak Ticket",
+    "deleteTicketsText": "Verwijder tickets",
     "filterButtonText" : "Filters",
     "searchTicketText" : "Zoek ticket...",
     "columnIdText": "ID",
@@ -21,5 +23,6 @@
     "statusEscalatedText": "Geëscaleerd",
     "contractOfficehoursText": "kantoortijden",
     "contractFulltimeText": "24/7",
-    "contractNoneText": "geen"
+    "contractNoneText": "geen",
+    "noDataFoundText": "Geen tickets gevonden in database."
 }
