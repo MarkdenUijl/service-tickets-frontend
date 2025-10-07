@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { motion, AnimatePresence } from 'motion-v'
+import { useRouter } from 'vue-router'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import SearchBar from '@/components/user-input/SearchBar.vue'
@@ -10,6 +11,8 @@ import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import api from '@/services/api'
 import { connectToTickets, disconnectFromTickets } from '@/services/websocket'
 import { capitalizeWords } from '@/utils/capitalizeWords'
+
+const router = useRouter();
 
 const loading = ref(false)
 const searchInput = ref('')
@@ -81,24 +84,6 @@ async function deleteTicket(ticketId) {
   }
 }
 
-async function createTicket() {
-  const body = {
-    name: "The lights won't turn off",
-    status: 'open',
-    type: 'hardware',
-    description: 'The lights in room 1.01 are not functioning anymore',
-    projectId: 51
-  }
-
-  try {
-    await api.post('/serviceTickets', body)
-  } catch (error) {
-    console.log(error?.status || error)
-  } finally {
-    await fetchTickets()
-  }
-}
-
 function handleFilterClick() {
   console.log('Clicking filter button')
 }
@@ -130,6 +115,10 @@ function formatIsoDate(isoString) {
     hour12: false
   })
   return { date, time }
+}
+
+const onCreateTicket = () => {
+  router.push({ name: 'ticket-create' })
 }
 
 onMounted(() => {
@@ -218,7 +207,7 @@ onUnmounted(() => {
           type="button"
           :disabled="loading"
           :aria-busy="loading ? 'true' : 'false'"
-          @click="createTicket"
+          @click="onCreateTicket"
           :transition="{ duration: 0.2 }"
           :whileHover="{ scale: 1.03 }"
         >
@@ -466,7 +455,7 @@ onUnmounted(() => {
 }
 
 .dashboard-header-button {
-  width: 128px;
+  width: 136px;
   height: 28px;
   border-radius: 4px;
   cursor: pointer;

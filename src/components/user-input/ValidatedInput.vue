@@ -16,11 +16,14 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['blur'])
+
 const modelValue = defineModel()
 
 const touched = ref(false)
 
 const handleBlur = () => {
+  emit('blur')
   if (modelValue.value !== '' && modelValue.value !== null && modelValue.value !== undefined) {
     touched.value = true
   }

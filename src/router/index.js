@@ -14,6 +14,9 @@ const ContractView = () => import('@/views/dashboard-views/ContractView.vue');
 const UsersView = () => import('@/views/dashboard-views/UsersView.vue');
 const SettingsView = () => import('@/views/dashboard-views/SettingsView.vue');
 
+const TicketCreateView = () => import('@/views/ticket-views/TicketCreateView.vue');
+const TicketDetailView = () => import('@/views/ticket-views/TicketDetailView.vue');
+
 const routes = [
     {
         path: '/auth',
@@ -47,43 +50,84 @@ const routes = [
         path: '/dashboard',
         name: 'dashboard',
         component: DashboardLayout,
-        meta: { requiresAuth: true },
+        meta: { 
+            requiresAuth: true,
+            titleKey: 'dash.DashboardText'
+         },
         children: [
             {
                 path: 'overview',
                 name: 'overview',
                 component: DashboardView,
-                meta: { titleKey: 'dash.navOverviewText' }
+                meta: { 
+                    parent: 'dashboard',
+                    titleKey: 'dash.navOverviewText' 
+                }
             },
             {
                 path: 'tickets',
                 name: 'tickets',
                 component: TicketView,
-                meta: { titleKey: 'dash.navTicketsText' }
+                meta: { 
+                    parent: 'dashboard',
+                    titleKey: 'dash.navTicketsText' 
+                }
             },
+                {
+                    path: 'tickets/create',
+                    name: 'ticket-create',
+                    component: TicketCreateView,
+                    meta: { 
+                        titleKey: 'ticket.createTicketText',
+                        parent: 'tickets',
+                        showInMenu: false 
+                    }
+                },
+                {
+                    path: 'tickets/:id',
+                    name: 'ticket-detail',
+                    component: TicketDetailView,
+                    meta: { 
+                        parent: 'tickets',
+                        dynamicTitle: route => `Ticket #${route.params.id}`,
+                        showInMenu: false 
+                    }
+                },
             {
                 path: 'projects',
                 name: 'projects',
                 component: ProjectView,
-                meta: { titleKey: 'dash.navProjectsText' }
+                meta: { 
+                    parent: 'dashboard',
+                    titleKey: 'dash.navProjectsText' 
+                }
             },
             {
                 path: 'contracts',
                 name: 'contracts',
                 component: ContractView,
-                meta: { titleKey: 'dash.navContractsText' }
+                meta: { 
+                    parent: 'dashboard',
+                    titleKey: 'dash.navContractsText' 
+                }
             },
             {
                 path: 'users',
                 name: 'users',
                 component: UsersView,
-                meta: { titleKey: 'dash.navUsersText' }
+                meta: { 
+                    parent: 'dashboard',
+                    titleKey: 'dash.navUsersText' 
+                }
             },
             {
                 path: 'settings',
                 name: 'settings',
                 component: SettingsView,
-                meta: { titleKey: 'dash.navSettingsText' }
+                meta: { 
+                    parent: 'dashboard',
+                    titleKey: 'dash.navSettingsText' 
+                }
             },
         ]
     },
@@ -99,8 +143,7 @@ router.beforeEach((to, from, next) => {
     const isAuthenticated = isTokenValid();
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        // next('/auth/login');
-        next();
+        next('/auth/login');
     } else {
         next();
     }

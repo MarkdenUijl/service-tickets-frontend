@@ -56,7 +56,9 @@ const dashboardChildren = computed(() => {
 })
 
 const pages = computed(() =>
-  dashboardChildren.value.map(child => ({
+  dashboardChildren.value
+  .filter(child => child.meta?.showInMenu !== false)
+  .map(child => ({
     label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
     icon: `${child.name}-icon`,
     to: `/dashboard/${child.path}`
