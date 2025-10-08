@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion-v'
 import { useRouter } from 'vue-router'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
-import SearchBar from '@/components/user-input/SearchBar.vue'
+import SearchInput from '@/components/user-input/SearchInput.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 
 import api from '@/services/api'
@@ -230,7 +230,7 @@ onUnmounted(() => {
           <span>{{ t('ticket.filterButtonText') }}</span>
         </button>
 
-        <SearchBar :placeholder="t('ticket.searchTicketText')" variant="inline" v-model="searchInput" />
+        <SearchInput :placeholder="t('ticket.searchTicketText')" variant="inline" v-model="searchInput" />
       </div>
 
       <EasyDataTable

@@ -9,11 +9,11 @@ import RadialChart from '@/components/data-visualisation/RadialChart.vue'
 import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue'
 import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue'
 import RouteInfo from '@/components/common/RouteInfo.vue'
-import SearchBar from '@/components/user-input/SearchBar.vue'
 import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue'
 
 import { useWindowSize } from '@/composables/useWindowSize'
 import { useStableSize } from '@/composables/useStableSize'
+import SearchCombo from '@/components/user-input/SearchCombo.vue'
 
 // --- UI State
 const STORAGE_KEY = 'dashboardTileLayout'
@@ -260,16 +260,31 @@ const iconVariants = {
   plus: { d: 'M12 5v14M5 12h14', rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 20 } },
   check: { d: 'M5 13l4 4L19 7', rotate: 365, transition: { type: 'spring', stiffness: 200, damping: 20 } }
 }
+
+
+const demoItems = [
+  'Lighting commissioning - Building A',
+  'Emergency callout - Plant room',
+  'Fault diagnostics - Floor 3',
+  'Sensor calibration - West wing',
+  'DALI loop check - Warehouse',
+  'As-built update - Atrium',
+  'Driver replacement - Block C',
+  'Energy audit - HQ campus',
+  'Scene programming - Auditorium',
+  'Warranty ticket - Panel LCP-12'
+]
 </script>
 
 <template>
   <div class="dashboard-view-wrapper" ref="wrapperRef">
     <div class="dashboard-header-items">
       <RouteInfo />
-      <SearchBar :placeholder="t('dash.searchProjectsText')" variant="standalone" v-model="searchInput" />
+      <SearchCombo v-model="searchInput" :placeholder="t('dash.searchProjectsText')" :items="demoItems"/>
+      
       <FilterDatePicker v-model="dateRange" />
       <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
-        Clear preferences
+        {{ t('dash.clearPreferencesText') }}
       </motion.button>
     </div>
 

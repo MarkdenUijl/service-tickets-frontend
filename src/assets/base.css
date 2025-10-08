@@ -8,6 +8,7 @@
   --vt-c-black: #36373F;
   --vt-c-black-transparent: rgba(54, 55, 63, 0.90);
   --vt-c-pure-black: #000000;
+  --vt-c-pure-black-transparent: #000000ba;
   --vt-c-red: #B91228;
   --vt-c-pink: #F4C6CD;
   --vt-c-salmon: #E67C73;
@@ -20,6 +21,7 @@
   /* Default to light mode variables */
   --color-menu-background: var(--vt-c-white);
   --color-menu-background-transparent: var(--vt-c-white-transparent);
+  --color-menu-dropdown: var(--vt-c-white-transparent);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
@@ -47,6 +49,7 @@
   :root {
     --color-menu-background: var(--vt-c-black);
     --color-menu-background-transparent: var(--vt-c-black-transparent);
+    --color-menu-dropdown: var(--vt-c-pure-black-transparent);
     --color-background: var(--vt-c-pure-black);
     --color-text: var(--vt-c-white);
     --color-subtext: var(--vt-c-offwhite);
@@ -56,6 +59,7 @@
     --color-first-complementary: var(--vt-c-salmon);
     --color-second-complementary: var(--vt-c-gold);
     --color-third-complementary: var(--vt-c-teal);
+    --color-dropdown-background: 
   }
 }
 
@@ -63,6 +67,7 @@
 :root.theme-dark {
   --color-menu-background: var(--vt-c-black);
   --color-menu-background-transparent: var(--vt-c-black-transparent);
+  --color-menu-dropdown: var(--vt-c-pure-black-transparent);
   --color-background: var(--vt-c-pure-black);
   --color-text: var(--vt-c-white);
   --color-subtext: var(--vt-c-offwhite);
@@ -78,6 +83,7 @@
 :root.theme-light {
   --color-menu-background: var(--vt-c-white);
   --color-menu-background-transparent: var(--vt-c-white-transparent);
+  --color-menu-dropdown: var(--vt-c-white-transparent);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);

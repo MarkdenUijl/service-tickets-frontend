@@ -5,6 +5,7 @@ import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
 import api from '@/services/api'
 import { motion } from 'motion-v'
+import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -106,11 +107,21 @@ watch(() => ticketData.projectId, (newProjectId) => {
 // Submit ticket creation form
 async function handleSubmit() {
   const { name, type, description, projectId } = ticketData
+
   if (!name || !type || !description || !projectId) return
+
+  const ticketPayload = {
+    name: name,
+    status: 'open',
+    type: type,
+    description: description,
+    projectId: projectId
+  }
 
   loading.value = true
   try {
-    await api.post('/serviceTickets', { ...ticketData, status: 'open' })
+    await api.post('/serviceTickets', ticketPayload)
+
     router.push('/dashboard/tickets')
   } catch (error) {
     console.error('Error creating ticket:', error)
@@ -118,6 +129,29 @@ async function handleSubmit() {
     loading.value = false
   }
 }
+
+const ticketTypes = [
+  {
+    name: 'Hardware',
+    type: 'HARDWARE'
+  },
+  {
+    name: 'Software',
+    type: 'SOFTWARE'
+  },
+  {
+    name: 'Question',
+    type: 'QUESTION'
+  },
+  {
+    name: 'Change',
+    type: 'CHANGE'
+  },
+  {
+    name: 'Unknown',
+    type: 'UNKNOWN'
+  }
+]
 
 onMounted(fetchProjects)
 </script>
@@ -139,25 +173,44 @@ onMounted(fetchProjects)
           validationText="Name must be at least 4 characters long"
         />
 
-        <select id="type" v-model="ticketData.type" required>
+        <!-- <select id="type" v-model="ticketData.type" required>
           <option disabled value="">Select a ticket type</option>
           <option value="hardware">Hardware</option>
           <option value="software">Software</option>
           <option value="question">Question</option>
           <option value="change">Change</option>
           <option value="unknown">Unknown</option>
-        </select>
+        </select> -->
+        <SearchDropdown
+          class="short-line"
+          v-model="ticketData.type"
+          :items="ticketTypes"
+          placeholder="Select a ticket type"
+          label-key="name"
+          value-key="type"
+          :iconIndent="24"
+          :dropdownHeight="60"
+        />
       </div>
 
       <div id="project-information">
         <div class="form-group">
-          <label for="project">Project</label>
+          <!-- <label for="project">Project</label>
           <select id="project" v-model="ticketData.projectId" required>
             <option disabled value="">Select a project</option>
             <option v-for="project in projects" :key="project.id" :value="project.id">
               {{ project.name }}
             </option>
-          </select>
+          </select> -->
+          <SearchDropdown
+            v-model="ticketData.projectId"
+            :items="projects"
+            placeholder="Select a project"
+            label-key="name"
+            value-key="id"
+            :iconIndent="24"
+            :dropdownHeight="60"
+          />
         </div>
         
         <div class="address-line">
@@ -284,14 +337,14 @@ onMounted(fetchProjects)
   max-width: 20%;
 }
 
-select {
+/* select {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid var(--color-subtext);
   background-color: var(--color-background);
   color: var(--color-text);
   font-size: 16px;
-}
+} */
 
 .text-area-styled {
   height: 120px;
