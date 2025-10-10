@@ -1,7 +1,6 @@
 <script setup>
 import { computed, useSlots } from 'vue'
 
-// NOTE: Keep props minimal—BaseInput is a thin, reusable shell
 const props = defineProps({
   modelValue: String,
   placeholder: { type: String, default: '' },
@@ -17,7 +16,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'focus', 'blur'])
 
-// v-model proxy
 const inputValue = computed({
   get: () => props.modelValue ?? '',
   set: (val) => emit('update:modelValue', val)
@@ -25,7 +23,7 @@ const inputValue = computed({
 
 // Detect presence of an icon slot to adjust left padding
 const slots = useSlots()
-const hasLeading = computed(() => !!slots.icon || props.hasDropdown)
+const hasLeading = computed(() => !!slots.leadingIcon || props.hasDropdown)
 
 // Expose CSS variables as a single source of truth for spacing
 const cssVars = computed(() => ({
@@ -51,7 +49,8 @@ const cssVars = computed(() => ({
     />
 
     <!-- Slots for leading icon and trailing dropdown/button -->
-    <slot name="icon" />
+    <slot name="leadingIcon" />
+    <slot name="trailingIcon" />
     <slot name="dropdown" />
   </div>
 </template>
@@ -93,14 +92,17 @@ const cssVars = computed(() => ({
   outline: none;
   padding: 0 var(--sb-padding-left);
   height: var(--sb-height);
-  font-size: 16px;
+  font-size: var(--sb-font-size, 16px);
+}
+
+.search-bar[readonly] {
+  cursor: pointer;
 }
 
 .search-bar::placeholder {
   color: var(--color-subtext);
 }
 
-/* Leading search icon positioning (slot content uses this class) */
 .search-icon {
   position: absolute;
   top: 50%;
@@ -109,7 +111,14 @@ const cssVars = computed(() => ({
   color: var(--color-subtext);
 }
 
-/* Shared dropdown/results styling kept here for convenience of consumers */
+.trailing-icon {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
 .search-results {
   position: absolute;
   top: 100%;

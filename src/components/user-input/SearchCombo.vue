@@ -64,7 +64,7 @@ const onKeydown = (e) => {
     @blur="isFocused = false"
     @keydown="onKeydown"
   >
-    <template #icon>
+    <template #leadingIcon>
       <SvgIcon
         v-if="!query"
         class="search-icon"

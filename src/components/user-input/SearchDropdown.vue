@@ -37,10 +37,35 @@ function selectItem(item) {
 }
 
 // Compute inline style vars for spacing and height
-const cssVars = computed(() => ({
-  '--sb-padding-left': `${props.iconIndent}px`,
-  '--sb-height': `${props.dropdownHeight}px`
-}))
+// const cssVars = computed(() => ({
+//   '--sb-padding-left': `${props.iconIndent}px`,
+//   '--sb-height': `${props.dropdownHeight}px`
+// }))
+const cssVars = computed(() => {
+  const height = props.dropdownHeight
+  let fontSize = '16px'
+
+  if (height < 30) fontSize = '10px'
+  else if (height < 40) fontSize = '13px'
+
+  return {
+    '--sb-padding-left': `${props.iconIndent}px`,
+    '--sb-height': `${height}px`,
+    '--sb-font-size': fontSize
+  }
+})
+
+const filterTogglePath = {
+  closed: {
+    d: 'M3,6 L8,11 L13,6',
+    transition: { type: 'spring', stiffness: 200, damping: 16, bounce: 0.1 }
+  },
+  open: {
+    d: 'M3,11 L8,6 L13,11',
+    transition: { type: 'spring', stiffness: 200, damping: 32 }
+  }
+}
+
 </script>
 
 <template>
@@ -50,10 +75,23 @@ const cssVars = computed(() => ({
     :read-only="true"
     :variant="variant"
     v-click-outside="() => (isOpen = false)"
-    @focus="isOpen = true"
-    @blur="isOpen = false"
+    @click="isOpen = !isOpen"
     :style="cssVars"
   >
+    <template #trailingIcon>
+      <svg class="svg-arrow trailing-icon" width="16" height="16" viewBox="0 0 16 16">
+        <motion.path
+          stroke="var(--color-text)"
+          stroke-width="2"
+          stroke-linecap="round"
+          :variants="filterTogglePath"
+          :initial="'closed'"
+          fill="transparent"
+          :animate="isOpen ? 'open' : 'closed'"
+        />
+      </svg>
+    </template>
+
     <!-- Dropdown rendered in BaseInput slot -->
     <template #dropdown>
       <AnimatePresence>

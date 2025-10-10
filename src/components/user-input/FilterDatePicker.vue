@@ -1,10 +1,10 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import SvgIcon from '../svg-icon/SvgIcon.vue'
+import SearchDropdown from './SearchDropdown.vue'
 
 const props = defineProps({
   modelValue: Array
@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const date = ref(props.modelValue)
 const { t } = useI18n()
-const isOpen = ref(false)
+const selectedPresetKey = ref(null)
 const selectedPresetName = ref(t('dash.fullRangeText'))
 
 const now = () => new Date()
@@ -73,23 +73,34 @@ const presetMenuOptions = [
 
 const handleDateChange = (modelData) => {
   date.value = modelData
-  selectedPresetName.value = modelData ? t('dash.customRangeText') : t('dash.fullRangeText')
+
+  // detect if the selected range matches one of the presets
+  const matchedPreset = presetMenuOptions.find(p => {
+    const [start, end] = p.getRange()
+    return (
+      modelData &&
+      modelData[0]?.toDateString() === start.toDateString() &&
+      modelData[1]?.toDateString() === end.toDateString()
+    )
+  })
+
+  if (matchedPreset) {
+    selectedPresetKey.value = matchedPreset.key
+    selectedPresetName.value = matchedPreset.name
+  } else {
+    selectedPresetKey.value = null
+    selectedPresetName.value = modelData ? t('dash.customRangeText') : t('dash.fullRangeText')
+  }
+
   emit('update:modelValue', date.value)
 }
 
-const toggleMenu = () => {
-  isOpen.value = !isOpen.value
-}
-
-const filterTogglePath = {
-  closed: {
-    d: 'M3,6 L8,11 L13,6',
-    transition: { type: 'spring', stiffness: 200, damping: 16, bounce: 0.1 }
-  },
-  open: {
-    d: 'M3,11 L8,6 L13,11',
-    transition: { type: 'spring', stiffness: 200, damping: 32 }
-  }
+function applyPreset(key) {
+  const preset = presetMenuOptions.find(p => p.key === key)
+  if (!preset) return
+  const range = preset.getRange()
+  handleDateChange(range)
+  selectedPresetKey.value = key
 }
 </script>
 
@@ -111,66 +122,18 @@ const filterTogglePath = {
       </template>
     </VueDatePicker>
 
-    <div
-      class="date-range-presets"
-      @click.stop="toggleMenu"
-      :class="{ open: isOpen }"
-    >
-      {{ selectedPresetName }}
-      <svg class="svg-arrow" width="16" height="16" viewBox="0 0 16 16">
-        <motion.path
-          stroke="var(--color-text)"
-          stroke-width="2"
-          stroke-linecap="round"
-          :variants="filterTogglePath"
-          :initial="'closed'"
-          fill="transparent"
-          :animate="isOpen ? 'open' : 'closed'"
-        />
-      </svg>
-    </div>
-
-    <AnimatePresence>
-      <motion.div
-        v-if="isOpen"
-        class="date-preset-selection-menu"
-        v-click-outside="() => (isOpen = false)"
-        :initial="'closed'"
-        :animate="'open'"
-        :exit="'closed'"
-        :variants="{
-          open: {
-            height: 'auto',
-            transformOrigin: 'top',
-            transition: { staggerChildren: 0.1 }
-          },
-          closed: {
-            height: 0,
-            transformOrigin: 'top',
-            transition: {
-              delay: 0.15,
-              duration: 0.4,
-              staggerChildren: 0.1,
-              staggerDirection: -1
-            }
-          }
-        }"
-      >
-        <motion.div
-          v-for="presetOption in presetMenuOptions"
-          :key="presetOption.key"
-          class="date-preset-option"
-          @click="() => {
-            handleDateChange(presetOption.getRange())
-            selectedPresetName = presetOption.name
-            isOpen = false
-          }"
-          :variants="{ open: { opacity: 1, x: 0 }, closed: { opacity: 0, x: -10 } }"
-        >
-          {{ presetOption.name }}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    <SearchDropdown
+      :items="presetMenuOptions"
+      v-model="selectedPresetKey"
+      label-key="name"
+      value-key="key"
+      placeholder="Select range"
+      :icon-indent="16"
+      :dropdown-height="30.5"
+      variant="inline"
+      @update:modelValue="applyPreset"
+      style="font-size: 10px; max-width: 140px;"
+    />
   </div>
 </template>
 
@@ -185,60 +148,9 @@ const filterTogglePath = {
   user-select: none;
 }
 
-.date-range-presets {
-  min-width: 120px;
-  background: var(--color-menu-background);
-  border: 1px solid var(--vt-c-offwhite);
-  border-left: none;
-  border-radius: 0 4px 4px 0;
-  cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  padding-left: 16px;
-  align-items: center;
-  font-weight: 600;
-  position: relative;
-}
-
-.date-range-presets.open {
-  border-radius: 0 4px 0 0;
-}
-
-.svg-arrow {
-  background: none;
-  overflow: visible;
-  pointer-events: none;
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  translate: 0 -50%;
-}
-
 .input-slot-image {
   margin-left: 12px;
   color: var(--color-text);
-}
-
-.date-preset-selection-menu {
-  position: absolute;
-  right: 0;
-  width: 75%;
-  top: 100%;
-  z-index: 20;
-  border: 1px solid var(--vt-c-offwhite);
-  border-top: none;
-  background-color: var(--color-menu-background);
-  border-radius: 0 0 4px 4px;
-}
-
-.date-preset-option {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.date-preset-option:hover {
-  background-color: var(--color-shadow);
 }
 
 /* root settings for datepicker only */
@@ -246,6 +158,7 @@ const filterTogglePath = {
   --dp-border-radius: 4px 0 0 4px;
   --dp-font-family: 'Noto sans JP';
   --dp-font-size: 11px;
+  --dp-min-width: 800px;
 }
 
 .dp__theme_light {
@@ -255,7 +168,7 @@ const filterTogglePath = {
   --dp-hover-color: #f3f3f3;
   --dp-hover-text-color: #212121;
   --dp-disabled-color: var(--vt-c-pink);
-  --dp-border-color: var(--vt-c-offwhite);
+  --dp-border-color: var(--color-subtext);
   --dp-range-between-dates-background-color: var(--color-shadow);
   --dp-range-between-dates-text-color: var(--text-color);
   --dp-range-between-border-color: none;

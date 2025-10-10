@@ -30,7 +30,7 @@ const inputValue = computed({
     :variant="variant"
   >
     <!-- Leading icon slot (visible only when empty) -->
-    <template #icon>
+    <template #leadingIcon>
       <SvgIcon
         v-if="!inputValue"
         class="search-icon"
