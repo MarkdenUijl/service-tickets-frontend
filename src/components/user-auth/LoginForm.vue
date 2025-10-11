@@ -6,6 +6,7 @@ import api from '@/services/api'
 import { useRouter } from 'vue-router'
 import { isEmail } from '@/utils/validators'
 import LoaderButton from '../buttons/LoaderButton.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 const formData = reactive({
   email: '',
@@ -20,6 +21,7 @@ const errors = reactive({
 })
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const router = useRouter()
 const loading = ref(false)
 
@@ -87,10 +89,9 @@ const login = async () => {
     const userResponse = await api.get('/users/me')
     const user = userResponse.data
 
-    localStorage.setItem('user', JSON.stringify(user))
-    localStorage.setItem('token', token)
+    auth.setUser({ user, token })
 
-    router.push('/dashboard/overview')
+    router.push('/dashboard/tickets')
   } catch (error) {
     const status = error?.response?.status
     if (status === 401 || error?.type === 'unauthorized') {

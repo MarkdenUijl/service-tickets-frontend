@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { isTokenValid } from '@/utils/auth';
+import { useAuthStore } from '@/stores/authStore';
 
 const AuthLayout = () => import('@/layouts/AuthLayout.vue');
 const AccountCreationConfirmationView = () => import('@/views/auth-views/AccountCreationConfirmationView.vue');
@@ -13,6 +14,7 @@ const ProjectView = () => import('@/views/dashboard-views/ProjectView.vue');
 const ContractView = () => import('@/views/dashboard-views/ContractView.vue');
 const UsersView = () => import('@/views/dashboard-views/UsersView.vue');
 const SettingsView = () => import('@/views/dashboard-views/SettingsView.vue');
+const UnauthorizedView = () => import('@/views/dashboard-views/UnauthorizedView.vue');
 
 const TicketCreateView = () => import('@/views/ticket-views/TicketCreateView.vue');
 const TicketDetailView = () => import('@/views/ticket-views/TicketDetailView.vue');
@@ -60,6 +62,8 @@ const routes = [
                 name: 'overview',
                 component: DashboardView,
                 meta: { 
+                    requiresAuth: true,
+                    privilege: 'CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE',
                     parent: 'dashboard',
                     titleKey: 'dash.navOverviewText' 
                 }
@@ -129,6 +133,12 @@ const routes = [
                     titleKey: 'dash.navSettingsText' 
                 }
             },
+            {
+                path: '/unauthorized',
+                name: 'unauthorized',
+                component: UnauthorizedView,
+                meta: { showInMenu: false }
+            }
         ]
     },
     { path: '/:pathMatch(.*)*', redirect: '/auth/login' }
@@ -140,13 +150,20 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
+    const auth = useAuthStore();
     const isAuthenticated = isTokenValid();
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next('/auth/login');
-    } else {
-        next();
+        return next('/auth/login');
     }
+
+    if (to.meta.privilege) {
+        if (!auth.user || !auth.hasPrivilege(to.meta.privilege)) {
+            return next('/unauthorized');
+        }
+    }
+
+    next();
 });
 
 export default router;

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { AnimatePresence, motion } from 'motion-v'
 
 import { useCurrentUser } from '@/utils/useCurrentUser'
+import { useAuthStore } from '@/stores/authStore'
 import { logout } from '@/utils/auth'
 import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue'
 import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue'
@@ -13,6 +14,7 @@ import UserInfoTile from '@/components/common/UserInfoTile.vue'
 
 const { t } = useI18n()
 const { user } = useCurrentUser()
+const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -55,15 +57,20 @@ const dashboardChildren = computed(() => {
   return dashboardRoute?.children || []
 })
 
+
 const pages = computed(() =>
   dashboardChildren.value
-  .filter(child => child.meta?.showInMenu !== false)
-  .map(child => ({
-    label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
-    icon: `${child.name}-icon`,
-    to: `/dashboard/${child.path}`
-  }))
-)
+    .filter(child => child.meta?.showInMenu !== false)
+    .filter(child => {
+      if (!child.meta?.privilege) return true;
+      return auth.hasPrivilege(child.meta.privilege);
+    })
+    .map(child => ({
+      label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
+      icon: `${child.name}-icon`,
+      to: `/dashboard/${child.path}`
+    }))
+);
 
 const selectedPages = computed(() =>
   pages.value.map(page => ({

@@ -1,10 +1,9 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
 import api from '@/services/api'
-import { motion } from 'motion-v'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
@@ -12,9 +11,11 @@ import { useProjectLookup } from '@/composables/useProjectLookup'
 import { useTicketValidation } from '@/composables/useTicketValidation'
 import TextArea from '@/components/user-input/TextArea.vue'
 import FileDropzone from '@/components/user-input/FileDropzone.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
 const loading = ref(false)
+const auth = useAuthStore()
 
 // Core form data
 const ticketData = reactive({
@@ -36,6 +37,7 @@ const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress } =
   useProjectLookup(ticketData)
   
 const selectedFiles = ref([])
+const hasPrivilege = auth.hasPrivilege
 
 // Autofill project details when selection changes
 watch(() => ticketData.projectId, autofillAddress)
@@ -144,6 +146,10 @@ const ticketTypes = [
   
               <ValidatedInput id="city" v-model="ticketData.city" type="text" placeholder="City" :isValid="isCityValid"
                 validationText="City is required" @blur="fetchProjectsByAddress" />
+            </div>
+
+            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')">
+              [PLACEHOLDER FOR USER LINKING]
             </div>
           </div>
         </div>

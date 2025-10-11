@@ -1,57 +1,23 @@
-import { onMounted, onUnmounted, reactive } from 'vue'
-
-// Base shape for a user object when no data is present
-const EMPTY_USER = {
-  firstName: '',
-  lastName: '',
-  email: ''
-}
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
 
 /**
- * Reactive wrapper around the current user persisted in localStorage.
+ * Provides a reactive interface to the current user
+ * through the centralized Pinia auth store.
  *
- * WHY: Provides a single source of truth for user identity across the app.
- * - Keeps `user` reactive so components auto-update when storage changes.
- * - Synchronizes across browser tabs via the `storage` event.
+ * WHY:
+ * - Keeps a single source of truth (Pinia) for user state.
+ * - Still provides a simple composable interface for components.
  */
 export function useCurrentUser() {
-  const user = reactive({ ...EMPTY_USER })
+  const auth = useAuthStore()
 
-  // Load user from localStorage or fall back to EMPTY_USER
-  const loadUserFromStorage = () => {
-    try {
-      const raw = localStorage.getItem('user')
-      const stored = raw ? JSON.parse(raw) : {}
+  // Directly expose a computed reference to the user
+  const user = computed(() => auth.user)
 
-      if (typeof stored.firstName === 'string') {
-        Object.assign(user, stored)
-      } else {
-        Object.assign(user, EMPTY_USER)
-      }
-    } catch (error) {
-      console.warn('[useCurrentUser] Failed to parse user from localStorage', error)
-      Object.assign(user, EMPTY_USER)
-    }
-  }
-
-  loadUserFromStorage()
-
-  // Keep user in sync when `localStorage` changes in another tab
-  const handleStorageChange = (e) => {
-    if (e.key === 'user') loadUserFromStorage()
-  }
-
-  onMounted(() => window.addEventListener('storage', handleStorageChange))
-  onUnmounted(() => window.removeEventListener('storage', handleStorageChange))
-
-  // Update localStorage and reactive user
+  // Allow updating user details via store
   const setUser = (newUser) => {
-    try {
-      localStorage.setItem('user', JSON.stringify(newUser))
-    } catch (error) {
-      console.error('[useCurrentUser] Failed to store user in localStorage', error)
-    }
-    Object.assign(user, newUser)
+    auth.setUser({ user: newUser, token: auth.token })
   }
 
   return { user, setUser }
