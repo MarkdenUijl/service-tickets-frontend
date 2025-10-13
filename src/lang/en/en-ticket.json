@@ -44,5 +44,17 @@
     "creationSubmittedByText": "Submitted by",
     "creationSourceText": "Source",
     "creationFirstNameText": "First name",
-    "creationLastNameText": "Last name"
+    "creationLastNameText": "Last name",
+    "creationErrorNameShortText": "Name should be at least 10 characters.",
+    "creationErrorDescriptionShortText": "Description should be at least 10 characters.",
+    "creationErrorStreetRequiredText": "Street is required.",
+    "creationErrorNumberNotDigitsText": "Should be digits.",
+    "creationErrorInvalidZipCodeText": "Invalid zipcode.",
+    "creationErrorCityRequiredText": "City required.",
+    "creationErrorNameRequiredText": "Name is required.",
+    "creationErrorSelectTypeText": "Please select type.",
+    "creationErrorDescriptionRequiredText": "Description is required.",
+    "creationErrorProjectRequiredText": "Please select project.",
+    "creationErrorHoudeNumberRequiredText": "Please enter number.",
+    "creationErrorZipCodeRequiredText": "Please enter zipcode."
 }

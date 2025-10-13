@@ -70,6 +70,7 @@ function onInput(e) {
   width: 100%;
   display: flex;
   flex: 1;
+  height: 100%;
   font-family: 'Ubuntu', sans-serif;
 }
 .text-area-styled {

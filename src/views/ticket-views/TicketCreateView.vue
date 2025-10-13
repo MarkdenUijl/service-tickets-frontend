@@ -40,8 +40,17 @@ const ticketData = reactive({
 })
 
 // Composables
-const { isNameValid, isStreetValid, isHouseNumberValid, isZipCodeValid, isCityValid } =
-  useTicketValidation(ticketData)
+const {
+  errors,
+  isNameValid,
+  isDescriptionValid,
+  isStreetValid,
+  isHouseNumberValid,
+  isZipCodeValid,
+  isCityValid,
+  validateAll,
+  resetErrors
+} = useTicketValidation(ticketData)
 
 const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress } =
   useProjectLookup(ticketData)
@@ -72,8 +81,9 @@ onMounted(fetchProjects)
 
 // Submit ticket creation form
 async function handleSubmit() {
+  if (!validateAll()) return
+
   let { name, type, description, projectId, submittedByUserId, source } = ticketData
-  if (!name || !type || !description || !projectId) return
 
   loading.value = true
   try {
@@ -136,14 +146,26 @@ const ticketSources = [
             <span class="ticket-form-header">{{ t('ticket.creationTicketDetailsText') }}</span>
 
             <div class="ticket-information">
-              <ValidatedInput id="name" v-model="ticketData.name" type="text" :placeholder="t('ticket.creationTicketNameText')"
-                :isValid="isNameValid" validationText="Name must be at least 4 characters long" />
+              <ValidatedInput
+                id="name"
+                v-model="ticketData.name"
+                type="text"
+                :placeholder="t('ticket.creationTicketNameText')"
+                :isValid="isNameValid && errors.name === ''"
+                :validationText="errors.name"
+              />
 
-              <SearchDropdown class="short-line" v-model="ticketData.type" :items="ticketTypes" :placeholder="t('ticket.creationTicketTypeText')"
-                label-key="name" value-key="type" :iconIndent="24" :dropdownHeight="60" />
+              <div class="input-wrapper short-line">
+                <SearchDropdown v-model="ticketData.type" :items="ticketTypes" :placeholder="t('ticket.creationTicketTypeText')"
+                  label-key="name" value-key="type" :iconIndent="24" :dropdownHeight="60" />
+                <span class="validation-text" v-if="errors.type">{{ errors.type }}</span>
+              </div>
             </div>
 
-            <TextArea v-model="ticketData.description" :label="t('ticket.creationTicketDescriptionText')" :rows="5" required />
+            <div class="input-wrapper" style="height: 100%;">
+              <TextArea v-model="ticketData.description" :label="t('ticket.creationTicketDescriptionText')" :rows="5" />
+              <span class="validation-text" v-if="errors.description">{{ errors.description }}</span>
+            </div>
 
             <FileDropzone v-model="selectedFiles" :maxFiles="8" :placeholder="t('ticket.creationTicketFilesText')" />
           </div>
@@ -153,27 +175,58 @@ const ticketSources = [
           <div class="ticket-form-section">
             <span class="ticket-form-header">{{ t('ticket.creationProjectDetailsText') }}</span>
 
-            <SearchDropdown v-model="ticketData.projectId" :items="projects" :placeholder="t('ticket.creationProjectSelectText')"
-              label-key="name" value-key="id" :iconIndent="24" :dropdownHeight="60" />
+            <div class="input-wrapper">
+              <SearchDropdown v-model="ticketData.projectId" :items="projects" :placeholder="t('ticket.creationProjectSelectText')"
+                label-key="name" value-key="id" :iconIndent="24" :dropdownHeight="60" />
+              <span class="validation-text" v-if="errors.projectId">{{ errors.projectId }}</span>
+            </div>
 
             <VisualSeparator :separatorText="t('ticket.creationSeparatorText')" />
 
             <div class="address-line">
-              <ValidatedInput id="street" v-model="ticketData.street" type="text" :placeholder="t('ticket.creationProjectStreetText')"
-                :isValid="isStreetValid" validationText="Street is required" @blur="fetchProjectsByAddress" />
+              <ValidatedInput
+                id="street"
+                v-model="ticketData.street"
+                type="text"
+                :placeholder="t('ticket.creationProjectStreetText')"
+                :isValid="isStreetValid && errors.street === ''"
+                :validationText="errors.street"
+                @blur="fetchProjectsByAddress"
+              />
 
-              <ValidatedInput id="houseNumber" class="short-line" v-model="ticketData.houseNumber" type="text"
-                :placeholder="t('ticket.creationProjectHouseNoText')" :isValid="isHouseNumberValid" validationText="House number is required"
-                @blur="fetchProjectsByAddress" />
+              <ValidatedInput
+                id="houseNumber"
+                class="short-line"
+                v-model="ticketData.houseNumber"
+                type="text"
+                :placeholder="t('ticket.creationProjectHouseNoText')"
+                :isValid="isHouseNumberValid && errors.houseNumber === ''"
+                :validationText="errors.houseNumber"
+                @blur="fetchProjectsByAddress"
+              />
             </div>
 
             <div class="address-line">
-              <ValidatedInput id="zipcode" class="short-line" v-model="ticketData.zipCode" type="text"
-                :placeholder="t('ticket.creationProjectZipCodeText')" :isValid="isZipCodeValid" validationText="Zip code is required"
-                @blur="fetchProjectsByAddress" />
+              <ValidatedInput
+                id="zipcode"
+                class="short-line"
+                v-model="ticketData.zipCode"
+                type="text"
+                :placeholder="t('ticket.creationProjectZipCodeText')"
+                :isValid="isZipCodeValid && errors.zipCode === ''"
+                :validationText="errors.zipCode"
+                @blur="fetchProjectsByAddress"
+              />
 
-              <ValidatedInput id="city" v-model="ticketData.city" type="text" :placeholder="t('ticket.creationProjectCityText')" :isValid="isCityValid"
-                validationText="City is required" @blur="fetchProjectsByAddress" />
+              <ValidatedInput
+                id="city"
+                v-model="ticketData.city"
+                type="text"
+                :placeholder="t('ticket.creationProjectCityText')"
+                :isValid="isCityValid && errors.city === ''"
+                :validationText="errors.city"
+                @blur="fetchProjectsByAddress"
+              />
             </div>
 
             <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="ticket-form-section">
@@ -282,4 +335,14 @@ const ticketSources = [
 .short-line {
   max-width: 30%;
 }
+
+/* .validation-text {
+  position: absolute;
+  bottom: -16px;
+  right: 0;
+  z-index: 2;
+  font-size: 11px;
+  color: var(--color-highlight);
+  pointer-events: none;
+} */
 </style>

@@ -44,5 +44,17 @@
     "creationSubmittedByText": "Ingediend door",
     "creationSourceText": "Bron",
     "creationFirstNameText": "Voornaam",
-    "creationLastNameText": "Achternaam"
+    "creationLastNameText": "Achternaam",
+    "creationErrorNameShortText": "Naam moet minimaal 10 tekens bevatten.",
+    "creationErrorDescriptionShortText": "Beschrijving moet minimaal 10 tekens bevatten.",
+    "creationErrorStreetRequiredText": "Straat is verplicht.",
+    "creationErrorNumberNotDigitsText": "Moet cijfers bevatten.",
+    "creationErrorInvalidZipCodeText": "Ongeldige postcode.",
+    "creationErrorCityRequiredText": "Plaats is verplicht.",
+    "creationErrorNameRequiredText": "Naam is verplicht.",
+    "creationErrorSelectTypeText": "Selecteer een type.",
+    "creationErrorDescriptionRequiredText": "Beschrijving is verplicht.",
+    "creationErrorProjectRequiredText": "Selecteer een project.",
+    "creationErrorHoudeNumberRequiredText": "Voer een huisnummer in.",
+    "creationErrorZipCodeRequiredText": "Voer een postcode in."
 }
