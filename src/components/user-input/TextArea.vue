@@ -99,6 +99,5 @@ function onInput(e) {
   left: 16px;
   top: 16px;
   font-size: 16px;
-  width: min-content;
 }
 </style>

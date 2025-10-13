@@ -1,21 +1,27 @@
 <script setup>
 import { ref, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useProjectLookup } from '@/composables/useProjectLookup'
+import { useTicketValidation } from '@/composables/useTicketValidation'
+import { useUserLookup } from '@/composables/useUserLookup'
+import { useAuthStore } from '@/stores/authStore'
+import { useI18n } from 'vue-i18n'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
 import api from '@/services/api'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
-import { useProjectLookup } from '@/composables/useProjectLookup'
-import { useTicketValidation } from '@/composables/useTicketValidation'
 import TextArea from '@/components/user-input/TextArea.vue'
 import FileDropzone from '@/components/user-input/FileDropzone.vue'
-import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
-const loading = ref(false)
 const auth = useAuthStore()
+const { t } = useI18n()
+const hasPrivilege = auth.hasPrivilege
+
+const loading = ref(false)
+const selectedFiles = ref([])
 
 // Core form data
 const ticketData = reactive({
@@ -23,10 +29,14 @@ const ticketData = reactive({
   type: '',
   description: '',
   projectId: '',
+  submittedByUserId: null,
+  firstName: '',
+  lastName: '',
   street: '',
   houseNumber: '',
   zipCode: '',
-  city: ''
+  city: '',
+  source: null,
 })
 
 // Composables
@@ -35,19 +45,34 @@ const { isNameValid, isStreetValid, isHouseNumberValid, isZipCodeValid, isCityVa
 
 const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress } =
   useProjectLookup(ticketData)
-  
-const selectedFiles = ref([])
-const hasPrivilege = auth.hasPrivilege
+
+let users = ref([])
+let fetchUsers = () => {}
+let fetchUsersByFilter = () => {}
+let autofillUserDetails = () => {}
+
+if (hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')) {
+  const userLookup = useUserLookup(ticketData)
+  users = userLookup.users
+  fetchUsers = userLookup.fetchUsers
+  fetchUsersByFilter = userLookup.fetchUsersByFilter
+  autofillUserDetails = userLookup.autofillUserDetails
+
+  onMounted(fetchUsers)
+}
 
 // Autofill project details when selection changes
 watch(() => ticketData.projectId, autofillAddress)
+
+// Autofill user details when submittedByUserId changes
+watch(() => ticketData.submittedByUserId, autofillUserDetails)
 
 // Load projects on mount
 onMounted(fetchProjects)
 
 // Submit ticket creation form
 async function handleSubmit() {
-  const { name, type, description, projectId } = ticketData
+  let { name, type, description, projectId, submittedByUserId, source } = ticketData
   if (!name || !type || !description || !projectId) return
 
   loading.value = true
@@ -57,7 +82,9 @@ async function handleSubmit() {
       status: 'open',
       type,
       description,
-      projectId
+      projectId,
+      submittedByUserId,
+      source,
     })
     const createdTicketId = data.id
 
@@ -77,12 +104,22 @@ async function handleSubmit() {
   }
 }
 
+const handleTicketCancel = () => {
+  router.push('/dashboard/tickets')
+}
+
 const ticketTypes = [
-  { name: 'Hardware', type: 'HARDWARE' },
-  { name: 'Software', type: 'SOFTWARE' },
-  { name: 'Question', type: 'QUESTION' },
-  { name: 'Change', type: 'CHANGE' },
-  { name: 'Unknown', type: 'UNKNOWN' }
+  { name: t('ticket.typeHardwareText'), type: 'HARDWARE' },
+  { name: t('ticket.typeSoftwareText'), type: 'SOFTWARE' },
+  { name: t('ticket.typeQuestionText'), type: 'QUESTION' },
+  { name: t('ticket.typeChangeText'), type: 'CHANGE' },
+  { name: t('ticket.typeUnknownText'), type: 'UNKNOWN' }
+]
+
+const ticketSources = [
+  { name: t('ticket.sourceWebText'), source: 'WEB' },
+  { name: t('ticket.sourcePhoneText'), source: 'PHONE' },
+  { name: t('ticket.sourceMailText'), source: 'MAIL' },
 ]
 </script>
 
@@ -96,65 +133,75 @@ const ticketTypes = [
       <form class="ticket-create-form" @submit.prevent="handleSubmit">
         <div class="ticket-form-items">
           <div class="ticket-form-section">
-            <span class="ticket-form-header">Fill in ticket details</span>
-  
-            <div id="ticket-information">
-              <ValidatedInput id="name" v-model="ticketData.name" type="text" placeholder="Ticket name"
+            <span class="ticket-form-header">{{ t('ticket.creationTicketDetailsText') }}</span>
+
+            <div class="ticket-information">
+              <ValidatedInput id="name" v-model="ticketData.name" type="text" :placeholder="t('ticket.creationTicketNameText')"
                 :isValid="isNameValid" validationText="Name must be at least 4 characters long" />
-  
-              <SearchDropdown class="short-line" v-model="ticketData.type" :items="ticketTypes"
-                placeholder="Type" label-key="name" value-key="type" :iconIndent="24"
-                :dropdownHeight="60" />
+
+              <SearchDropdown class="short-line" v-model="ticketData.type" :items="ticketTypes" :placeholder="t('ticket.creationTicketTypeText')"
+                label-key="name" value-key="type" :iconIndent="24" :dropdownHeight="60" />
             </div>
 
-            <TextArea
-              v-model="ticketData.description"
-              label="Description"
-              :rows="5"
-              required
-            />
-  
-            <FileDropzone
-              v-model="selectedFiles"
-              :maxFiles="8"
-            />
+            <TextArea v-model="ticketData.description" :label="t('ticket.creationTicketDescriptionText')" :rows="5" required />
+
+            <FileDropzone v-model="selectedFiles" :maxFiles="8" :placeholder="t('ticket.creationTicketFilesText')" />
           </div>
-  
-          <VisualSeparator orientation="vertical"/>
-  
+
+          <VisualSeparator orientation="vertical" />
+
           <div class="ticket-form-section">
-            <span class="ticket-form-header">Link your project</span>
-  
-            <SearchDropdown v-model="ticketData.projectId" :items="projects" placeholder="Select a project"
+            <span class="ticket-form-header">{{ t('ticket.creationProjectDetailsText') }}</span>
+
+            <SearchDropdown v-model="ticketData.projectId" :items="projects" :placeholder="t('ticket.creationProjectSelectText')"
               label-key="name" value-key="id" :iconIndent="24" :dropdownHeight="60" />
-  
-            <VisualSeparator separatorText="or" />
-  
+
+            <VisualSeparator :separatorText="t('ticket.creationSeparatorText')" />
+
             <div class="address-line">
-              <ValidatedInput id="street" v-model="ticketData.street" type="text" placeholder="Street name"
+              <ValidatedInput id="street" v-model="ticketData.street" type="text" :placeholder="t('ticket.creationProjectStreetText')"
                 :isValid="isStreetValid" validationText="Street is required" @blur="fetchProjectsByAddress" />
-  
+
               <ValidatedInput id="houseNumber" class="short-line" v-model="ticketData.houseNumber" type="text"
-                placeholder="Number" :isValid="isHouseNumberValid" validationText="House number is required"
+                :placeholder="t('ticket.creationProjectHouseNoText')" :isValid="isHouseNumberValid" validationText="House number is required"
                 @blur="fetchProjectsByAddress" />
             </div>
-  
+
             <div class="address-line">
               <ValidatedInput id="zipcode" class="short-line" v-model="ticketData.zipCode" type="text"
-                placeholder="Zip Code" :isValid="isZipCodeValid" validationText="Zip code is required"
+                :placeholder="t('ticket.creationProjectZipCodeText')" :isValid="isZipCodeValid" validationText="Zip code is required"
                 @blur="fetchProjectsByAddress" />
-  
-              <ValidatedInput id="city" v-model="ticketData.city" type="text" placeholder="City" :isValid="isCityValid"
+
+              <ValidatedInput id="city" v-model="ticketData.city" type="text" :placeholder="t('ticket.creationProjectCityText')" :isValid="isCityValid"
                 validationText="City is required" @blur="fetchProjectsByAddress" />
             </div>
 
-            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')">
-              [PLACEHOLDER FOR USER LINKING]
+            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="ticket-form-section">
+              <span class="ticket-form-header">{{ t('ticket.creationAdditionalInfoText') }}</span>
+
+              <div id="ticket-admin-information">
+                <div class="address-line">
+                  <SearchDropdown v-model="ticketData.submittedByUserId" :items="users" :placeholder="t('ticket.creationSubmittedByText')"
+                    label-key="email" value-key="id" :iconIndent="24" :dropdownHeight="60" />
+                  <SearchDropdown class="short-line" v-model="ticketData.source" :items="ticketSources" :placeholder="t('ticket.creationSourceText')" label-key="name"
+                    value-key="source" :iconIndent="24" :dropdownHeight="60" />
+                </div>
+
+                <div class="ticket-information ">
+                  <ValidatedInput id="firstName" v-model="ticketData.firstName" type="text" :placeholder="t('ticket.creationFirstNameText')"
+                    @blur="fetchUsersByFilter" />
+                  <ValidatedInput id="lastName" v-model="ticketData.lastName" type="text" :placeholder="t('ticket.creationLastNameText')"
+                    @blur="fetchUsersByFilter" />
+                </div>
+              </div>
+            </div>
+
+            <div id="ticket-buttons-container">
+              <LoaderButton :loading="loading" label="Create ticket" type="submit" />
+              <LoaderButton label="Cancel" @click="handleTicketCancel" />
             </div>
           </div>
         </div>
-        
-        <LoaderButton :loading="loading" label="Create ticket" type="submit" />
       </form>
 
     </div>
@@ -171,6 +218,7 @@ const ticketTypes = [
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  flex: 1;
 }
 
 .ticket-create-form {
@@ -191,9 +239,15 @@ const ticketTypes = [
   justify-content: center;
 }
 
-#ticket-information {
+.ticket-information {
   display: flex;
   flex-direction: row;
+  gap: 16px;
+}
+
+#ticket-admin-information {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
@@ -201,14 +255,22 @@ const ticketTypes = [
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 450px;
+  max-width: 480px;
   flex: 1;
   height: 100%;
 }
 
+#ticket-buttons-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
 .ticket-form-header {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
+  font-family: 'Noto sans JP';
 }
 
 .address-line {

@@ -1,6 +1,6 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AnimatePresence, motion } from 'motion-v'
 
@@ -34,8 +34,16 @@ const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' 
 const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 
 // Track resize → isMobile flag
-window.addEventListener('resize', () => {
+const handleResize = () => {
   isMobile.value = window.innerWidth <= 635
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 
 const showMenu = computed(() => !isMobile.value || menuOpen.value)
@@ -196,9 +204,9 @@ watch(showMenu, (visible) => {
         <!-- Desktop user tile -->
         <UserInfoTile
           v-if="!isMobile"
-          :first-name="user.firstName ?? ''"
-          :last-name="user.lastName ?? ''"
-          :email="user.email ?? ''"
+          :first-name="user?.firstName ?? ''"
+          :last-name="user?.lastName ?? ''"
+          :email="user?.email ?? ''"
           :menu-options="userMenuOptions"
         />
       </motion.div>

@@ -37,10 +37,6 @@ function selectItem(item) {
 }
 
 // Compute inline style vars for spacing and height
-// const cssVars = computed(() => ({
-//   '--sb-padding-left': `${props.iconIndent}px`,
-//   '--sb-height': `${props.dropdownHeight}px`
-// }))
 const cssVars = computed(() => {
   const height = props.dropdownHeight
   let fontSize = '16px'

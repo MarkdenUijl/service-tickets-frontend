@@ -102,6 +102,8 @@ const routes = [
                 name: 'projects',
                 component: ProjectView,
                 meta: { 
+                    requiresAuth: true,
+                    privilege: 'CAN_SEE_PROJECTS_PRIVILEGE',
                     parent: 'dashboard',
                     titleKey: 'dash.navProjectsText' 
                 }
@@ -111,6 +113,8 @@ const routes = [
                 name: 'contracts',
                 component: ContractView,
                 meta: { 
+                    requiresAuth: true,
+                    privilege: 'CAN_SEE_CONTRACTS_PRIVILEGE',
                     parent: 'dashboard',
                     titleKey: 'dash.navContractsText' 
                 }
@@ -120,6 +124,8 @@ const routes = [
                 name: 'users',
                 component: UsersView,
                 meta: { 
+                    requiresAuth: true,
+                    privilege: 'CAN_ACCESS_USERS_PRIVILEGE',
                     parent: 'dashboard',
                     titleKey: 'dash.navUsersText' 
                 }

@@ -1,6 +1,9 @@
 <script setup>
-import { ref, watch, watchEffect } from 'vue'
+import { ref, watch } from 'vue'
 import { useFileUpload } from '@/composables/useFileUpload'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },   // Array<File>
@@ -65,13 +68,6 @@ function removeAt(index) {
 
 <template>
   <div class="file-upload-field">
-    <ul class="file-list">
-      <li v-for="(file, index) in selectedFiles" :key="index" class="file-item">
-        <span class="file-name">{{ file.name }}</span>
-        <button type="button" class="remove-file-btn" @click.stop="removeAt(index)">x</button>
-      </li>
-    </ul>
-    
     <div
       class="file-dropzone"
       :class="{ dragging: isDragging }"
@@ -90,6 +86,13 @@ function removeAt(index) {
         @change="onInputChange"
       />
     </div>
+
+    <ul class="file-list">
+      <li v-for="(file, index) in selectedFiles" :key="index" class="file-item">
+        <span class="file-name">{{ file.name }}</span>
+        <button type="button" class="remove-file-btn" @click.stop="removeAt(index)">x</button>
+      </li>
+    </ul>
   </div>
 </template>
 

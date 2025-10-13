@@ -1,4 +1,3 @@
-// src/composables/useProjectLookup.js
 import { ref } from 'vue'
 import api from '@/services/api'
 

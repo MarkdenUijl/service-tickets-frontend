@@ -28,7 +28,7 @@ const normalizePath = (path) => {
 
 // Public, unauthenticated endpoints (exact path match after normalization).
 // WHY: Keeps auth logic centralized and avoids leaking tokens to public routes.
-const PUBLIC_PATHS = ['/auth/login', '/users'].map(normalizePath)
+const PUBLIC_PATHS = ['/auth/login'].map(normalizePath)
 
 // Single axios instance so interceptors apply uniformly across the app.
 const api = axios.create({
