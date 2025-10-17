@@ -54,6 +54,7 @@
     "creationErrorNameRequiredText": "Naam is verplicht.",
     "creationErrorSelectTypeText": "Selecteer een type.",
     "creationErrorDescriptionRequiredText": "Beschrijving is verplicht.",
+    "creationErrorDescriptionTooLongText": "Beschrijving is te lang, mag niet meer dan 5000 karakters bevatten.",
     "creationErrorProjectRequiredText": "Selecteer een project.",
     "creationErrorHoudeNumberRequiredText": "Voer een huisnummer in.",
     "creationErrorZipCodeRequiredText": "Voer een postcode in.",

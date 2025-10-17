@@ -109,14 +109,14 @@ async function submitReply() {
 }
 
 // --- Computed helpers --- //
-
 const responses = computed(() => {
   const list = ticketData.value?.responses || []
   return list.map((r) => {
     const { date, time } = formatIsoDate(r.creationDate)
     return {
       id: r.id || `${r.creationDate}-${r.submittedBy?.email}`,
-      author: `${r.submittedBy?.firstName || ''} ${r.submittedBy?.lastName || ''}`.trim(),
+      authorFirstName: r.submittedBy?.firstName,
+      authorLastName: r.submittedBy?.lastName,
       date,
       time,
       text: r.response
@@ -165,53 +165,51 @@ const contractTypeLabel = computed(() => {
     </div>
 
     <div v-else-if="ticketData" class="ticket-detail-view">
-      <div class="ticket-detail">
-        <!-- HEADER -->
-        <header class="ticket-header">
-          <div class="ticket-header-info">
-            <h2 class="ticket-title">{{ ticketData.name }}</h2>
-            <div class="ticket-tags">
-              <TicketStatusPill :status="ticketData.status" />
-              <TicketTypePill :type="ticketData.type" />
-              <TicketSourcePill :source="ticketData.source" />
+      <div id="ticket-detail">
+        <div class="ticket-detail-section" id="ticket-call">
+          <!-- HEADER -->
+          <header class="ticket-header">
+            <div class="ticket-header-info">
+              <h2 class="ticket-title">{{ ticketData.name }}</h2>
+              <div class="ticket-tags">
+                <TicketStatusPill :status="ticketData.status" />
+                <TicketTypePill :type="ticketData.type" />
+                <TicketSourcePill :source="ticketData.source" />
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+  
+          <VisualSeparator />
+  
+          <!-- DESCRIPTION -->
+          <section class="ticket-detail-item">
+            <UserInfoTile 
+              :firstName="ticketData.submittedBy.firstName" 
+              :lastName="ticketData.submittedBy.lastName"
+              :subtext="`${formatIsoDate(ticketData.creationDate).date}, ${formatIsoDate(ticketData.creationDate).time}`"
+              :isFree="true"
+            />
+            <p>{{ ticketData.description }}</p>
+          </section>
+        </div>
 
-        <VisualSeparator />
-
-        <!-- DESCRIPTION -->
-        <section class="ticket-description">
-          <UserInfoTile 
-            :firstName="ticketData.submittedBy.firstName" 
-            :lastName="ticketData.submittedBy.lastName"
-            :subtext="`${formatIsoDate(ticketData.creationDate).date}, ${formatIsoDate(ticketData.creationDate).time}`"
-            :isFree="true"
-          />
-          <p>{{ ticketData.description }}</p>
-        </section>
+        
 
         <!-- RESPONSES -->
-        <section class="ticket-responses">
-          <h3>{{ t('ticket.detailsResponsesHeaderText') }}</h3>
-
-          <div v-if="!responses.length" class="no-responses">
-            {{ t('ticket.detailsNoResponsesText') }}
-          </div>
-
-          <ul v-else class="response-list">
-            <li v-for="response in responses" :key="response.id" class="response-item">
-              <div class="response-header">
-                <span class="response-author">{{ response.author }}</span>
-                <span class="response-date">{{ response.date }} {{ response.time }}</span>
-              </div>
-              <p class="response-text">{{ response.text }}</p>
-            </li>
-          </ul>
+        <section v-if="responses.length"  class="ticket-detail-section" id="ticket-responses">
+          <section v-for="response in responses" :key="response.id" class="response-item ticket-detail-item">
+            <UserInfoTile 
+              :firstName="response.authorFirstName" 
+              :lastName="response.authorLastName"
+              :subtext="`${response.date}, ${response.time}`"
+              :isFree="true"
+            />
+            <p>{{ response.text }}</p>
+          </section>
         </section>
 
         <!-- ADD RESPONSE -->
-        <section class="ticket-add-response">
+        <section class="ticket-detail-section" id="ticket-add-response">
           <h3>{{ t('ticket.detailsAddResponseHeaderText') }}</h3>
           <textarea
             v-model="replyText"
@@ -239,7 +237,7 @@ const contractTypeLabel = computed(() => {
       </div>
 
       <!-- META INFO -->
-      <div class="ticket-meta">
+      <div id="ticket-meta">
         <div class="ticket-meta-information">
           <section class="ticket-meta-information-section">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsCallerInfoHeaderText') }}</h3>
@@ -289,8 +287,8 @@ const contractTypeLabel = computed(() => {
           </section>
         </div>
 
-        <div class="ticket-meta-information">
-          <section v-if="ticketData.files && Object.keys(ticketData.files).length" class="ticket-files">
+        <div v-if="ticketData.files && Object.keys(ticketData.files).length" class="ticket-meta-information">
+          <section class="ticket-files">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsAttachedFilesHeaderText') }}</h3>
 
             <ul class="file-list">
@@ -328,22 +326,35 @@ const contractTypeLabel = computed(() => {
   margin: 12px;
 }
 
-.ticket-detail {
+#ticket-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ticket-detail-section {
   background-color: var(--color-menu-background);
-  border-radius: 8px;
-  padding: 24px;
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 16px;
 }
 
-.ticket-meta {
+#ticket-call {
+  border-radius: 8px 8px 0 0;
+  padding: 24px;
+}
+
+#ticket-meta {
   min-width: 300px;
   display: flex;
   flex: 0;
   flex-direction: column;
   gap: 16px;
+  position: sticky;
+  top: 4px;
+  align-self: flex-start;
+
 }
 
 .ticket-meta-information {
@@ -416,11 +427,15 @@ const contractTypeLabel = computed(() => {
   color: var(--vt-c-red);
 }
 
-.ticket-description p {
-  white-space: pre-wrap;
-  background-color: var(--color-background);
-  padding: 12px;
-  border-radius: 6px;
+.ticket-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticket-detail-item p {
+  margin-left: 52px;
+  white-space: pre-line;
 }
 
 .file-list {
@@ -438,10 +453,12 @@ const contractTypeLabel = computed(() => {
   justify-content: space-between;
   gap: 4px;
   border: 1px var(--color-highlight) solid;
-  background-color: var(--color-tile-soft-pink);
+  background-color: var(--color-soft-pink);
+  color: var(--vt-c-black);
   border-radius: 6px;
   padding: 8px 12px;
   transition: background-color 0.2s ease;
+  user-select: none;
 }
 
 .file-item:hover {
@@ -452,7 +469,7 @@ const contractTypeLabel = computed(() => {
   width: 40px;
   height: 40px;
   border-radius: 4px;
-  background-color: var(--color-menu-background);
+  background-color: var(--vt-c-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -460,7 +477,6 @@ const contractTypeLabel = computed(() => {
   color: var(--color-subtext);
   margin-right: 12px;
   flex-shrink: 0;
-  user-select: none;
 }
 
 .file-type {
@@ -471,7 +487,6 @@ const contractTypeLabel = computed(() => {
   flex: 1;
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -481,12 +496,6 @@ const contractTypeLabel = computed(() => {
   padding: 4px 4px;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.no-responses {
-  color: var(--color-subtext);
-  font-style: italic;
-  padding: 8px;
 }
 
 .response-list {
@@ -499,9 +508,10 @@ const contractTypeLabel = computed(() => {
 }
 
 .response-item {
-  background-color: var(--color-background);
-  padding: 12px;
-  border-radius: 6px;
+  box-shadow: 0px -8px 8px -6px var(--color-shadow);
+  padding: 0;
+  margin: 0;
+  padding: 32px 24px;
 }
 
 .response-header {
@@ -520,11 +530,13 @@ const contractTypeLabel = computed(() => {
   white-space: pre-wrap;
 }
 
-.ticket-add-response {
-  margin-top: 24px;
+#ticket-add-response {
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: 0px -8px 8px -6px var(--color-shadow);
+  border-radius: 0 0 8px 8px;
 }
 
 .response-input {
@@ -561,19 +573,5 @@ const contractTypeLabel = computed(() => {
 
 .submit-response-button:hover {
   opacity: 0.9;
-}
-
-.ticket-project-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
-  background-color: var(--color-background);
-  padding: 12px;
-  border-radius: 6px;
-}
-
-.contract-status.expired {
-  color: var(--color-error);
 }
 </style>

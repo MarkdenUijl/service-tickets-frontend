@@ -11,11 +11,13 @@
   --vt-c-pure-black-transparent: #000000ba;
   --vt-c-red: #B91228;
   --vt-c-pink: #F4C6CD;
+  --vt-c-soft-pink-light: #ffe7ebce;
+  --vt-c-soft-pink-dark: #e7c8cde7;
   --vt-c-salmon: #E67C73;
   --vt-c-gold: #F5A623;
   --vt-c-teal: #12BAA1;
   --vt-c-green: #28B446;
-  --vt-c-shadow-white: #ffffff38;
+  --vt-c-shadow-white: #0000008b;
   --vt-c-shadow-black: #0000002f;
 
   /* Default to light mode variables */
@@ -31,6 +33,7 @@
   --color-first-complementary: var(--vt-c-salmon);
   --color-second-complementary: var(--vt-c-gold);
   --color-third-complementary: var(--vt-c-teal);
+  --color-soft-pink: var(--vt-c-soft-pink-light);
   
   /* Colors without theme */
   --color-tile-dire-back: #F4C6CD;
@@ -49,7 +52,6 @@
   --color-tile-phone-contrast: #FB8C00;
   --color-tile-mail-back: #B2EBF2;
   --color-tile-mail-contrast: #0097A7;
-  --color-tile-soft-pink: #ffe7ebea;
 }
 
 /* Override for system dark preference */
@@ -67,7 +69,7 @@
     --color-first-complementary: var(--vt-c-salmon);
     --color-second-complementary: var(--vt-c-gold);
     --color-third-complementary: var(--vt-c-teal);
-    --color-dropdown-background: 
+    --color-soft-pink: var(--vt-c-soft-pink-light);
   }
 }
 
@@ -85,6 +87,7 @@
   --color-first-complementary: var(--vt-c-salmon);
   --color-second-complementary: var(--vt-c-gold);
   --color-third-complementary: var(--vt-c-teal);
+  --color-soft-pink: var(--vt-c-soft-pink-dark);
 }
 
 /* Manual light override */
@@ -101,6 +104,7 @@
   --color-first-complementary: var(--vt-c-salmon);
   --color-second-complementary: var(--vt-c-gold);
   --color-third-complementary: var(--vt-c-teal);
+  --color-soft-pink: var(--vt-c-soft-pink-light);
 }
 
 *,

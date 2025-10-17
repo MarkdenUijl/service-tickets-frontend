@@ -54,6 +54,7 @@
     "creationErrorNameRequiredText": "Name is required.",
     "creationErrorSelectTypeText": "Please select type.",
     "creationErrorDescriptionRequiredText": "Description is required.",
+    "creationErrorDescriptionTooLongText": "Description is too long, can't be over 5000 characters.",
     "creationErrorProjectRequiredText": "Please select project.",
     "creationErrorHoudeNumberRequiredText": "Please enter number.",
     "creationErrorZipCodeRequiredText": "Please enter zipcode.",

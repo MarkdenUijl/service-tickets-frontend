@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
  */
 export function useTicketValidation(ticketData) {
   const { t } = useI18n()
+  const MAX_CHARS = 5000;
 
   // --- Reactive error messages (English placeholders)
   const errors = reactive({
@@ -24,7 +25,11 @@ export function useTicketValidation(ticketData) {
 
   // --- Field-level validity (booleans), permissive when empty for live UX
   const isNameValid = computed(() => ticketData.name.trim().length >= 10 || ticketData.name.length === 0)
-  const isDescriptionValid = computed(() => ticketData.description.trim().length >= 10 || ticketData.description.length === 0)
+  const isDescriptionValid = computed(() => {
+    const rawLen = ticketData.description.length
+    const trimmedLen = ticketData.description.trim().length
+    return rawLen === 0 || (trimmedLen >= 10 && rawLen <= MAX_CHARS)
+  })
   const isStreetValid = computed(() => ticketData.street.trim().length > 0 || ticketData.street.length === 0)
   const isHouseNumberValid = computed(() => /^(\d+)([A-Za-z])?$/.test(ticketData.houseNumber.trim()) || ticketData.houseNumber.length === 0)
   const isZipCodeValid = computed(() => /^[1-9][0-9]{3}\s?(?!sa|sd|ss)[A-Za-z]{2}$/.test(ticketData.zipCode.trim()) || ticketData.zipCode.length === 0)
@@ -42,9 +47,15 @@ export function useTicketValidation(ticketData) {
   })
 
   watch(() => ticketData.description, (val) => {
-    if (val.length === 0) errors.description = ''
-    else if (val.trim().length < 10) errors.description = t('ticket.creationErrorDescriptionShortText')
-    else errors.description = ''
+    if (val.length === 0) {
+      errors.description = ''
+    } else if (val.length > MAX_CHARS) {
+      errors.description = t('ticket.creationErrorDescriptionTooLongText', { max: MAX_CHARS })
+    } else if (val.trim().length < 10) {
+      errors.description = t('ticket.creationErrorDescriptionShortText')
+    } else {
+      errors.description = ''
+    }
   })
 
   watch(() => ticketData.projectId, (val) => {
@@ -99,6 +110,9 @@ export function useTicketValidation(ticketData) {
       hasError = true
     } else if (ticketData.description.trim().length < 10) {
       errors.description = t('ticket.creationErrorDescriptionShortText')
+      hasError = true
+    } else if (ticketData.description.length > MAX_CHARS) {
+      errors.description = t('ticket.creationErrorDescriptionTooLongText', { max: MAX_CHARS })
       hasError = true
     }
 
