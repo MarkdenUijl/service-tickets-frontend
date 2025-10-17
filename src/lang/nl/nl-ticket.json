@@ -56,5 +56,21 @@
     "creationErrorDescriptionRequiredText": "Beschrijving is verplicht.",
     "creationErrorProjectRequiredText": "Selecteer een project.",
     "creationErrorHoudeNumberRequiredText": "Voer een huisnummer in.",
-    "creationErrorZipCodeRequiredText": "Voer een postcode in."
+    "creationErrorZipCodeRequiredText": "Voer een postcode in.",
+    "detailsLoadingText": "Ticketgegevens worden geladen",
+    "detailsLoadingErrorText": "Ticketgegevens konden niet worden geladen.",
+    "detailsResponsesHeaderText": "Reacties",
+    "detailsNoResponsesText": "Nog geen reacties",
+    "detailsAddResponseHeaderText": "Reactie toevoegen",
+    "detailsResponsePlaceholderText": "Schrijf je reactie hier...",
+    "detailsCallerInfoHeaderText": "Bellerinformatie",
+    "detailsProjectInfoHeaderText": "Projectinformatie",
+    "detailsProjectLabelText": "Project",
+    "detailsContractTypeLabelText": "Contracttype",
+    "detailsContractStatusLabelText": "Contractstatus",
+    "detailsContractStatusExpiredText": "Verlopen",
+    "detailsContractStatusValidText": "Geldig",
+    "detailsContractTimeLabelText": "Resterende tijd",
+    "detailsAttachedFilesHeaderText": "Bijgevoegde bestanden",
+    "detailsTicketNotFoundText": "Ticket niet gevonden."
 }

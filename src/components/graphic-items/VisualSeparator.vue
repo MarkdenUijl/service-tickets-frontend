@@ -56,6 +56,7 @@
   color: var(--color-subtext);
   margin: 0 0.5rem;
   white-space: nowrap;
+  user-select: none;
 }
 
 .separator-line.full {

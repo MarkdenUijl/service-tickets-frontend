@@ -22,21 +22,15 @@ export function isTokenValid() {
     if (payload.exp > currentTime) {
       return true
     } else {
-      // WHY: Expired token is cleared immediately to avoid reuse.
       logout()
       return false
     }
   } catch {
-    // WHY: If decoding fails, the token is likely malformed → clear it.
     logout()
     return false
   }
 }
 
-/**
- * Remove token + user from the Pinia auth store.
- * WHY: Keeps client storage clean when session ends.
- */
 export function logout() {
   const auth = useAuthStore()
   auth.logout()

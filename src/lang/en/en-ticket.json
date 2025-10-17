@@ -56,5 +56,21 @@
     "creationErrorDescriptionRequiredText": "Description is required.",
     "creationErrorProjectRequiredText": "Please select project.",
     "creationErrorHoudeNumberRequiredText": "Please enter number.",
-    "creationErrorZipCodeRequiredText": "Please enter zipcode."
+    "creationErrorZipCodeRequiredText": "Please enter zipcode.",
+    "detailsLoadingText": "Loading ticket details",
+    "detailsLoadingErrorText": "Failed to load ticket details.",
+    "detailsResponsesHeaderText": "Responses",
+    "detailsNoResponsesText": "No responses yet",
+    "detailsAddResponseHeaderText": "Add response",
+    "detailsResponsePlaceholderText": "Write your response here...",
+    "detailsCallerInfoHeaderText": "Caller information",
+    "detailsProjectInfoHeaderText": "Project information",
+    "detailsProjectLabelText": "Project",
+    "detailsContractTypeLabelText": "Contract type",
+    "detailsContractStatusLabelText": "Contract status",
+    "detailsContractStatusExpiredText": "Expired",
+    "detailsContractStatusValidText": "Valid",
+    "detailsContractTimeLabelText": "Remaining time",
+    "detailsAttachedFilesHeaderText" : "Attached files",
+    "detailsTicketNotFoundText": "Ticket not found."
 }

@@ -5,22 +5,23 @@ import { computed, ref } from 'vue';
 const props = defineProps({
   firstName: { type: String, default: '' },
   lastName: { type: String, default: '' },
-  email: { type: String, default: '' },
+  subtext: { type: String, default: '' },
   textColor: { type: String, default: 'var(--color-text)' },
   menuOptions: {
     type: Array,
     default: () => null
-  }
+  },
+  isFree: { type: Boolean, default: false }
 });
 
-// Compute user info (full name, email, initials)
+// Compute user info (full name, subtext, initials)
 const userInfo = computed(() => {
   const fullName = `${props.firstName} ${props.lastName}`.trim();
   const initials = `${props.firstName[0] ?? '-'}${props.lastName[0] ?? '-'}`.toUpperCase();
 
   return {
     fullName,
-    email: props.email,
+    subtext: props.subtext,
     initials
   }
 });
@@ -42,7 +43,7 @@ const toggleMenu = () => {
 </script>
 
 <template>
-  <div id="user-info-tile">
+  <div id="user-info-tile" :class="{ set: !isFree }">
     <!-- User initials in circular frame -->
     <motion.div 
       id="user-info-picture-frame" 
@@ -79,23 +80,25 @@ const toggleMenu = () => {
     
     <div id="user-info-contact">
       <span :style="{ color: textColor }" class="user-name">{{ userInfo.fullName }}</span>
-      <span :style="{ color: textColor }" class="user-email">{{ userInfo.email }}</span>
+      <span :style="{ color: textColor }" class="user-subtext">{{ userInfo.subtext }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
 #user-info-tile {
-  border-top: 1px solid var(--color-subtext);
   width: 90%;
   max-width: 320px;
-  padding: 10px;
-  align-self: center;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
+}
+
+.set {
+  padding: 10px;
+  border-top: 1px solid var(--color-subtext);
   position: absolute;
   bottom: 24px;
   left: 50%;
@@ -130,7 +133,7 @@ const toggleMenu = () => {
   font-weight: 800;
 }
 
-.user-email {
+.user-subtext {
   font-family: 'Noto Sans JP';
   font-size: 13px;
   font-weight: 300;

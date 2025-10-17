@@ -43,13 +43,11 @@ const ticketData = reactive({
 const {
   errors,
   isNameValid,
-  isDescriptionValid,
   isStreetValid,
   isHouseNumberValid,
   isZipCodeValid,
   isCityValid,
   validateAll,
-  resetErrors
 } = useTicketValidation(ticketData)
 
 const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress } =

@@ -149,7 +149,7 @@ watch(showMenu, (visible) => {
       v-if="isMobile"
       :first-name="user.firstName ?? ''"
       :last-name="user.lastName ?? ''"
-      :email="user.email ?? ''"
+      :subtext="user.email ?? ''"
       text-color="var(--vt-c-white)"
     />
 
@@ -206,7 +206,7 @@ watch(showMenu, (visible) => {
           v-if="!isMobile"
           :first-name="user?.firstName ?? ''"
           :last-name="user?.lastName ?? ''"
-          :email="user?.email ?? ''"
+          :subtext="user?.email ?? ''"
           :menu-options="userMenuOptions"
         />
       </motion.div>

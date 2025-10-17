@@ -49,11 +49,24 @@ const visibleBreadcrumbs = computed(() => {
 })
 
 const mainTitle = computed(() => breadcrumbs.value.at(-1)?.label || '')
+
+const mainTitleParts = computed(() => {
+  const title = breadcrumbs.value.at(-1)?.label || ''
+  const match = title.match(/^(.*?)(#\S+)(.*)$/) // split into before, hash, after
+  if (!match) return { before: title, hash: '', after: '' }
+  return { before: match[1].trim(), hash: match[2], after: match[3].trim() }
+})
 </script>
 
 <template>
   <div class="route-info-container">
-    <div><span class="route-info-title">{{ mainTitle }}</span></div>
+    <!-- <div><span class="route-info-title">{{ mainTitle }}</span></div> -->
+    <div><span class="route-info-title">
+      {{ mainTitleParts.before }}
+      <span v-if="mainTitleParts.hash" class="hash-part">{{ mainTitleParts.hash }}</span>
+      <span v-if="mainTitleParts.after"> {{ mainTitleParts.after }}</span>
+    </span></div>
+
     <div class="route-info-nav">
       <div class="breadcrumb-chain">
         <template v-for="(crumb, index) in visibleBreadcrumbs" :key="crumb.name">
@@ -129,5 +142,10 @@ a.breadcrumb-label {
   color: inherit;
   text-decoration: none;
   cursor: pointer;
+}
+
+.hash-part {
+  font-family: 'Ubuntu';
+  font-weight: 200;
 }
 </style>

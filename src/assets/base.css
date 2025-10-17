@@ -6,7 +6,7 @@
   --vt-c-offwhite: #B0B1B5;
   --vt-c-darkwhite: #C1C1C1;
   --vt-c-black: #36373F;
-  --vt-c-black-transparent: rgba(54, 55, 63, 0.90);
+  --vt-c-black-transparent: rgba(41, 42, 56, 0.9);
   --vt-c-pure-black: #000000;
   --vt-c-pure-black-transparent: #000000ba;
   --vt-c-red: #B91228;
@@ -15,8 +15,8 @@
   --vt-c-gold: #F5A623;
   --vt-c-teal: #12BAA1;
   --vt-c-green: #28B446;
-  --vt-c-shadow-white: #ffffff20;
-  --vt-c-shadow-black: #36373f10;
+  --vt-c-shadow-white: #ffffff38;
+  --vt-c-shadow-black: #0000002f;
 
   /* Default to light mode variables */
   --color-menu-background: var(--vt-c-white);
@@ -32,6 +32,7 @@
   --color-second-complementary: var(--vt-c-gold);
   --color-third-complementary: var(--vt-c-teal);
   
+  /* Colors without theme */
   --color-tile-dire-back: #F4C6CD;
   --color-tile-dire-contrast: #EE687C;
   --color-tile-mild-back: #FDE089;
@@ -42,6 +43,13 @@
   --color-tile-good-contrast: #12BAA1;
   --color-tile-great-back: #C8E6C9;
   --color-tile-great-contrast: #28B446;
+  --color-tile-web-back: #D1C4E9;
+  --color-tile-web-contrast: #673AB7;
+  --color-tile-phone-back: #FFE0B2;
+  --color-tile-phone-contrast: #FB8C00;
+  --color-tile-mail-back: #B2EBF2;
+  --color-tile-mail-contrast: #0097A7;
+  --color-tile-soft-pink: #ffe7ebea;
 }
 
 /* Override for system dark preference */

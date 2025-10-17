@@ -11,6 +11,9 @@ import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import api from '@/services/api'
 import { connectToTickets, disconnectFromTickets } from '@/services/websocket'
 import { capitalizeWords } from '@/utils/capitalizeWords'
+import { formatIsoDate } from '@/utils/formatIsoDate'
+import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
+import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 
 const router = useRouter();
 
@@ -24,6 +27,8 @@ const sortBy = ref('lastUpdated')
 const sortType = ref('desc')
 
 const { t, locale } = useI18n()
+
+
 const columns = computed(() => {
   locale.value
   return [
@@ -38,15 +43,6 @@ const columns = computed(() => {
   ]
 })
 
-
-// Determine the last updated timestamp for a ticket.
-function resolveLastUpdated(ticket) {
-  if (Array.isArray(ticket.responses) && ticket.responses.length) {
-    return ticket.responses[ticket.responses.length - 1].creationDate
-  }
-  return ticket.lastUpdated || ticket.creationDate
-}
-
 // Normalize a raw ticket from API/websocket into table-ready form.
 function normalizeTicket(ticket) {
   return {
@@ -58,7 +54,7 @@ function normalizeTicket(ticket) {
         .replaceAll('_', ' ')
         .toLowerCase()
     ),
-    lastUpdated: resolveLastUpdated(ticket)
+    lastUpdated: ticket.lastUpdated
   }
 }
 
@@ -98,23 +94,12 @@ async function handleBulkDelete() {
 
 function onClickTicketRow(item) {
   console.log(item)
+  router.push({ name: 'ticket-detail', params: { id: item.id } });
 }
 
 function onUpdateSort(sortOptions) {
   sortBy.value = sortOptions.sortBy
   sortType.value = sortOptions.sortType
-}
-
-function formatIsoDate(isoString) {
-  const dateObj = new Date(isoString)
-  const options = { month: 'short', day: 'numeric', year: 'numeric' }
-  const date = dateObj.toLocaleDateString('nl-NL', options)
-  const time = dateObj.toLocaleTimeString('nl-NL', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  })
-  return { date, time }
 }
 
 const onCreateTicket = () => {
@@ -126,12 +111,16 @@ onMounted(() => {
 
   // Listen for real-time updates
   connectToTickets(ticket => {
+    console.log('[WebSocket] Received ticket update:', ticket)
     const index = items.value.findIndex(t => t.id === ticket.id)
     if (index !== -1) {
-      items.value[index] = normalizeTicket({ ...items.value[index], ...ticket })
+      // items.value[index] = normalizeTicket({ ...items.value[index], ...ticket })
+      items.value.splice(index, 1, normalizeTicket({ ...items.value[index], ...ticket }))
     } else {
       items.value.push(normalizeTicket(ticket))
     }
+
+    items.value = [...items.value]
   })
 })
 
@@ -255,13 +244,11 @@ onUnmounted(() => {
         </template>
 
         <template #item-type="{ type }">
-          <span class="ticket-type-indicator" :class="'type-' + type.toLowerCase()">
-            {{ t('ticket.type' + capitalizeWords(type) + 'Text') }}
-          </span>
+          <TicketTypePill :type="type" />
         </template>
 
         <template #item-creationDate="{ creationDate }">
-          <div class="cell-date">
+          <div class="call-date">
             <span class="ticket-date-indicator">{{ formatIsoDate(creationDate).date }}</span>
             <span>{{ formatIsoDate(creationDate).time }}</span>
           </div>
@@ -278,16 +265,14 @@ onUnmounted(() => {
         </template>
 
         <template #item-lastUpdated="{ lastUpdated }">
-          <div class="cell-date">
+          <div class="call-date">
             <span class="ticket-date-indicator">{{ formatIsoDate(lastUpdated).date }}</span>
             <span>{{ formatIsoDate(lastUpdated).time }}</span>
           </div>
         </template>
 
         <template #item-status="{ status }">
-          <span class="ticket-status-indicator" :class="'status-' + status.toLowerCase()">
-            {{ t('ticket.status' + capitalizeWords(status) + 'Text') }}
-          </span>
+          <TicketStatusPill :status="status"/>
         </template>
 
         <template #empty-message>
@@ -340,7 +325,7 @@ onUnmounted(() => {
   font-weight: 700;
 }
 
-.cell-date {
+.call-date {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
@@ -366,6 +351,14 @@ onUnmounted(() => {
   --easy-table-body-row-background-color: var(--color-menu-background);
   --easy-table-footer-font-color: var(--color-text);
   --easy-table-footer-background-color: var(--color-menu-background);
+
+  --easy-table-body-row-hover-font-color: var(--color-text);
+  --easy-table-body-row-hover-background-color: none;
+
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .ticket-table th {
@@ -381,34 +374,6 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 
-.ticket-type-indicator {
-  display: inline-flex;
-  width: 92px;
-  height: 20px;
-  border-radius: 10px;
-  justify-content: center;
-  align-items: center;
-  font-weight: 700;
-  font-size: 11px;
-  color: var(--vt-c-white);
-}
-
-.type-hardware {
-  background-color: var(--color-highlight);
-}
-.type-software {
-  background-color: var(--color-first-complementary);
-}
-.type-question {
-  background-color: var(--color-second-complementary);
-}
-.type-change {
-  background-color: var(--color-third-complementary);
-}
-.type-unknown {
-  background-color: var(--color-secondary);
-}
-
 .ticket-date-indicator {
   font-weight: 700;
 }
@@ -416,37 +381,6 @@ onUnmounted(() => {
 .ticket-contract-indicator {
   color: var(--color-subtext);
   font-weight: 700;
-}
-
-.ticket-status-indicator {
-  display: inline-flex;
-  width: 92px;
-  height: 20px;
-  border-radius: 10px;
-  justify-content: center;
-  align-items: center;
-  font-size: 11px;
-}
-
-.status-open {
-  background-color: var(--color-tile-mild-back);
-  color: var(--color-tile-mild-contrast);
-}
-.status-closed {
-  background-color: var(--color-tile-great-back);
-  color: var(--color-tile-great-contrast);
-}
-.status-pending {
-  background-color: var(--color-tile-medium-back);
-  color: var(--color-tile-medium-contrast);
-}
-.status-in_progress {
-  background-color: var(--color-tile-good-back);
-  color: var(--color-tile-good-contrast);
-}
-.status-escalated {
-  background-color: var(--color-tile-dire-back);
-  color: var(--color-tile-dire-contrast);
 }
 
 .ticket-no-data {
