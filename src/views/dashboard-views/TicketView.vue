@@ -14,6 +14,7 @@ import { capitalizeWords } from '@/utils/capitalizeWords'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
+import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 
 const router = useRouter();
 
@@ -222,7 +223,7 @@ onUnmounted(() => {
         <SearchInput :placeholder="t('ticket.searchTicketText')" variant="inline" v-model="searchInput" />
       </div>
 
-      <EasyDataTable
+      <PrivilegedDataTable
         :headers="columns"
         :items="items"
         :search-value="searchInput"
@@ -278,7 +279,7 @@ onUnmounted(() => {
         <template #empty-message>
           <span class="ticket-no-data">{{ t('ticket.noDataFoundText') }}</span>
         </template>
-      </EasyDataTable>
+      </PrivilegedDataTable>
     </div>
   </div>
 </template>

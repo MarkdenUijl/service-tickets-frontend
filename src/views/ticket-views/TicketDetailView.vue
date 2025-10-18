@@ -1,5 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { useRoute } from 'vue-router'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
@@ -12,13 +14,16 @@ import { useI18n } from 'vue-i18n'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { formatMinutes } from '@/utils/formatMinutes'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
+import DOMPurify from 'dompurify'
 import UserInfoTile from '@/components/common/UserInfoTile.vue'
+import FileDropzone from '@/components/user-input/FileDropzone.vue'
 
 const route = useRoute()
 const { t } = useI18n()
 
 // Core state
 const ticketData = ref(null)
+const selectedFiles = ref([])
 const isLoadingTicket = ref(true)
 const loadError = ref(false)
 
@@ -92,12 +97,22 @@ async function downloadAttachment(fileId, filename) {
 async function submitReply() {
   if (!replyText.value.trim()) return
   submitting.value = true
+
   try {
     await api.post('/ticketResponses', {
-      response: replyText.value,
+      response: DOMPurify.sanitize(replyText.value),
       serviceTicketId: ticketData.value.id,
       minutesSpent: Math.max(0, timeSpentMinutes.value)
     })
+
+    if (selectedFiles.value.length > 0) {
+      const formData = new FormData()
+      selectedFiles.value.forEach(file => formData.append('files', file))
+      await api.post(`/serviceTickets/${ticketData.value.id}/files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+    }
+
     replyText.value = ''
     timeSpentMinutes.value = 0
     await fetchTicket()
@@ -204,19 +219,24 @@ const contractTypeLabel = computed(() => {
               :subtext="`${response.date}, ${response.time}`"
               :isFree="true"
             />
-            <p>{{ response.text }}</p>
+            <p v-html="response.text"></p>
           </section>
         </section>
 
         <!-- ADD RESPONSE -->
         <section class="ticket-detail-section" id="ticket-add-response">
-          <h3>{{ t('ticket.detailsAddResponseHeaderText') }}</h3>
-          <textarea
-            v-model="replyText"
-            class="response-input"
-            :placeholder="t('ticket.detailsResponsePlaceholderText')"
-            :aria-label="t('ticket.detailsResponsePlaceholderText')"
-          ></textarea>
+          <QuillEditor
+            v-model:content="replyText"
+            content-type="html"
+            theme="snow"
+            toolbar="minimal"
+            placeholder="Write your response here"
+          />
+
+          <FileDropzone 
+            v-model="selectedFiles"
+            placeholder="Click or drag to add files to ticket"
+          />
 
           <div class="response-actions">
             <label>
@@ -334,10 +354,11 @@ const contractTypeLabel = computed(() => {
 
 .ticket-detail-section {
   background-color: var(--color-menu-background);
-  display: flex;
   flex: 1;
+  display: flex;
   flex-direction: column;
   gap: 16px;
+  border-radius: 0;
 }
 
 #ticket-call {
@@ -348,13 +369,11 @@ const contractTypeLabel = computed(() => {
 #ticket-meta {
   min-width: 300px;
   display: flex;
-  flex: 0;
   flex-direction: column;
   gap: 16px;
   position: sticky;
   top: 4px;
   align-self: flex-start;
-
 }
 
 .ticket-meta-information {
@@ -362,7 +381,6 @@ const contractTypeLabel = computed(() => {
   border-radius: 8px;
   padding: 24px;
   display: flex;
-  flex: 0;
   flex-direction: column;
   gap: 16px;
   height: fit-content;
@@ -387,7 +405,6 @@ const contractTypeLabel = computed(() => {
 
 .ticket-tags {
   display: flex;
-  flex-direction: row;
   gap: 16px;
 }
 
@@ -403,7 +420,6 @@ const contractTypeLabel = computed(() => {
 
 .ticket-info-line {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   width: 100%;
@@ -438,27 +454,26 @@ const contractTypeLabel = computed(() => {
   white-space: pre-line;
 }
 
+/* --- File list --- */
 .file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
 }
 
 .file-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
-  border: 1px var(--color-highlight) solid;
+  gap: 8px;
   background-color: var(--color-soft-pink);
-  color: var(--vt-c-black);
+  border: 1px solid var(--color-highlight);
   border-radius: 6px;
   padding: 8px 12px;
   transition: background-color 0.2s ease;
-  user-select: none;
 }
 
 .file-item:hover {
@@ -475,12 +490,7 @@ const contractTypeLabel = computed(() => {
   justify-content: center;
   font-weight: 700;
   color: var(--color-subtext);
-  margin-right: 12px;
   flex-shrink: 0;
-}
-
-.file-type {
-  font-size: 12px;
 }
 
 .file-name {
@@ -493,49 +503,32 @@ const contractTypeLabel = computed(() => {
 }
 
 .file-download-button {
-  padding: 4px 4px;
+  padding: 4px;
   border-radius: 4px;
   cursor: pointer;
 }
 
+/* --- Responses --- */
 .response-list {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .response-item {
-  box-shadow: 0px -8px 8px -6px var(--color-shadow);
-  padding: 0;
-  margin: 0;
   padding: 32px 24px;
-}
-
-.response-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--color-subtext);
-  margin-bottom: 6px;
-}
-
-.response-author {
-  font-weight: 600;
-}
-
-.response-text {
-  white-space: pre-wrap;
+  box-shadow: 0 -8px 8px -6px var(--color-shadow);
 }
 
 #ticket-add-response {
-  padding: 24px;
+  padding: 0 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0px -8px 8px -6px var(--color-shadow);
+  box-shadow: 0 -8px 8px -6px var(--color-shadow);
   border-radius: 0 0 8px 8px;
 }
 
@@ -563,15 +556,67 @@ const contractTypeLabel = computed(() => {
 
 .submit-response-button {
   background-color: var(--color-highlight);
-  color: white;
+  color: var(--vt-c-white);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  transition: opacity 0.2s ease;
 }
 
-.submit-response-button:hover {
+.submit-response-button:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.submit-response-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Quill Editor Overrides --- */
+:deep(.ql-container),
+:deep(.ql-toolbar) {
+  border: none !important;
+  background: transparent;
+}
+
+:deep(.ql-editor) {
+  min-height: 200px;
+  font-family: 'Ubuntu';
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+:deep(.ql-stroke) {
+  stroke: var(--color-text);
+}
+
+:deep(.ql-fill) {
+  fill: var(--color-text);
+}
+
+:deep(.ql-picker .ql-stroke) {
+  stroke: var(--color-text) !important;
+  fill: var(--color-text) !important;
+}
+
+:deep(.ql-toolbar button:hover),
+:deep(.ql-toolbar button.ql-active),
+:deep(.ql-align .ql-picker-item.ql-selected),
+:deep(.ql-align .ql-picker-item:hover),
+:deep(.ql-align .ql-picker-label.ql-active),
+:deep(.ql-align.ql-picker:hover .ql-picker-label) {
+  background-color: var(--color-soft-pink);
+  border-radius: 4px;
+}
+
+:deep(.ql-picker-options) {
+  background-color: var(--color-background);
+  border: none !important;
+}
+
+:deep(.ql-editor.ql-blank::before) {
+  color: var(--color-subtext);
 }
 </style>
