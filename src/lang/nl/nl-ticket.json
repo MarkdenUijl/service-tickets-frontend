@@ -58,6 +58,7 @@
     "creationErrorProjectRequiredText": "Selecteer een project.",
     "creationErrorHoudeNumberRequiredText": "Voer een huisnummer in.",
     "creationErrorZipCodeRequiredText": "Voer een postcode in.",
+    "creationCreateTicketText": "Maak ticket",
     "detailsLoadingText": "Ticketgegevens worden geladen",
     "detailsLoadingErrorText": "Ticketgegevens konden niet worden geladen.",
     "detailsResponsesHeaderText": "Reacties",

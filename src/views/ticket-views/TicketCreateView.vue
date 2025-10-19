@@ -248,8 +248,8 @@ const ticketSources = [
             </div>
 
             <div id="ticket-buttons-container">
-              <LoaderButton :loading="loading" label="Create ticket" type="submit" />
-              <LoaderButton label="Cancel" @click="handleTicketCancel" />
+              <LoaderButton :loading="loading" :label="t('ticket.creationCreateTicketText')" type="submit" />
+              <LoaderButton :label="t('base.cancelText')" @click="handleTicketCancel" />
             </div>
           </div>
         </div>

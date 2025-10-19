@@ -7,5 +7,7 @@
   "hourText": "hour",
   "hoursText": "hours",
   "minutesText": "minutes",
-  "andText": "and"
+  "andText": "and",
+  "createText": "Create",
+  "cancelText": "Cancel"
 }

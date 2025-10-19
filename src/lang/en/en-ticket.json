@@ -58,6 +58,7 @@
     "creationErrorProjectRequiredText": "Please select project.",
     "creationErrorHoudeNumberRequiredText": "Please enter number.",
     "creationErrorZipCodeRequiredText": "Please enter zipcode.",
+    "creationCreateTicketText": "Create ticket",
     "detailsLoadingText": "Loading ticket details",
     "detailsLoadingErrorText": "Failed to load ticket details.",
     "detailsResponsesHeaderText": "Responses",

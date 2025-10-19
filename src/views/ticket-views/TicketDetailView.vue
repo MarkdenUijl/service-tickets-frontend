@@ -1,22 +1,23 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { useRoute } from 'vue-router'
+import { formatIsoDate } from '@/utils/formatIsoDate'
+import { useI18n } from 'vue-i18n'
+import { formatMinutes } from '@/utils/formatMinutes'
+import { capitalizeWords } from '@/utils/capitalizeWords'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
-import { formatIsoDate } from '@/utils/formatIsoDate'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 import TicketSourcePill from '@/components/graphic-items/TicketSourcePill.vue'
-import { useI18n } from 'vue-i18n'
-import { capitalizeWords } from '@/utils/capitalizeWords'
-import { formatMinutes } from '@/utils/formatMinutes'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import DOMPurify from 'dompurify'
 import UserInfoTile from '@/components/common/UserInfoTile.vue'
 import FileDropzone from '@/components/user-input/FileDropzone.vue'
+import LoaderButton from '@/components/buttons/LoaderButton.vue'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -90,6 +91,31 @@ async function downloadAttachment(fileId, filename) {
   }
 }
 
+async function deleteAttachment(fileId) {
+  try {
+    const response = await api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`)
+    console.log(response)
+    // const blob = new Blob([response.data], { type: response.headers['content-type'] })
+    // const blobUrl = window.URL.createObjectURL(blob)
+
+    // const ct = (response.headers['content-type'] || '').toLowerCase()
+    // if (ct.includes('pdf') || ct.startsWith('image/')) {
+    //   window.open(blobUrl, '_blank')
+    // } else {
+    //   const link = document.createElement('a')
+    //   link.href = blobUrl
+    //   link.download = filename
+    //   document.body.appendChild(link)
+    //   link.click()
+    //   document.body.removeChild(link)
+    // }
+
+    // window.URL.revokeObjectURL(blobUrl)
+  } catch (error) {
+    console.error('Failed to delete file:', error)
+  }
+}
+
 /**
  * Submit a new response for this ticket.
  * Guards against empty or invalid input.
@@ -132,6 +158,7 @@ const responses = computed(() => {
       id: r.id || `${r.creationDate}-${r.submittedBy?.email}`,
       authorFirstName: r.submittedBy?.firstName,
       authorLastName: r.submittedBy?.lastName,
+      engineerResponse: r.engineerResponse,
       date,
       time,
       text: r.response
@@ -212,7 +239,11 @@ const contractTypeLabel = computed(() => {
 
         <!-- RESPONSES -->
         <section v-if="responses.length"  class="ticket-detail-section" id="ticket-responses">
-          <section v-for="response in responses" :key="response.id" class="response-item ticket-detail-item">
+          <section v-for="response in responses" 
+            :key="response.id" 
+            class="response-item ticket-detail-item"
+            :class="response.engineerResponse ? 'engineer-response' : ''"
+          >
             <UserInfoTile 
               :firstName="response.authorFirstName" 
               :lastName="response.authorLastName"
@@ -239,19 +270,19 @@ const contractTypeLabel = computed(() => {
           />
 
           <div class="response-actions">
-            <label>
-              <span>Minutes spent</span>
-              <input type="number" v-model.number="timeSpentMinutes" min="0" aria-label="Minutes spent" />
-            </label>
-            <button
-              type="button"
-              class="submit-response-button"
-              :disabled="submitting || !replyText.trim() || timeSpentMinutes < 0"
-              @click="submitReply"
-              aria-busy="submitting"
-            >
-              {{ submitting ? 'Submitting...' : 'Submit' }}
-            </button>
+            <div class="time-log-control">
+              <SvgIcon name="icon-clock" width="16px" />
+              <input
+                type="number"
+                v-model.number="timeSpentMinutes"
+                min="0"
+                placeholder="0"
+                aria-label="Minutes spent"
+              />
+              <span class="unit">{{ t('base.minutesText') }}</span>
+            </div>
+            
+            <LoaderButton :loading="submitting" :label="t('base.createText')" type="button" @click="submitReply" aria-busy="submitting" />
           </div>
         </section>
       </div>
@@ -320,10 +351,18 @@ const contractTypeLabel = computed(() => {
                 <div class="file-name">{{ filename }}</div>
                 <button
                   type="button"
-                  class="file-download-button"
+                  class="file-action-button"
                   @click="downloadAttachment(id, filename)"
                 >
                   <SvgIcon name="icon-download" width="12px" />
+                </button>
+
+                <button
+                  type="button"
+                  class="file-action-button"
+                  @click="deleteAttachment(id)"
+                >
+                  <SvgIcon name="icon-delete-file" width="12px" />
                 </button>
               </li>
             </ul>
@@ -502,7 +541,7 @@ const contractTypeLabel = computed(() => {
   white-space: nowrap;
 }
 
-.file-download-button {
+.file-action-button {
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
@@ -521,6 +560,10 @@ const contractTypeLabel = computed(() => {
 .response-item {
   padding: 32px 24px;
   box-shadow: 0 -8px 8px -6px var(--color-shadow);
+}
+
+.engineer-response {
+  border-left: var(--color-highlight) 4px solid;
 }
 
 #ticket-add-response {
@@ -554,24 +597,46 @@ const contractTypeLabel = computed(() => {
   margin-left: 8px;
 }
 
-.submit-response-button {
-  background-color: var(--color-highlight);
-  color: var(--vt-c-white);
+.time-log-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-background);
+  border-radius: 24px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-text);
+  transition: background-color 0.2s ease;
+}
+
+.time-log-control:hover,
+.time-log-control:focus-within {
+  background-color: var(--color-soft-pink);
+}
+
+.time-log-control input {
+  width: 60px;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: opacity 0.2s ease;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  text-align: right;
+  outline: none;
 }
 
-.submit-response-button:hover:not(:disabled) {
-  opacity: 0.9;
+.time-log-control .unit {
+  font-size: 12px;
+  color: var(--color-subtext);
 }
 
-.submit-response-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.time-log-control input::-webkit-outer-spin-button,
+.time-log-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.time-log-control input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* --- Quill Editor Overrides --- */
@@ -592,7 +657,15 @@ const contractTypeLabel = computed(() => {
   stroke: var(--color-text);
 }
 
+:deep(.ql-toolbar button.ql-active .ql-stroke) {
+  stroke: var(--color-text);
+}
+
 :deep(.ql-fill) {
+  fill: var(--color-text);
+}
+
+:deep(.ql-toolbar button.ql-active .ql-fill) {
   fill: var(--color-text);
 }
 
