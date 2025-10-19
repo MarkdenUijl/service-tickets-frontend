@@ -1,11 +1,12 @@
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import { useRoute } from 'vue-router'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import { useI18n } from 'vue-i18n'
 import { formatMinutes } from '@/utils/formatMinutes'
 import { capitalizeWords } from '@/utils/capitalizeWords'
+import { connectToTicketDetail, disconnectFromTicketDetail } from '@/services/websocket'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
@@ -27,6 +28,7 @@ const ticketData = ref(null)
 const selectedFiles = ref([])
 const isLoadingTicket = ref(true)
 const loadError = ref(false)
+const quillRef = ref(null)
 
 // Response form state
 const replyText = ref('')
@@ -95,22 +97,6 @@ async function deleteAttachment(fileId) {
   try {
     const response = await api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`)
     console.log(response)
-    // const blob = new Blob([response.data], { type: response.headers['content-type'] })
-    // const blobUrl = window.URL.createObjectURL(blob)
-
-    // const ct = (response.headers['content-type'] || '').toLowerCase()
-    // if (ct.includes('pdf') || ct.startsWith('image/')) {
-    //   window.open(blobUrl, '_blank')
-    // } else {
-    //   const link = document.createElement('a')
-    //   link.href = blobUrl
-    //   link.download = filename
-    //   document.body.appendChild(link)
-    //   link.click()
-    //   document.body.removeChild(link)
-    // }
-
-    // window.URL.revokeObjectURL(blobUrl)
   } catch (error) {
     console.error('Failed to delete file:', error)
   }
@@ -140,8 +126,13 @@ async function submitReply() {
     }
 
     replyText.value = ''
-    timeSpentMinutes.value = 0
-    await fetchTicket()
+    selectedFiles.value = []
+    timeSpentMinutes.value = null
+
+    if (quillRef.value) {
+      quillRef.value.setHTML('') // or .setText('') if you prefer
+    }
+    // await fetchTicket()
   } catch (error) {
     console.error('Failed to submit response:', error)
   } finally {
@@ -189,6 +180,20 @@ const remainingContractMinutes = computed(() => {
 const contractTypeLabel = computed(() => {
   const type = ticketData.value?.project?.serviceContract?.type || 'none'
   return t('ticket.contract' + capitalizeWords(type).replaceAll('_', '') + 'Text')
+})
+
+onMounted(() => {
+  const ticketId = route.params.id
+
+  connectToTicketDetail(ticketId, (update) => {
+    if (update.responses) ticketData.value.responses = [...update.responses]
+    if (update.files) ticketData.value.files = { ...update.files }
+    if (update.status) ticketData.value.status = update.status
+  })
+})
+
+onUnmounted(() => {
+  disconnectFromTicketDetail(route.params.id)
 })
 </script>
 
@@ -257,6 +262,7 @@ const contractTypeLabel = computed(() => {
         <!-- ADD RESPONSE -->
         <section class="ticket-detail-section" id="ticket-add-response">
           <QuillEditor
+            ref="quillRef"
             v-model:content="replyText"
             content-type="html"
             theme="snow"
@@ -282,7 +288,7 @@ const contractTypeLabel = computed(() => {
               <span class="unit">{{ t('base.minutesText') }}</span>
             </div>
             
-            <LoaderButton :loading="submitting" :label="t('base.createText')" type="button" @click="submitReply" aria-busy="submitting" />
+            <LoaderButton :loading="submitting" :label="t('base.createText')" type="button" @click.stop="submitReply" aria-busy="submitting" />
           </div>
         </section>
       </div>
@@ -407,6 +413,7 @@ const contractTypeLabel = computed(() => {
 
 #ticket-meta {
   min-width: 300px;
+  flex: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
