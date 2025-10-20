@@ -18,6 +18,9 @@ import DOMPurify from 'dompurify'
 import UserInfoTile from '@/components/common/UserInfoTile.vue'
 import FileDropzone from '@/components/user-input/FileDropzone.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
+import RecentTicketsList from '@/components/lists/RecentTicketsList.vue'
+import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
+import FileItem from '@/components/lists/FileItem.vue'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const route = useRoute()
@@ -26,9 +29,12 @@ const { t } = useI18n()
 // Core state
 const ticketData = ref(null)
 const selectedFiles = ref([])
+const recentUserTickets = ref([])
+const recentProjectTickets = ref([])
 const isLoadingTicket = ref(true)
 const loadError = ref(false)
 const quillRef = ref(null)
+const showAllFiles = ref(false)
 
 // Response form state
 const replyText = ref('')
@@ -49,7 +55,29 @@ async function fetchTicket() {
     console.error('Failed to fetch ticket details:', error)
     loadError.value = true
   } finally {
+    await fetchRecentTickets()
     isLoadingTicket.value = false
+  }
+}
+
+async function fetchRecentTickets() {
+  if (!ticketData.value) return
+
+  try {
+    const userId = ticketData.value.submittedBy?.id
+    const projectId = ticketData.value.project?.id
+
+    if (userId) {
+      const userRes = await api.get(`/serviceTickets?submitterId=${userId}&limit=4&sort=desc`)
+      recentUserTickets.value = userRes.data.filter(t => t.id !== ticketData.value.id)
+    }
+
+    if (projectId) {
+      const projectRes = await api.get(`/serviceTickets?projectId=${projectId}&limit=4&sort=desc`)
+      recentProjectTickets.value = projectRes.data.filter(t => t.id !== ticketData.value.id)
+    }
+  } catch (error) {
+    console.error('Failed to load recent tickets:', error)
   }
 }
 
@@ -95,8 +123,7 @@ async function downloadAttachment(fileId, filename) {
 
 async function deleteAttachment(fileId) {
   try {
-    const response = await api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`)
-    console.log(response)
+    await api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`)
   } catch (error) {
     console.error('Failed to delete file:', error)
   }
@@ -132,7 +159,6 @@ async function submitReply() {
     if (quillRef.value) {
       quillRef.value.setHTML('') // or .setText('') if you prefer
     }
-    // await fetchTicket()
   } catch (error) {
     console.error('Failed to submit response:', error)
   } finally {
@@ -180,6 +206,13 @@ const remainingContractMinutes = computed(() => {
 const contractTypeLabel = computed(() => {
   const type = ticketData.value?.project?.serviceContract?.type || 'none'
   return t('ticket.contract' + capitalizeWords(type).replaceAll('_', '') + 'Text')
+})
+
+const displayedFiles = computed(() => {
+  if (!ticketData.value?.files) return {}
+  const entries = Object.entries(ticketData.value.files)
+  if (showAllFiles.value) return Object.fromEntries(entries)
+  return Object.fromEntries(entries.slice(0, 3))
 })
 
 onMounted(() => {
@@ -299,20 +332,27 @@ onUnmounted(() => {
           <section class="ticket-meta-information-section">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsCallerInfoHeaderText') }}</h3>
 
-            <div class="ticket-info-line">
-              <span class="info-line-key">{{ t('base.fullNameText') }}</span>
-              <span class="info-line-value">{{ ticketData.submittedBy?.firstName }} {{ ticketData.submittedBy?.lastName }}</span>
-            </div>
+            <TicketInfoLine 
+              :label="t('base.fullNameText')"
+              :value="`${ ticketData.submittedBy?.firstName } ${ ticketData.submittedBy?.lastName }`"
+            />
 
-            <div class="ticket-info-line">
-              <span class="info-line-key">{{ t('base.emailText')}}</span>
-              <span class="info-line-value">{{ ticketData.submittedBy?.email }}</span>
-            </div>
+            <TicketInfoLine 
+              :label="t('base.emailText')"
+              :value="ticketData.submittedBy?.email"
+            />
 
-            <div class="ticket-info-line">
-              <span class="info-line-key">{{ t('base.phoneNumberText') }}</span>
-              <span class="info-line-value">{{ ticketData.submittedBy?.phoneNumber }}</span>
-            </div>
+            <TicketInfoLine 
+              :label="t('base.phoneNumberText')"
+              :value="ticketData.submittedBy?.phoneNumber"
+            />
+
+            <TicketInfoLine 
+              :label="t('ticket.recentTicketsByUserText')"
+              value=""
+            />
+
+            <RecentTicketsList :tickets="recentUserTickets" :empty-text="t('ticket.detailsNoCallsByUserText')"/>
           </section>
 
           <VisualSeparator />
@@ -320,27 +360,35 @@ onUnmounted(() => {
           <section class="ticket-meta-information-section">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsProjectInfoHeaderText')}}</h3>
 
-            <div class="ticket-info-line">
-              <span class="info-line-key">{{ t('ticket.detailsProjectLabelText') }}</span>
-              <span class="info-line-value">{{ ticketData.project?.name }}</span>
-            </div>
+            <TicketInfoLine 
+              :label="t('ticket.detailsProjectLabelText')"
+              :value="ticketData.project?.name"
+            />
+            
+            <TicketInfoLine 
+              :label="t('ticket.detailsContractTypeLabelText')"
+              :value="contractTypeLabel"
+            />
 
-            <div class="ticket-info-line">
-              <span class="info-line-key">{{ t('ticket.detailsContractTypeLabelText') }}</span>
-              <span class="info-line-value">{{ contractTypeLabel }}</span>
-            </div>
+            <TicketInfoLine 
+              v-if="serviceContract"
+              :label="t('ticket.detailsContractStatusLabelText')"
+              :value="isContractValid ? t('ticket.detailsContractStatusValidText') : t('ticket.detailsContractStatusExpiredText')"
+              :valueClass="isContractValid ? 'valid' : 'expired'"
+            />
 
-            <div v-if="serviceContract" class="ticket-info-line">
-              <span class="info-line-key">{{ t('ticket.detailsContractStatusLabelText') }}</span>
-              <span class="info-line-value" :class="isContractValid ? 'valid' : 'expired'">
-                {{ isContractValid ? t('ticket.detailsContractStatusValidText') : t('ticket.detailsContractStatusExpiredText') }}
-              </span>
-            </div>
+            <TicketInfoLine 
+              v-if="serviceContract"
+              :label="t('ticket.detailsContractTimeLabelText')"
+              :value="remainingContractMinutes"
+            />
 
-            <div v-if="serviceContract" class="ticket-info-line">
-              <span class="info-line-key">{{ t('ticket.detailsContractTimeLabelText') }}</span>
-              <span class="info-line-value">{{ remainingContractMinutes }}</span>
-            </div>
+            <TicketInfoLine 
+              :label="t('ticket.recentTicketsOnProjectText')"
+              value=""
+            />
+
+            <RecentTicketsList :tickets="recentProjectTickets" :empty-text="t('ticket.detailsNoCallsOnProjectText')"/>
           </section>
         </div>
 
@@ -349,29 +397,24 @@ onUnmounted(() => {
             <h3 class="ticket-meta-header">{{ t('ticket.detailsAttachedFilesHeaderText') }}</h3>
 
             <ul class="file-list">
-              <li v-for="(filename, id) in ticketData.files" :key="id" class="file-item">
-                <div class="file-preview">
-                  <span class="file-type">{{ filename.split('.').pop().toUpperCase() }}</span>
-                </div>
-                
-                <div class="file-name">{{ filename }}</div>
-                <button
-                  type="button"
-                  class="file-action-button"
-                  @click="downloadAttachment(id, filename)"
-                >
-                  <SvgIcon name="icon-download" width="12px" />
-                </button>
-
-                <button
-                  type="button"
-                  class="file-action-button"
-                  @click="deleteAttachment(id)"
-                >
-                  <SvgIcon name="icon-delete-file" width="12px" />
-                </button>
-              </li>
+              <FileItem
+                v-for="(filename, id) in displayedFiles"
+                :key="id"
+                :id="id"
+                :filename="filename"
+                @download="downloadAttachment"
+                @delete="deleteAttachment"
+              />
             </ul>
+
+            <button
+              v-if="Object.keys(ticketData.files).length > 3"
+              type="button"
+              class="toggle-files-button"
+              @click="showAllFiles = !showAllFiles"
+            >
+              {{ showAllFiles ? t('base.showLessText') : t('base.showMoreText') }}
+            </button>
           </section>
         </div>
       </div>
@@ -412,7 +455,7 @@ onUnmounted(() => {
 }
 
 #ticket-meta {
-  min-width: 300px;
+  min-width: 350px;
   flex: 0;
   display: flex;
   flex-direction: column;
@@ -420,6 +463,8 @@ onUnmounted(() => {
   position: sticky;
   top: 4px;
   align-self: flex-start;
+  overflow: scroll;
+  max-height: 100vh;
 }
 
 .ticket-meta-information {
@@ -464,31 +509,6 @@ onUnmounted(() => {
   gap: 4px;
 }
 
-.ticket-info-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  font-size: 12px;
-}
-
-.info-line-key {
-  font-weight: 700;
-  color: var(--color-subtext);
-}
-
-.info-line-value {
-  font-weight: 500;
-}
-
-.info-line-value.valid {
-  color: var(--vt-c-green);
-}
-
-.info-line-value.expired {
-  color: var(--vt-c-red);
-}
-
 .ticket-detail-item {
   display: flex;
   flex-direction: column;
@@ -501,6 +521,11 @@ onUnmounted(() => {
 }
 
 /* --- File list --- */
+.ticket-files {
+  display: flex;
+  flex-direction: column;
+}
+
 .file-list {
   list-style: none;
   margin: 0;
@@ -510,48 +535,18 @@ onUnmounted(() => {
   gap: 8px;
 }
 
-.file-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background-color: var(--color-soft-pink);
-  border: 1px solid var(--color-highlight);
-  border-radius: 6px;
-  padding: 8px 12px;
-  transition: background-color 0.2s ease;
-}
-
-.file-item:hover {
-  background-color: var(--vt-c-pink);
-}
-
-.file-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  background-color: var(--vt-c-white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: var(--color-subtext);
-  flex-shrink: 0;
-}
-
-.file-name {
-  flex: 1;
-  font-size: 12px;
+.toggle-files-button {
+  align-self: flex-end;
+  color: var(--color-text);
+  font-size: 11px;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  cursor: pointer;
+  padding: 4px;
+  margin-top: 8px;
 }
 
-.file-action-button {
-  padding: 4px;
-  border-radius: 4px;
-  cursor: pointer;
+.toggle-files-button:hover {
+  color: var(--color-highlight);
 }
 
 /* --- Responses --- */

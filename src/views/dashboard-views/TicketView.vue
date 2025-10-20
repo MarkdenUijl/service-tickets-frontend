@@ -94,7 +94,6 @@ async function handleBulkDelete() {
 }
 
 function onClickTicketRow(item) {
-  console.log(item)
   router.push({ name: 'ticket-detail', params: { id: item.id } });
 }
 

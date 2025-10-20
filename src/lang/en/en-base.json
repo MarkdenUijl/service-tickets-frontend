@@ -9,5 +9,7 @@
   "minutesText": "minutes",
   "andText": "and",
   "createText": "Create",
-  "cancelText": "Cancel"
+  "cancelText": "Cancel",
+  "showMoreText": "Show more...",
+  "showLessText": "Show less..."
 }

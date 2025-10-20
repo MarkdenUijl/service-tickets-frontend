@@ -74,5 +74,9 @@
     "detailsContractStatusValidText": "Geldig",
     "detailsContractTimeLabelText": "Resterende tijd",
     "detailsAttachedFilesHeaderText": "Bijgevoegde bestanden",
-    "detailsTicketNotFoundText": "Ticket niet gevonden."
+    "detailsTicketNotFoundText": "Ticket niet gevonden.",
+    "detailsNoCallsByUserText": "Gebruiker heeft nog geen tickets",
+    "detailsNoCallsOnProjectText": "Project heeft nog geen tickets",
+    "recentTicketsByUserText": "Recente tickets van gebruiker:",
+    "recentTicketsOnProjectText": "Recente tickets op project:"
 }

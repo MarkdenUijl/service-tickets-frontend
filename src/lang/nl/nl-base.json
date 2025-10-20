@@ -9,5 +9,7 @@
   "minutesText": "minuten",
   "andText": "en",
   "createText": "Maak",
-  "cancelText": "Annuleren"
+  "cancelText": "Annuleren",
+  "showMoreText": "Laat meer zien...",
+  "showLessText": "Laat minder zien..."
 }

@@ -74,5 +74,9 @@
     "detailsContractStatusValidText": "Valid",
     "detailsContractTimeLabelText": "Remaining time",
     "detailsAttachedFilesHeaderText" : "Attached files",
-    "detailsTicketNotFoundText": "Ticket not found."
+    "detailsTicketNotFoundText": "Ticket not found.",
+    "detailsNoCallsByUserText": "User made no calls yet",
+    "detailsNoCallsOnProjectText": "Project has no calls connected yet",
+    "recentTicketsByUserText": "Recent tickets by user:",
+    "recentTicketsOnProjectText": "Recent tickets on project:"
 }

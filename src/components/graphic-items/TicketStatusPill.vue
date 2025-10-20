@@ -5,12 +5,16 @@ import { capitalizeWords } from '@/utils/capitalizeWords';
 const { t } = useI18n()
 
 const props = defineProps({
-  status: { type: String, required: true }
+  status: { type: String, required: true },
+  size: { type: String, default: 'normal' }
 })
 </script>
 
 <template>
-<span class="ticket-status-indicator" :class="'status-' + props.status.toLowerCase()">
+<span
+  class="ticket-status-indicator"
+  :class="['status-' + props.status.toLowerCase(), 'size-' + props.size]"
+>
   {{ t('ticket.status' + capitalizeWords(props.status) + 'Text') }}
 </span>
 </template>
@@ -46,5 +50,11 @@ const props = defineProps({
 .status-escalated {
   background-color: var(--color-tile-dire-back);
   color: var(--color-tile-dire-contrast);
+}
+
+.size-small {
+  width: 72px;
+  height: 16px;
+  font-size: 10px;
 }
 </style>
