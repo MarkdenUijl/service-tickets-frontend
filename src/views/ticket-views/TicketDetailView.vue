@@ -4,9 +4,11 @@ import { QuillEditor } from '@vueup/vue-quill'
 import { useRoute } from 'vue-router'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import { useI18n } from 'vue-i18n'
-import { formatMinutes } from '@/utils/formatMinutes'
-import { capitalizeWords } from '@/utils/capitalizeWords'
 import { connectToTicketDetail, disconnectFromTicketDetail } from '@/services/websocket'
+import { isContractCurrentlyValid, getRemainingContractTime, getContractTypeKey } from '@/utils/contractHelpers'
+import { useTickets } from '@/composables/useTickets'
+import { safeApiCall } from '@/utils/safeApiCall'
+import { handleTicketUpdates } from '@/services/ticketSocketHandler'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
@@ -27,106 +29,75 @@ const route = useRoute()
 const { t } = useI18n()
 
 // Core state
-const ticketData = ref(null)
+const { ticketData, recentUserTickets, recentProjectTickets, fetchTicketById, fetchRecentTickets } = useTickets()
 const selectedFiles = ref([])
-const recentUserTickets = ref([])
-const recentProjectTickets = ref([])
 const isLoadingTicket = ref(true)
-const loadError = ref(false)
+const hasLoadError = ref(false)
 const quillRef = ref(null)
 const showAllFiles = ref(false)
 
 // Response form state
 const replyText = ref('')
-const timeSpentMinutes = ref(0)
+const timeSpentMinutes = ref(null)
 const submitting = ref(false)
 
 /**
  * Fetch ticket details by ID
  * Watches the route param to re-fetch if user navigates to another ticket.
  */
-async function fetchTicket() {
+async function loadTicket() {
   isLoadingTicket.value = true
-  loadError.value = false
-  try {
-    const response = await api.get(`/serviceTickets/${route.params.id}`)
-    ticketData.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch ticket details:', error)
-    loadError.value = true
-  } finally {
-    await fetchRecentTickets()
-    isLoadingTicket.value = false
-  }
+  hasLoadError.value = false
+  
+  const ticketLoaded = await safeApiCall(
+    async () => {
+      const ticket = await fetchTicketById(route.params.id)
+      await fetchRecentTickets(ticket)
+      return ticket
+    },
+    'Failed to fetch ticket details'
+  )
+
+  if (!ticketLoaded) hasLoadError.value = true
+  isLoadingTicket.value = false
 }
 
-async function fetchRecentTickets() {
-  if (!ticketData.value) return
-
-  try {
-    const userId = ticketData.value.submittedBy?.id
-    const projectId = ticketData.value.project?.id
-
-    if (userId) {
-      const userRes = await api.get(`/serviceTickets?submitterId=${userId}&limit=4&sort=desc`)
-      recentUserTickets.value = userRes.data.filter(t => t.id !== ticketData.value.id)
-    }
-
-    if (projectId) {
-      const projectRes = await api.get(`/serviceTickets?projectId=${projectId}&limit=4&sort=desc`)
-      recentProjectTickets.value = projectRes.data.filter(t => t.id !== ticketData.value.id)
-    }
-  } catch (error) {
-    console.error('Failed to load recent tickets:', error)
-  }
-}
-
-watch(
-  () => route.params.id,
-  () => {
-    fetchTicket()
-  },
-  { immediate: true }
-)
+watch(() => route.params.id, loadTicket, { immediate: true })
 
 /**
  * Download a file from this ticket.
  * If it's an image or PDF, open in new tab; else trigger a download.
  */
 async function downloadAttachment(fileId, filename) {
-  try {
-    const response = await api.get(
-      `/serviceTickets/${ticketData.value.id}/files/${fileId}`,
-      { responseType: 'blob' }
-    )
+  const response = await safeApiCall(
+    () => api.get(`/serviceTickets/${ticketData.value.id}/files/${fileId}`, { responseType: 'blob' }),
+    'Failed to download file'
+  )
+  if (!response) return
 
-    const blob = new Blob([response.data], { type: response.headers['content-type'] })
-    const blobUrl = window.URL.createObjectURL(blob)
+  const blob = new Blob([response.data], { type: response.headers['content-type'] })
+  const blobUrl = window.URL.createObjectURL(blob)
 
-    const ct = (response.headers['content-type'] || '').toLowerCase()
-    if (ct.includes('pdf') || ct.startsWith('image/')) {
-      window.open(blobUrl, '_blank')
-    } else {
-      const link = document.createElement('a')
-      link.href = blobUrl
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-
-    window.URL.revokeObjectURL(blobUrl)
-  } catch (error) {
-    console.error('Failed to download file:', error)
+  const ct = (response.headers['content-type'] || '').toLowerCase()
+  if (ct.includes('pdf') || ct.startsWith('image/')) {
+    window.open(blobUrl, '_blank')
+  } else {
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
+
+  window.URL.revokeObjectURL(blobUrl)
 }
 
 async function deleteAttachment(fileId) {
-  try {
-    await api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`)
-  } catch (error) {
-    console.error('Failed to delete file:', error)
-  }
+  await safeApiCall(
+    () => api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`),
+    'Failed to delete file'
+  )
 }
 
 /**
@@ -137,33 +108,37 @@ async function submitReply() {
   if (!replyText.value.trim()) return
   submitting.value = true
 
-  try {
-    await api.post('/ticketResponses', {
+  const responseResult = await safeApiCall(
+    () => api.post('/ticketResponses', {
       response: DOMPurify.sanitize(replyText.value),
       serviceTicketId: ticketData.value.id,
       minutesSpent: Math.max(0, timeSpentMinutes.value)
-    })
+    }),
+    'Failed to submit response'
+  )
 
-    if (selectedFiles.value.length > 0) {
-      const formData = new FormData()
-      selectedFiles.value.forEach(file => formData.append('files', file))
-      await api.post(`/serviceTickets/${ticketData.value.id}/files`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-    }
-
-    replyText.value = ''
-    selectedFiles.value = []
-    timeSpentMinutes.value = null
-
-    if (quillRef.value) {
-      quillRef.value.setHTML('') // or .setText('') if you prefer
-    }
-  } catch (error) {
-    console.error('Failed to submit response:', error)
-  } finally {
+  if (!responseResult) {
     submitting.value = false
+    return
   }
+
+  if (selectedFiles.value.length > 0) {
+    const formData = new FormData()
+    selectedFiles.value.forEach(file => formData.append('files', file))
+
+    await safeApiCall(
+      () => api.post(`/serviceTickets/${ticketData.value.id}/files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }),
+      'Failed to upload attachments'
+    )
+  }
+
+  replyText.value = ''
+  selectedFiles.value = []
+  timeSpentMinutes.value = null
+  if (quillRef.value) quillRef.value.setHTML('')
+  submitting.value = false
 }
 
 // --- Computed helpers --- //
@@ -183,30 +158,28 @@ const responses = computed(() => {
   })
 })
 
+const isReplyDisabled = computed(() => {
+  const text = replyText.value?.replace(/<[^>]*>/g, '').trim()
+  const hasText = text.length > 0
+
+  const quillText = quillRef.value?.getText()?.replace(/\s+/g, '') || ''
+  const hasQuillText = quillText.length > 0
+
+  const hasTime = timeSpentMinutes.value !== null && timeSpentMinutes.value > 0
+
+  return !( (hasText || hasQuillText) && hasTime )
+})
+
 const serviceContract = computed(() => ticketData.value?.project?.serviceContract || null)
+const isContractValid = computed(() => isContractCurrentlyValid(serviceContract.value))
+const remainingContractMinutes = computed(() => getRemainingContractTime(serviceContract.value))
+const contractTypeLabel = computed(() => t(getContractTypeKey(serviceContract.value)))
 
-const isContractValid = computed(() => {
-  const c = serviceContract.value
-  if (!c?.startDate || !c?.endDate) return false
-  const now = new Date()
-  const start = new Date(c.startDate)
-  const end = new Date(c.endDate)
-  return now >= start && now <= end
+const creationDate = computed(() => {
+  if (!ticketData.value?.creationDate) return { date: '', time: '' }
+  return formatIsoDate(ticketData.value.creationDate)
 })
 
-const remainingContractMinutes = computed(() => {
-  const c = serviceContract.value
-  if (!c?.contractTime) return 0
-  const used = c.usedTime || 0
-  const remaining = Math.max(0, c.contractTime - used)
-
-  return formatMinutes(remaining)
-})
-
-const contractTypeLabel = computed(() => {
-  const type = ticketData.value?.project?.serviceContract?.type || 'none'
-  return t('ticket.contract' + capitalizeWords(type).replaceAll('_', '') + 'Text')
-})
 
 const displayedFiles = computed(() => {
   if (!ticketData.value?.files) return {}
@@ -217,12 +190,7 @@ const displayedFiles = computed(() => {
 
 onMounted(() => {
   const ticketId = route.params.id
-
-  connectToTicketDetail(ticketId, (update) => {
-    if (update.responses) ticketData.value.responses = [...update.responses]
-    if (update.files) ticketData.value.files = { ...update.files }
-    if (update.status) ticketData.value.status = update.status
-  })
+  connectToTicketDetail(ticketId, handleTicketUpdates(ticketData))
 })
 
 onUnmounted(() => {
@@ -240,7 +208,7 @@ onUnmounted(() => {
       <span>{{ t('ticket.detailsLoadingText') }}</span>
     </div>
 
-    <div v-else-if="loadError" class="ticket-detail-error">
+    <div v-else-if="hasLoadError" class="ticket-detail-error">
       <span>{{ t('ticket.detailsLoadingErrorText') }}</span>
     </div>
 
@@ -266,7 +234,7 @@ onUnmounted(() => {
             <UserInfoTile 
               :firstName="ticketData.submittedBy.firstName" 
               :lastName="ticketData.submittedBy.lastName"
-              :subtext="`${formatIsoDate(ticketData.creationDate).date}, ${formatIsoDate(ticketData.creationDate).time}`"
+              :subtext="`${creationDate.date}, ${creationDate.time}`"
               :isFree="true"
             />
             <p>{{ ticketData.description }}</p>
@@ -321,7 +289,14 @@ onUnmounted(() => {
               <span class="unit">{{ t('base.minutesText') }}</span>
             </div>
             
-            <LoaderButton :loading="submitting" :label="t('base.createText')" type="button" @click.stop="submitReply" aria-busy="submitting" />
+            <LoaderButton
+              :loading="submitting"
+              :label="t('base.createText')"
+              type="button"
+              :disabled="isReplyDisabled"
+              @click.stop="submitReply"
+              aria-busy="submitting"
+            />
           </div>
         </section>
       </div>
@@ -463,8 +438,12 @@ onUnmounted(() => {
   position: sticky;
   top: 4px;
   align-self: flex-start;
-  overflow: scroll;
+  overflow-y: scroll;
   max-height: 100vh;
+}
+
+#ticket-meta::-webkit-scrollbar {
+    display: none;
 }
 
 .ticket-meta-information {
@@ -639,6 +618,13 @@ onUnmounted(() => {
 
 .time-log-control input[type="number"] {
   -moz-appearance: textfield;
+}
+
+button:disabled,
+.loader-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(60%);
 }
 
 /* --- Quill Editor Overrides --- */
