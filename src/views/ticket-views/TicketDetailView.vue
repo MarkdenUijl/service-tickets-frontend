@@ -8,6 +8,7 @@ import { connectToTicketDetail, disconnectFromTicketDetail } from '@/services/we
 import { isContractCurrentlyValid, getRemainingContractTime, getContractTypeKey } from '@/utils/contractHelpers'
 import { useTickets } from '@/composables/useTickets'
 import { safeApiCall } from '@/utils/safeApiCall'
+import { useAuthStore } from '@/stores/authStore'
 import { handleTicketUpdates } from '@/services/ticketSocketHandler'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
@@ -27,11 +28,14 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const route = useRoute()
 const { t } = useI18n()
+const auth = useAuthStore()
+const hasPrivilege = auth.hasPrivilege
 
 // Core state
 const { ticketData, recentUserTickets, recentProjectTickets, fetchTicketById, fetchRecentTickets } = useTickets()
 const selectedFiles = ref([])
 const isLoadingTicket = ref(true)
+const isStatusUpdating = ref(false)
 const hasLoadError = ref(false)
 const quillRef = ref(null)
 const showAllFiles = ref(false)
@@ -100,6 +104,43 @@ async function deleteAttachment(fileId) {
   )
 }
 
+const isClosed = computed(() => ticketData.value?.status === 'CLOSED')
+const isEscalated = computed(() => ticketData.value?.status === 'ESCALATED')
+const canEscalate = computed(() => !!ticketData.value && !isClosed.value && !isEscalated.value)
+
+
+async function updateTicketStatus(nextStatus) {
+  if (!ticketData.value) return
+  if (isStatusUpdating.value) return
+
+  isStatusUpdating.value = true
+
+  await safeApiCall(
+    async () => {
+        await api.patch(`/serviceTickets/${ticketData.value.id}/status`, { status: nextStatus })
+      // Rely on websocket broadcast to refresh ticketData
+    },
+    'Failed to update ticket status'
+  )
+
+  isStatusUpdating.value = false
+}
+
+async function closeTicket() {
+  await updateTicketStatus('CLOSED')
+}
+
+async function openTicket() {
+  await updateTicketStatus('OPEN')
+}
+
+async function escalateTicket() {
+  await updateTicketStatus('ESCALATED')
+}
+
+
+
+
 /**
  * Submit a new response for this ticket.
  * Guards against empty or invalid input.
@@ -165,7 +206,9 @@ const isReplyDisabled = computed(() => {
   const quillText = quillRef.value?.getText()?.replace(/\s+/g, '') || ''
   const hasQuillText = quillText.length > 0
 
-  const hasTime = timeSpentMinutes.value !== null && timeSpentMinutes.value > 0
+  const hasTime = hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE') 
+    ? timeSpentMinutes.value !== null && timeSpentMinutes.value > 0
+    : true
 
   return !( (hasText || hasQuillText) && hasTime )
 })
@@ -225,6 +268,29 @@ onUnmounted(() => {
                 <TicketSourcePill :source="ticketData.source" />
               </div>
             </div>
+
+
+            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="status-actions">
+              <button
+                v-if="canEscalate"
+                type="button"
+                class="status-button"
+                :disabled="isStatusUpdating"
+                @click="escalateTicket"
+              >
+                {{ t('ticket.detailsEscalateTicketText') }}
+              </button>
+
+              <button
+                type="button"
+                class="status-button"
+                :disabled="isStatusUpdating"
+                @click="isClosed ? openTicket() : closeTicket()"
+              >
+                {{ isClosed ? t('ticket.detailsOpenTicketText') : t('ticket.detailsCloseTicketText') }}
+              </button>
+            </div>
+
           </header>
   
           <VisualSeparator />
@@ -261,7 +327,11 @@ onUnmounted(() => {
         </section>
 
         <!-- ADD RESPONSE -->
-        <section class="ticket-detail-section" id="ticket-add-response">
+        <section 
+          v-if="!isClosed"
+          class="ticket-detail-section" 
+          id="ticket-add-response"
+        >
           <QuillEditor
             ref="quillRef"
             v-model:content="replyText"
@@ -277,7 +347,16 @@ onUnmounted(() => {
           />
 
           <div class="response-actions">
-            <div class="time-log-control">
+            <LoaderButton
+              :loading="submitting"
+              :label="t('base.createText')"
+              type="button"
+              :disabled="isReplyDisabled"
+              @click.stop="submitReply"
+              aria-busy="submitting"
+            />
+
+            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="time-log-control">
               <SvgIcon name="icon-clock" width="16px" />
               <input
                 type="number"
@@ -288,22 +367,13 @@ onUnmounted(() => {
               />
               <span class="unit">{{ t('base.minutesText') }}</span>
             </div>
-            
-            <LoaderButton
-              :loading="submitting"
-              :label="t('base.createText')"
-              type="button"
-              :disabled="isReplyDisabled"
-              @click.stop="submitReply"
-              aria-busy="submitting"
-            />
           </div>
         </section>
       </div>
 
       <!-- META INFO -->
       <div id="ticket-meta">
-        <div class="ticket-meta-information">
+        <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="ticket-meta-information">
           <section class="ticket-meta-information-section">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsCallerInfoHeaderText') }}</h3>
 
@@ -569,6 +639,7 @@ onUnmounted(() => {
 
 .response-actions {
   display: flex;
+  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
 }
@@ -679,5 +750,34 @@ button:disabled,
 
 :deep(.ql-editor.ql-blank::before) {
   color: var(--color-subtext);
+}
+
+
+
+
+.status-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  height: 100%;
+}
+
+.status-button {
+  position: relative;
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.status-button:hover {
+  background: var(--color-highlight);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 </style>

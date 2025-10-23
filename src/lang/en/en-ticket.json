@@ -77,6 +77,9 @@
     "detailsTicketNotFoundText": "Ticket not found.",
     "detailsNoCallsByUserText": "User made no calls yet",
     "detailsNoCallsOnProjectText": "Project has no calls connected yet",
+    "detailsEscalateTicketText": "Escalate ticket",
+    "detailsCloseTicketText": "Close ticket",
+    "detailsOpenTicketText": "Open ticket",
     "recentTicketsByUserText": "Recent tickets by user:",
     "recentTicketsOnProjectText": "Recent tickets on project:"
 }

@@ -77,6 +77,9 @@
     "detailsTicketNotFoundText": "Ticket niet gevonden.",
     "detailsNoCallsByUserText": "Gebruiker heeft nog geen tickets",
     "detailsNoCallsOnProjectText": "Project heeft nog geen tickets",
+    "detailsEscalateTicketText": "Escaleer ticket",
+    "detailsCloseTicketText": "Sluit ticket",
+    "detailsOpenTicketText": "Open ticket",
     "recentTicketsByUserText": "Recente tickets van gebruiker:",
     "recentTicketsOnProjectText": "Recente tickets op project:"
 }
