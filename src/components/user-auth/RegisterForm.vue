@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import api from '@/services/api'
 
 import ValidatedInput from '../user-input/ValidatedInput.vue'
+import ValidatedPhoneInput from '../user-input/ValidatedPhoneInput.vue'
 import LoaderButton from '../buttons/LoaderButton.vue'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { isEmail, isStrongPassword } from '@/utils/validators'
@@ -13,6 +14,8 @@ const formData = reactive({
   firstName: '',
   lastName: '',
   email: '',
+  phone: '',
+  countryCode: '+31',
   password: '',
   passwordConfirmation: ''
 })
@@ -21,6 +24,7 @@ const errors = reactive({
   firstName: '',
   lastName: '',
   email: '',
+  phone: '',
   password: '',
   passwordConfirmation: ''
 })
@@ -34,6 +38,7 @@ const loading = ref(false)
 const isFirstNameValid = computed(() => formData.firstName.trim().length > 0)
 const isLastNameValid = computed(() => formData.lastName.trim().length > 0)
 const isEmailValid = computed(() => isEmail(formData.email) && !errors.email)
+const isPhoneValid = computed(() => formData.phoneNumber?.trim().length > 0)
 const isPasswordValid = computed(() => isStrongPassword(formData.password))
 const isPasswordConfirmationValid = computed(
   () =>
@@ -47,6 +52,7 @@ const formCompletion = computed(() => {
     isFirstNameValid.value,
     isLastNameValid.value,
     isEmailValid.value,
+    isPhoneValid.value,
     isPasswordValid.value,
     isPasswordConfirmationValid.value
   ]
@@ -59,6 +65,14 @@ watch(formCompletion, (val) => emit('form-progress', val))
 const validateEmail = (val) => {
   if (!val) return 'emptyFieldError'
   if (!isEmail(val)) return 'emailInvalid'
+  return ''
+}
+
+const validatePhone = (val) => {
+  if (!val) return 'emptyFieldError'
+  const cleaned = val.replace(/\D/g, '')
+  if (cleaned.length < 8) return 'phoneTooShort'
+  if (cleaned.length > 15) return 'phoneTooLong'
   return ''
 }
 
@@ -102,6 +116,10 @@ watch(
   }
 )
 
+watch(() => formData.phone, (val) => {
+  errors.phone = val.length === 0 ? '' : validatePhone(val)
+})
+
 watch(
   () => formData.password,
   (val) => {
@@ -129,6 +147,7 @@ const register = async () => {
   errors.firstName = formData.firstName ? '' : 'emptyFieldError'
   errors.lastName = formData.lastName ? '' : 'emptyFieldError'
   errors.email = validateEmail(formData.email)
+  errors.phone = validatePhone(formData.phone)
   errors.password = validatePassword(formData.password)
   errors.passwordConfirmation = validatePasswordConfirmation(
     formData.password,
@@ -144,6 +163,7 @@ const register = async () => {
     firstName: capitalizeWords(formData.firstName.trim()),
     lastName: capitalizeWords(formData.lastName.trim()),
     email: formData.email.trim().toLowerCase(),
+    phoneNumber: `${formData.countryCode}${formData.phone.replace(/\D/g, '')}`,
     password: formData.password
   }
 
@@ -201,6 +221,17 @@ const register = async () => {
       autocomplete="email"
       :isValid="isEmailValid"
       :validationText="errors.email ? t(`auth.${errors.email}`) : ''"
+      validationMode="both"
+    />
+
+    <ValidatedPhoneInput
+      id="phone"
+      v-model="formData.phone"
+      :countryCode="formData.countryCode"
+      :placeholder="t('auth.phone')"
+      @update:countryCode="formData.countryCode = $event"
+      :isValid="isPhoneValid"
+      :validationText="errors.phone ? t(`auth.${errors.phone}`) : ''"
       validationMode="both"
     />
 
