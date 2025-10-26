@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { motion, AnimatePresence } from 'motion-v'
 import { useRouter } from 'vue-router'
@@ -9,7 +9,7 @@ import SearchInput from '@/components/user-input/SearchInput.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 
 import api from '@/services/api'
-import { connectToTickets, disconnectFromTickets } from '@/services/websocket'
+import { useTicketsStore } from '@/stores/ticketStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
@@ -21,12 +21,12 @@ const router = useRouter();
 
 const loading = ref(false)
 const searchInput = ref('')
-const items = ref([])
+const ticketsStore = useTicketsStore()
 const itemsSelected = ref([])
 const buttonHover = ref(false)
 
 const sortBy = ref(['priority', 'lastUpdated'])
-const sortType = ref('desc')
+const sortType = ref(['desc', 'desc'])
 
 const { t, locale } = useI18n()
 
@@ -36,6 +36,8 @@ const priorityOrder = {
   MEDIUM: 2,
   LOW: 1
 }
+
+const items = computed(() => ticketsStore.filteredTickets.map(normalizeTicket))
 
 const columns = computed(() => {
   locale.value
@@ -82,23 +84,9 @@ function normalizeTicket(ticket) {
   }
 }
 
-async function fetchTickets() {
-  if (loading.value) return
-  loading.value = true
-  try {
-    const response = await api.get('/serviceTickets')
-    items.value = response.data.map(normalizeTicket)
-  } catch (error) {
-    console.log(error?.status || error)
-  } finally {
-    loading.value = false
-  }
-}
-
 async function deleteTicket(ticketId) {
   try {
     await api.delete(`/serviceTickets/${ticketId}`)
-    items.value = items.value.filter(ticket => ticket.id !== ticketId)
   } catch (error) {
     console.log(error?.status || error)
   }
@@ -159,25 +147,7 @@ const sortedItems = computed(() => {
 })
 
 onMounted(() => {
-  fetchTickets()
-
-  // Listen for real-time updates
-  connectToTickets(ticket => {
-    console.log('[WebSocket] Received ticket update:', ticket)
-    const index = items.value.findIndex(t => t.id === ticket.id)
-    if (index !== -1) {
-      // items.value[index] = normalizeTicket({ ...items.value[index], ...ticket })
-      items.value.splice(index, 1, normalizeTicket({ ...items.value[index], ...ticket }))
-    } else {
-      items.value.push(normalizeTicket(ticket))
-    }
-
-    items.value = [...items.value]
-  })
-})
-
-onUnmounted(() => {
-  disconnectFromTickets()
+  ticketsStore.fetchAll()
 })
 </script>
 

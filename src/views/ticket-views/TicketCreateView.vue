@@ -39,22 +39,6 @@ const ticketData = reactive({
   source: null,
 })
 
-// const ticketPriority = computed(() => {
-//   const type = ticketData.type?.toUpperCase()
-//   const project = projects.value.find(p => p.id === ticketData.projectId)
-
-//   if (project?.serviceContract) {
-//     // Project has an active service contract → highest priority
-//     return 'HIGH'
-//   }
-
-//   if (type === 'CHANGE' || type === 'QUESTION') {
-//     return 'LOW'
-//   }
-
-//   return 'MEDIUM'
-// })
-
 // Composables
 const {
   errors,

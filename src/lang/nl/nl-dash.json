@@ -22,5 +22,10 @@
     "lastYearText": "Laatste jaar",
     "customRangeText": "Vrij bereik",
     "fullRangeText": "Sinds begin",
-    "clearPreferencesText": "Wis voorkeuren"
+    "clearPreferencesText": "Wis voorkeuren",
+    "openTicketsText": "Open tickets",
+    "escalatedTicketsText": "Geëscaleerde tickets",
+    "awaitingResponseText": "Wachtend op reactie",
+    "clientRespondedText": "Klant heeft gereageerd",
+    "unlinkedTicketsText": "Ongekoppelde tickets"
 }
