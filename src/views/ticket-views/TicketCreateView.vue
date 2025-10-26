@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectLookup } from '@/composables/useProjectLookup'
 import { useTicketValidation } from '@/composables/useTicketValidation'
@@ -38,6 +38,22 @@ const ticketData = reactive({
   city: '',
   source: null,
 })
+
+// const ticketPriority = computed(() => {
+//   const type = ticketData.type?.toUpperCase()
+//   const project = projects.value.find(p => p.id === ticketData.projectId)
+
+//   if (project?.serviceContract) {
+//     // Project has an active service contract → highest priority
+//     return 'HIGH'
+//   }
+
+//   if (type === 'CHANGE' || type === 'QUESTION') {
+//     return 'LOW'
+//   }
+
+//   return 'MEDIUM'
+// })
 
 // Composables
 const {
@@ -87,13 +103,14 @@ async function handleSubmit() {
   try {
     const { data } = await api.post('/serviceTickets', {
       name,
-      status: 'open',
+      status: 'OPEN',
       type,
       description,
       projectId,
       submittedByUserId,
       source,
     })
+
     const createdTicketId = data.id
 
     if (selectedFiles.value.length > 0) {

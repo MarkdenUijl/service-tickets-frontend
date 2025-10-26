@@ -12,7 +12,7 @@
   --vt-c-red: #B91228;
   --vt-c-pink: #F4C6CD;
   --vt-c-soft-pink-light: #ffe7ebce;
-  --vt-c-soft-pink-dark: #e7c8cde7;
+  --vt-c-soft-pink-dark: #e7c8cdf6;
   --vt-c-salmon: #E67C73;
   --vt-c-gold: #F5A623;
   --vt-c-teal: #12BAA1;
@@ -52,6 +52,14 @@
   --color-tile-phone-contrast: #FB8C00;
   --color-tile-mail-back: #B2EBF2;
   --color-tile-mail-contrast: #0097A7;
+  --color-tile-priority-low-back: #DDE8E0;
+  --color-tile-priority-low-contrast: #3C6E47;
+  --color-tile-priority-medium-back: #FFF2CC;
+  --color-tile-priority-medium-contrast: #C49A00;
+  --color-tile-priority-high-back: #FFD6A5;
+  --color-tile-priority-high-contrast: #E16B00;
+  --color-tile-priority-critical-back: #F4C6CD;
+  --color-tile-priority-critical-contrast: #B91228;
 }
 
 /* Override for system dark preference */

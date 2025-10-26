@@ -109,3 +109,7 @@
 .vue3-easy-data-table__footer {
   margin-top: auto; /* sticks to bottom */
 }
+
+.multi-sort__number {
+  display: none;
+}

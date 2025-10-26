@@ -25,6 +25,7 @@ import RecentTicketsList from '@/components/lists/RecentTicketsList.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
 import FileItem from '@/components/lists/FileItem.vue'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -266,6 +267,7 @@ onUnmounted(() => {
                 <TicketStatusPill :status="ticketData.status" />
                 <TicketTypePill :type="ticketData.type" />
                 <TicketSourcePill :source="ticketData.source" />
+                <TicketPriorityPill v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" :priority="ticketData.priority" />
               </div>
             </div>
 
@@ -776,7 +778,7 @@ button:disabled,
 }
 
 .status-button:hover {
-  background: var(--color-highlight);
+  background: var(--color-soft-pink);
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }

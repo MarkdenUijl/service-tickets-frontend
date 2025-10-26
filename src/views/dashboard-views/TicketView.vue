@@ -14,6 +14,7 @@ import { capitalizeWords } from '@/utils/capitalizeWords'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
+import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 
 const router = useRouter();
@@ -24,16 +25,22 @@ const items = ref([])
 const itemsSelected = ref([])
 const buttonHover = ref(false)
 
-const sortBy = ref('lastUpdated')
+const sortBy = ref(['priority', 'lastUpdated'])
 const sortType = ref('desc')
 
 const { t, locale } = useI18n()
 
+const priorityOrder = {
+  CRITICAL: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1
+}
 
 const columns = computed(() => {
   locale.value
   return [
-    { text: t('ticket.columnIdText'), value: 'id', sortable: true },
+    { text: t('ticket.columnPriorityText'), value: 'priority', sortable: true },
     { text: t('ticket.columnTicketTitleText'), value: 'name' },
     { text: t('ticket.columnTypeText'), value: 'type', sortable: true },
     { text: t('ticket.columnCallTimeText'), value: 'creationDate', sortable: true },
@@ -46,15 +53,31 @@ const columns = computed(() => {
 
 // Normalize a raw ticket from API/websocket into table-ready form.
 function normalizeTicket(ticket) {
+    // Compute contract type value and display
+  const contractTypeValue = ticket.project?.serviceContract?.type || 'NONE';
+  let contractTypeDisplay = capitalizeWords(
+    contractTypeValue
+      .replaceAll('_', ' ')
+      .toLowerCase()
+  );
+
+  // Check for contract end date and expiration
+  const contractEndDateStr = ticket.project?.serviceContract?.endDate
+  if (contractEndDateStr) {
+    const contractEndDate = new Date(contractEndDateStr)
+    const today = new Date();
+    contractEndDate.setHours(0, 0, 0, 0)
+    today.setHours(0, 0, 0, 0)
+    if (contractEndDate < today) {
+      contractTypeDisplay = t('ticket.detailsContractStatusExpiredText')
+    }
+  }
+
   return {
     ...ticket,
     projectName: ticket.project?.name || '',
-    contractTypeValue: ticket.project?.serviceContract?.type || 'NONE',
-    contractTypeDisplay: capitalizeWords(
-      (ticket.project?.serviceContract?.type || 'NONE')
-        .replaceAll('_', ' ')
-        .toLowerCase()
-    ),
+    contractTypeValue,
+    contractTypeDisplay,
     lastUpdated: ticket.lastUpdated
   }
 }
@@ -94,6 +117,7 @@ async function handleBulkDelete() {
 }
 
 function onClickTicketRow(item) {
+  console.log(item)
   router.push({ name: 'ticket-detail', params: { id: item.id } });
 }
 
@@ -105,6 +129,34 @@ function onUpdateSort(sortOptions) {
 const onCreateTicket = () => {
   router.push({ name: 'ticket-create' })
 }
+
+const sortedItems = computed(() => {
+  const baseList = [...items.value]
+
+  if (sortBy.value === 'priority') {
+    baseList.sort((a, b) => {
+      const diff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0)
+      if (diff !== 0) return diff
+      return new Date(b.lastUpdated) - new Date(a.lastUpdated)
+    })
+  } else if (sortBy.value === 'lastUpdated') {
+    baseList.sort((a, b) => {
+      const dateA = new Date(a.lastUpdated)
+      const dateB = new Date(b.lastUpdated)
+      return sortType.value === 'asc' ? dateA - dateB : dateB - dateA
+    })
+  } else {
+    baseList.sort((a, b) => {
+      const valueA = a[sortBy.value]
+      const valueB = b[sortBy.value]
+      if (valueA == null || valueB == null) return 0
+      if (sortType.value === 'asc') return valueA > valueB ? 1 : -1
+      return valueA < valueB ? 1 : -1
+    })
+  }
+
+  return baseList
+})
 
 onMounted(() => {
   fetchTickets()
@@ -224,7 +276,7 @@ onUnmounted(() => {
 
       <PrivilegedDataTable
         :headers="columns"
-        :items="items"
+        :items="sortedItems"
         :search-value="searchInput"
         :rows-per-page="10"
         :theme-color="'var(--color-highlight)'"
@@ -234,11 +286,16 @@ onUnmounted(() => {
         body-text-direction="center"
         v-model:items-selected="itemsSelected"
         buttons-pagination
+        multi-sort
         :sort-by="sortBy"
         :sort-type="sortType"
         @click-row="onClickTicketRow"
         @update-sort="onUpdateSort"
       >
+        <template #item-priority="{ priority }">
+          <TicketPriorityPill :priority="priority" />
+        </template>
+
         <template #item-name="{ name }">
           <span class="ticket-name-indicator">{{ name }}</span>
         </template>
@@ -258,9 +315,9 @@ onUnmounted(() => {
           <span>{{ projectName }}</span>
         </template>
 
-        <template #item-contractTypeValue="{ contractTypeValue }">
+        <template #item-contractTypeValue="{ contractTypeDisplay }">
           <span class="ticket-contract-indicator">
-            {{ t('ticket.contract' + capitalizeWords(contractTypeValue).replaceAll('_', '') + 'Text') }}
+              {{ contractTypeDisplay }}
           </span>
         </template>
 
