@@ -1,10 +1,11 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AnimatePresence, motion } from 'motion-v'
 
 import { useCurrentUser } from '@/utils/useCurrentUser'
+import { useAuthStore } from '@/stores/authStore'
 import { logout } from '@/utils/auth'
 import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue'
 import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue'
@@ -13,6 +14,7 @@ import UserInfoTile from '@/components/common/UserInfoTile.vue'
 
 const { t } = useI18n()
 const { user } = useCurrentUser()
+const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -32,8 +34,16 @@ const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' 
 const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 
 // Track resize → isMobile flag
-window.addEventListener('resize', () => {
+const handleResize = () => {
   isMobile.value = window.innerWidth <= 635
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 
 const showMenu = computed(() => !isMobile.value || menuOpen.value)
@@ -55,13 +65,20 @@ const dashboardChildren = computed(() => {
   return dashboardRoute?.children || []
 })
 
+
 const pages = computed(() =>
-  dashboardChildren.value.map(child => ({
-    label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
-    icon: `${child.name}-icon`,
-    to: `/dashboard/${child.path}`
-  }))
-)
+  dashboardChildren.value
+    .filter(child => child.meta?.showInMenu !== false)
+    .filter(child => {
+      if (!child.meta?.privilege) return true;
+      return auth.hasPrivilege(child.meta.privilege);
+    })
+    .map(child => ({
+      label: child.meta?.titleKey ? t(child.meta.titleKey) : child.name,
+      icon: `${child.name}-icon`,
+      to: `/dashboard/${child.path}`
+    }))
+);
 
 const selectedPages = computed(() =>
   pages.value.map(page => ({
@@ -132,7 +149,7 @@ watch(showMenu, (visible) => {
       v-if="isMobile"
       :first-name="user.firstName ?? ''"
       :last-name="user.lastName ?? ''"
-      :email="user.email ?? ''"
+      :subtext="user.email ?? ''"
       text-color="var(--vt-c-white)"
     />
 
@@ -187,9 +204,9 @@ watch(showMenu, (visible) => {
         <!-- Desktop user tile -->
         <UserInfoTile
           v-if="!isMobile"
-          :first-name="user.firstName ?? ''"
-          :last-name="user.lastName ?? ''"
-          :email="user.email ?? ''"
+          :first-name="user?.firstName ?? ''"
+          :last-name="user?.lastName ?? ''"
+          :subtext="user?.email ?? ''"
           :menu-options="userMenuOptions"
         />
       </motion.div>
@@ -269,6 +286,7 @@ watch(showMenu, (visible) => {
   left: 0;
   width: 8px;
   height: 60px;
+  color: var(--color-highlight);
 }
 
 .page-background {

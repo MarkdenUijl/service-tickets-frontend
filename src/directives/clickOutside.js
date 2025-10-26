@@ -16,11 +16,11 @@ export default {
     }
 
     // Use pointerdown to catch both mouse & touch early
-    document.addEventListener('pointerdown', el.__clickOutsideHandler__)
+    document.addEventListener('click', el.__clickOutsideHandler__)
   },
   unmounted(el) {
     if (el.__clickOutsideHandler__) {
-      document.removeEventListener('pointerdown', el.__clickOutsideHandler__)
+      document.removeEventListener('click', el.__clickOutsideHandler__)
       delete el.__clickOutsideHandler__
     }
   }

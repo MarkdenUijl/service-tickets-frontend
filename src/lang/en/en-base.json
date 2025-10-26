@@ -1,0 +1,15 @@
+{
+  "fullNameText": "Name",
+  "firstNameText": "First name",
+  "lastNameText": "Last name",
+  "emailText": "Email",
+  "phoneNumberText": "Phone",
+  "hourText": "hour",
+  "hoursText": "hours",
+  "minutesText": "minutes",
+  "andText": "and",
+  "createText": "Create",
+  "cancelText": "Cancel",
+  "showMoreText": "Show more...",
+  "showLessText": "Show less..."
+}

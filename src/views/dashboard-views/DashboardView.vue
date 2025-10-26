@@ -2,17 +2,18 @@
 import { GridLayout } from 'grid-layout-plus'
 import { ref, computed, watch } from 'vue'
 import { motion } from 'motion-v'
+import { useI18n } from 'vue-i18n'
 
 import CartesianChart from '@/components/data-visualisation/CartesianChart.vue'
 import RadialChart from '@/components/data-visualisation/RadialChart.vue'
 import DashboardDataTile from '@/components/data-visualisation/DashboardDataTile.vue'
 import DashboardCarousel from '@/components/data-visualisation/DashboardCarousel.vue'
 import RouteInfo from '@/components/common/RouteInfo.vue'
-import SearchBar from '@/components/user-input/SearchBar.vue'
 import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue'
 
 import { useWindowSize } from '@/composables/useWindowSize'
 import { useStableSize } from '@/composables/useStableSize'
+import SearchCombo from '@/components/user-input/SearchCombo.vue'
 
 // --- UI State
 const STORAGE_KEY = 'dashboardTileLayout'
@@ -21,6 +22,7 @@ const maxTilesAmount = 9
 const isChecked = ref(false)
 const dateRange = ref(null)
 const searchInput = ref('')
+const { t } = useI18n()
 
 // layout state
 const savedLayout = localStorage.getItem(STORAGE_KEY)
@@ -188,7 +190,7 @@ const barOptions = {
   chart: { id: 'tickets-by-month' },
   xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
   plotOptions: { bar: { borderRadius: 2, borderRadiusApplication: 'end' } },
-  colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+  colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
   stroke: { width: 2 },
   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
   grid: { borderColor: 'var(--color-subtext)' }
@@ -197,7 +199,7 @@ const barOptions = {
 const areaOptions = {
   chart: { id: 'tickets-by-month' },
   xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-  colors: ['var(--vt-c-red)', 'var(--vt-c-teal)'],
+  colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
   stroke: { width: 2 },
   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
   grid: { borderColor: 'var(--color-subtext)' },
@@ -215,7 +217,7 @@ const areaOptions = {
 
 const donutOptions = {
   chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-type-breakdown' },
-  colors: ['var(--vt-c-pink)', 'var(--vt-c-red)', 'var(--vt-c-salmon)', 'var(--vt-c-gold)', 'var(--vt-c-teal)'],
+  colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
   stroke: { width: 4, colors: ['var(--color-menu-background)'] },
   legend: {
     position: 'bottom',
@@ -258,16 +260,31 @@ const iconVariants = {
   plus: { d: 'M12 5v14M5 12h14', rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 20 } },
   check: { d: 'M5 13l4 4L19 7', rotate: 365, transition: { type: 'spring', stiffness: 200, damping: 20 } }
 }
+
+
+const demoItems = [
+  'Lighting commissioning - Building A',
+  'Emergency callout - Plant room',
+  'Fault diagnostics - Floor 3',
+  'Sensor calibration - West wing',
+  'DALI loop check - Warehouse',
+  'As-built update - Atrium',
+  'Driver replacement - Block C',
+  'Energy audit - HQ campus',
+  'Scene programming - Auditorium',
+  'Warranty ticket - Panel LCP-12'
+]
 </script>
 
 <template>
   <div class="dashboard-view-wrapper" ref="wrapperRef">
     <div class="dashboard-header-items">
       <RouteInfo />
-      <SearchBar v-model="searchInput" />
+      <SearchCombo v-model="searchInput" :placeholder="t('dash.searchProjectsText')" :items="demoItems"/>
+      
       <FilterDatePicker v-model="dateRange" />
       <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
-        Clear preferences
+        {{ t('dash.clearPreferencesText') }}
       </motion.button>
     </div>
 
@@ -332,7 +349,7 @@ const iconVariants = {
   </div>
 </template>
 
-<style>
+<style scoped>
 .clear-filter-button {
   background-color: var(--color-menu-background);
   color: var(--text-color);
@@ -362,8 +379,4 @@ const iconVariants = {
 .add-menu-tile-button.checked { cursor: default; }
 
 .add-menu-checkmark { background: none; overflow: visible; pointer-events: none; }
-
-@media (max-width: 635px) {
-  .dashboard-header-items { display: none; }
-}
 </style>

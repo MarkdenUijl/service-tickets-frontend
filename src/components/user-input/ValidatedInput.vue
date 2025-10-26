@@ -16,11 +16,14 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['blur'])
+
 const modelValue = defineModel()
 
 const touched = ref(false)
 
 const handleBlur = () => {
+  emit('blur')
   if (modelValue.value !== '' && modelValue.value !== null && modelValue.value !== undefined) {
     touched.value = true
   }
@@ -88,7 +91,7 @@ const validationColor = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .input-wrapper {
   position: relative;
   width: 100%;
@@ -96,10 +99,10 @@ const validationColor = computed(() => {
 
 .validation-text {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   right: 0;
   z-index: 2;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--color-highlight);
   pointer-events: none;
 }

@@ -1,4 +1,5 @@
 {
+    "DashboardText": "Dashboard",
     "navOverviewText": "Overzicht",
     "navTicketsText": "Tickets",
     "navProjectsText": "Projecten",
@@ -20,5 +21,6 @@
     "lastMonthText": "Laatste maand",
     "lastYearText": "Laatste jaar",
     "customRangeText": "Vrij bereik",
-    "fullRangeText": "Sinds begin"
+    "fullRangeText": "Sinds begin",
+    "clearPreferencesText": "Wis voorkeuren"
 }

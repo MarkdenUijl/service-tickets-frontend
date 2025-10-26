@@ -1,9 +1,11 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
 // Base URL for the backend. We read it at module load so the axios instance
 // is configured once. If this is missing, we warn (non-fatal) so the app can
 // still run with relative URLs in dev.
 const API_URL = import.meta.env.VITE_BACKEND_URL
+const auth = useAuthStore()
 
 if (!API_URL) {
   console.warn('[api] VITE_BACKEND_URL is not set; axios will use relative URLs')
@@ -26,7 +28,7 @@ const normalizePath = (path) => {
 
 // Public, unauthenticated endpoints (exact path match after normalization).
 // WHY: Keeps auth logic centralized and avoids leaking tokens to public routes.
-const PUBLIC_PATHS = ['/auth/login', '/users'].map(normalizePath)
+const PUBLIC_PATHS = ['/auth/login'].map(normalizePath)
 
 // Single axios instance so interceptors apply uniformly across the app.
 const api = axios.create({
@@ -65,7 +67,7 @@ api.interceptors.request.use(
     }
 
     if (!isPublic) {
-      const token = localStorage.getItem('token')
+      const token = auth.token
       // WHY: Attach token only when present; otherwise let the backend 401.
       if (token) {
         config.headers['Authorization'] = `Bearer ${token.trim()}`

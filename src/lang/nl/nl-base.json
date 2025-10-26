@@ -1,0 +1,15 @@
+{
+  "fullNameText": "Naam",
+  "firstNameText": "Voornaam",
+  "lastNameText": "Achternaam",
+  "emailText": "Email",
+  "phoneNumberText": "Telefoon",
+  "hourText": "uur",
+  "hoursText": "uur",
+  "minutesText": "minuten",
+  "andText": "en",
+  "createText": "Maak",
+  "cancelText": "Annuleren",
+  "showMoreText": "Laat meer zien...",
+  "showLessText": "Laat minder zien..."
+}

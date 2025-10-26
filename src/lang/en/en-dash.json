@@ -1,4 +1,5 @@
 {
+    "DashboardText": "Dashboard",
     "navOverviewText": "Overview",
     "navTicketsText": "Tickets",
     "navProjectsText": "Projects",
@@ -20,5 +21,6 @@
     "lastMonthText": "Last month",
     "lastYearText": "Last year",
     "customRangeText": "Custom range",
-    "fullRangeText": "Since start"
+    "fullRangeText": "Since start",
+    "clearPreferencesText": "Clear preferences"
 }

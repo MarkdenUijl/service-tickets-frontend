@@ -78,3 +78,38 @@
   gap: 48px;
   padding: 16px 12px;
 }
+
+@media (max-width: 635px) {
+  .dashboard-header-items { display: none; }
+}
+
+/* Vue 3 Easy Data Table */
+.vue3-easy-data-table,
+.vue3-easy-data-table__main,
+.vue3-easy-data-table__body,
+.vue3-easy-data-table table {
+  overflow: visible !important;
+}
+
+.vue3-easy-data-table__main {
+  padding-top: 4px;
+  padding-bottom: 8px;
+}
+
+.vue3-easy-data-table tbody tr:hover {
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 2px 8px var(--color-shadow);
+  transform: translateY(-2px);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.vue3-easy-data-table__footer {
+  margin-top: auto; /* sticks to bottom */
+}
+
+.multi-sort__number {
+  display: none;
+}

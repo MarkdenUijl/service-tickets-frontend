@@ -6,25 +6,60 @@
   --vt-c-offwhite: #B0B1B5;
   --vt-c-darkwhite: #C1C1C1;
   --vt-c-black: #36373F;
-  --vt-c-black-transparent: rgba(54, 55, 63, 0.90);
+  --vt-c-black-transparent: rgba(41, 42, 56, 0.9);
   --vt-c-pure-black: #000000;
+  --vt-c-pure-black-transparent: #000000ba;
   --vt-c-red: #B91228;
   --vt-c-pink: #F4C6CD;
+  --vt-c-soft-pink-light: #ffe7ebce;
+  --vt-c-soft-pink-dark: #e7c8cdf6;
   --vt-c-salmon: #E67C73;
   --vt-c-gold: #F5A623;
   --vt-c-teal: #12BAA1;
   --vt-c-green: #28B446;
-  --vt-c-shadow-white: #ffffff20;
-  --vt-c-shadow-black: #36373f10;
+  --vt-c-shadow-white: #0000008b;
+  --vt-c-shadow-black: #0000002f;
 
   /* Default to light mode variables */
   --color-menu-background: var(--vt-c-white);
   --color-menu-background-transparent: var(--vt-c-white-transparent);
+  --color-menu-dropdown: var(--vt-c-white-transparent);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
   --color-shadow: var(--vt-c-shadow-black);
   --color-highlight: var(--vt-c-red);
+  --color-secondary: var(--vt-c-pink);
+  --color-first-complementary: var(--vt-c-salmon);
+  --color-second-complementary: var(--vt-c-gold);
+  --color-third-complementary: var(--vt-c-teal);
+  --color-soft-pink: var(--vt-c-soft-pink-light);
+  
+  /* Colors without theme */
+  --color-tile-dire-back: #F4C6CD;
+  --color-tile-dire-contrast: #EE687C;
+  --color-tile-mild-back: #FDE089;
+  --color-tile-mild-contrast: #fb8200;
+  --color-tile-medium-back: #B3D4FC;
+  --color-tile-medium-contrast: #518EF8;
+  --color-tile-good-back: #A3F4DC;
+  --color-tile-good-contrast: #12BAA1;
+  --color-tile-great-back: #C8E6C9;
+  --color-tile-great-contrast: #28B446;
+  --color-tile-web-back: #D1C4E9;
+  --color-tile-web-contrast: #673AB7;
+  --color-tile-phone-back: #FFE0B2;
+  --color-tile-phone-contrast: #FB8C00;
+  --color-tile-mail-back: #B2EBF2;
+  --color-tile-mail-contrast: #0097A7;
+  --color-tile-priority-low-back: #DDE8E0;
+  --color-tile-priority-low-contrast: #3C6E47;
+  --color-tile-priority-medium-back: #FFF2CC;
+  --color-tile-priority-medium-contrast: #C49A00;
+  --color-tile-priority-high-back: #FFD6A5;
+  --color-tile-priority-high-contrast: #E16B00;
+  --color-tile-priority-critical-back: #F4C6CD;
+  --color-tile-priority-critical-contrast: #B91228;
 }
 
 /* Override for system dark preference */
@@ -32,11 +67,17 @@
   :root {
     --color-menu-background: var(--vt-c-black);
     --color-menu-background-transparent: var(--vt-c-black-transparent);
+    --color-menu-dropdown: var(--vt-c-pure-black-transparent);
     --color-background: var(--vt-c-pure-black);
     --color-text: var(--vt-c-white);
     --color-subtext: var(--vt-c-offwhite);
     --color-shadow: var(--vt-c-shadow-white);
     --color-highlight: var(--vt-c-red);
+    --color-secondary: var(--vt-c-pink);
+    --color-first-complementary: var(--vt-c-salmon);
+    --color-second-complementary: var(--vt-c-gold);
+    --color-third-complementary: var(--vt-c-teal);
+    --color-soft-pink: var(--vt-c-soft-pink-light);
   }
 }
 
@@ -44,22 +85,34 @@
 :root.theme-dark {
   --color-menu-background: var(--vt-c-black);
   --color-menu-background-transparent: var(--vt-c-black-transparent);
+  --color-menu-dropdown: var(--vt-c-pure-black-transparent);
   --color-background: var(--vt-c-pure-black);
   --color-text: var(--vt-c-white);
   --color-subtext: var(--vt-c-offwhite);
   --color-shadow: var(--vt-c-shadow-white);
   --color-highlight: var(--vt-c-red);
+  --color-secondary: var(--vt-c-pink);
+  --color-first-complementary: var(--vt-c-salmon);
+  --color-second-complementary: var(--vt-c-gold);
+  --color-third-complementary: var(--vt-c-teal);
+  --color-soft-pink: var(--vt-c-soft-pink-dark);
 }
 
 /* Manual light override */
 :root.theme-light {
   --color-menu-background: var(--vt-c-white);
   --color-menu-background-transparent: var(--vt-c-white-transparent);
+  --color-menu-dropdown: var(--vt-c-white-transparent);
   --color-background: var(--vt-c-ghost-white);
   --color-text: var(--vt-c-black);
   --color-subtext: var(--vt-c-darkwhite);
   --color-shadow: var(--vt-c-shadow-black);
   --color-highlight: var(--vt-c-red);
+  --color-secondary: var(--vt-c-pink);
+  --color-first-complementary: var(--vt-c-salmon);
+  --color-second-complementary: var(--vt-c-gold);
+  --color-third-complementary: var(--vt-c-teal);
+  --color-soft-pink: var(--vt-c-soft-pink-light);
 }
 
 *,
@@ -67,7 +120,6 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-weight: normal;
 }
 
 html, body, #app {
