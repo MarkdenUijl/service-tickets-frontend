@@ -300,8 +300,8 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
   flex-direction: column;
   border-radius: 4px;
   z-index: 10;
-  border: none;            /* button reset for a11y switch */
-  background: transparent; /* button reset for a11y switch */
+  border: none;
+  background: transparent;
 }
 
 .tile-menu-button .dot {

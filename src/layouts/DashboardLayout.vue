@@ -274,6 +274,7 @@ watch(showMenu, (visible) => {
   flex-direction: column;
   gap: 32px;
   width: 100%;
+  user-select: none;
 }
 
 .selection-menu-wrapper {

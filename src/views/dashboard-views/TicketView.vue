@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { motion, AnimatePresence } from 'motion-v'
 import { useRouter } from 'vue-router'
@@ -12,6 +12,7 @@ import api from '@/services/api'
 import { useTicketsStore } from '@/stores/ticketStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { formatIsoDate } from '@/utils/formatIsoDate'
+import { TICKET_STATUSES, TICKET_TYPES, PRIORITY_ORDER, TICKET_PRIORITIES } from '@/constants/ticketConstants'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
@@ -25,24 +26,66 @@ const ticketsStore = useTicketsStore()
 const itemsSelected = ref([])
 const buttonHover = ref(false)
 
-const sortBy = ref(['priority', 'lastUpdated'])
-const sortType = ref(['asc', 'desc'])
+const sortBy = ref(['priorityValue', 'lastUpdated'])
+const sortType = ref(['desc', 'desc'])
+const isFilterOpen = ref(false)
+const selectedStatuses = ref([...TICKET_STATUSES.filter(s => s !== 'CLOSED')])
+const selectedTypes = ref([...TICKET_TYPES])
+const selectedPriorities = ref([...TICKET_PRIORITIES])
 
 const { t, locale } = useI18n()
 
-const priorityOrder = {
-  CRITICAL: 4,
-  HIGH: 3,
-  MEDIUM: 2,
-  LOW: 1
+const filterSections = reactive([
+  {
+    id: 'status',
+    title: 'STATUS',
+    isOpen: false,
+    type: 'checkbox',
+    options: TICKET_STATUSES,
+    model: selectedStatuses
+  },
+  {
+    id: 'type',
+    title: 'TYPE',
+    isOpen: false,
+    type: 'checkbox',
+    options: TICKET_TYPES,
+    model: selectedTypes
+  },
+  {
+    id: 'priority',
+    title: 'PRIORITY',
+    isOpen: false,
+    type: 'checkbox',
+    options: TICKET_PRIORITIES,
+    model: selectedPriorities
+  }
+])
+
+const toggleFilterSection = (section) => {
+  section.isOpen = !section.isOpen
+}
+
+const onClickOutside = () => {
+  if (!isFilterOpen.value) return
+  isFilterOpen.value = false
 }
 
 const items = computed(() => ticketsStore.filteredTickets.map(normalizeTicket))
 
+const filteredItems = computed(() =>
+  items.value.filter(
+    ticket =>
+      selectedStatuses.value.includes(ticket.status) &&
+      selectedTypes.value.includes(ticket.type) &&
+      selectedPriorities.value.includes(ticket.priority)
+  )
+)
+
 const columns = computed(() => {
   locale.value
   return [
-    { text: t('ticket.columnPriorityText'), value: 'priority', sortable: true },
+    { text: t('ticket.columnPriorityText'), value: 'priorityValue', sortable: true },
     { text: t('ticket.columnTicketTitleText'), value: 'name' },
     { text: t('ticket.columnTypeText'), value: 'type', sortable: true },
     { text: t('ticket.columnCallTimeText'), value: 'creationDate', sortable: true },
@@ -75,11 +118,15 @@ function normalizeTicket(ticket) {
     }
   }
 
+  const priorityValue = PRIORITY_ORDER[ticket.priority] || 0;
+
   return {
     ...ticket,
     projectName: ticket.project?.name || '',
     contractTypeValue,
     contractTypeDisplay,
+    priority: ticket.priority,
+    priorityValue,
     lastUpdated: ticket.lastUpdated
   }
 }
@@ -93,7 +140,7 @@ async function deleteTicket(ticketId) {
 }
 
 function handleFilterClick() {
-  console.log('Clicking filter button')
+  isFilterOpen.value = !isFilterOpen.value
 }
 
 async function handleBulkDelete() {
@@ -141,43 +188,11 @@ function onUpdateSort(sortOptions) {
   // Update reactive values
   sortBy.value = newSortBy;
   sortType.value = newSortType;
-
-  console.log('Updated sort -> Column:', clickedColumn, 'Type:', clickedType);
-  console.log('New sortBy:', newSortBy);
-  console.log('New sortType:', newSortType);
 }
 
 const onCreateTicket = () => {
   router.push({ name: 'ticket-create' })
 }
-
-const sortedItems = computed(() => {
-  const baseList = [...items.value]
-
-  if (sortBy.value === 'priority') {
-    baseList.sort((a, b) => {
-      const diff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0)
-      if (diff !== 0) return diff
-      return new Date(b.lastUpdated) - new Date(a.lastUpdated)
-    })
-  } else if (sortBy.value === 'lastUpdated') {
-    baseList.sort((a, b) => {
-      const dateA = new Date(a.lastUpdated)
-      const dateB = new Date(b.lastUpdated)
-      return sortType.value === 'asc' ? dateA - dateB : dateB - dateA
-    })
-  } else {
-    baseList.sort((a, b) => {
-      const valueA = a[sortBy.value]
-      const valueB = b[sortBy.value]
-      if (valueA == null || valueB == null) return 0
-      if (sortType.value === 'asc') return valueA > valueB ? 1 : -1
-      return valueA < valueB ? 1 : -1
-    })
-  }
-
-  return baseList
-})
 
 onMounted(() => {
   ticketsStore.fetchAll()
@@ -268,18 +283,67 @@ onMounted(() => {
           type="button"
           :disabled="loading"
           :aria-busy="loading ? 'true' : 'false'"
-          @click="handleFilterClick"
+          @click.stop="handleFilterClick"
         >
           <SvgIcon name="filter-icon" height="20px" width="20px" />
           <span>{{ t('ticket.filterButtonText') }}</span>
         </button>
 
         <SearchInput :placeholder="t('ticket.searchTicketText')" variant="inline" v-model="searchInput" />
+
+        <AnimatePresence>
+          <motion.div
+            class="filter-popout"
+            v-if="isFilterOpen"
+            v-click-outside="onClickOutside"
+            role="region"
+            :initial="{ opacity: 0, y: -16 }"
+            :animate="{ opacity: 1, y: 0 }"
+            :exit="{ opacity: 0, y: -16 }"
+            :transition="{ type: 'spring', stiffness: 300, damping: 24 }"
+          >
+            <div
+              v-for="section in filterSections"
+              :key="section.id"
+              class="filter-section"
+            >
+              <div 
+                class="filter-section-header" 
+                :class="{ open: section.isOpen }"
+                @click="toggleFilterSection(section)"
+              >
+                {{ section.title }}
+              </div>
+
+              <AnimatePresence>
+                <motion.div
+                  v-if="section.isOpen"
+                  class="filter-section-content"
+                  :id="`filter-section-${section.id}-content`"
+                  :initial="{ opacity: 0.3, maxHeight: 0 }"
+                  :animate="{ opacity: 1, maxHeight: 300 }"
+                  :exit="{ opacity: 0.3, maxHeight: 0 }"
+                  :transition="{ type: 'spring', stiffness: 100, damping: 16, bounce: 0.1 }"
+                  style="overflow: hidden;"
+                >
+                  <label
+                    v-for="option in section.options"
+                    :key="option"
+                    class="filter-checkbox-label"
+                  >
+                    <input type="checkbox" :value="option" v-model="section.model" />
+                    {{ option }}
+                  </label>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <PrivilegedDataTable
         :headers="columns"
-        :items="sortedItems"
+        :items="filteredItems"
         :search-value="searchInput"
         :rows-per-page="10"
         :theme-color="'var(--color-highlight)'"
@@ -295,7 +359,7 @@ onMounted(() => {
         @click-row="onClickTicketRow"
         @update-sort="onUpdateSort"
       >
-        <template #item-priority="{ priority }">
+        <template #item-priorityValue="{ priorityValue, priority }">
           <TicketPriorityPill :priority="priority" />
         </template>
 
@@ -358,6 +422,8 @@ onMounted(() => {
 #ticket-filter-bar {
   display: flex;
   flex-direction: row;
+  overflow: visible;
+  position: relative;
 }
 
 #ticket-filter-button {
@@ -476,5 +542,111 @@ onMounted(() => {
 .dashboard-button-container {
   display: flex;
   gap: 16px;
+}
+
+
+
+
+/* TESTING: */
+.status-checkboxes {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.status-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Filter Popout Styles */
+
+.filter-popout {
+  position: absolute;
+  z-index: 20;
+  background-color: var(--color-menu-background);
+  border: 1px solid var(--color-subtext);
+  border-radius: 4px;
+  padding: 16px;
+  top: 44px;
+  width: 100%;
+  box-shadow: 0 4px 12px var(--color-shadow);
+  font-weight: 600;
+  color: var(--color-text);
+  user-select: none;
+}
+
+.filter-section {
+  max-width: 75%;
+  padding-left: 16px;
+}
+
+.filter-section-header {
+  font-weight: 700;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filter-section-header.open {
+  background-color: var(--color-highlight);
+  color: var(--vt-c-white);
+}
+
+.filter-section-content {
+  display: flex;
+  flex-direction: column;
+  padding-left: 8px;
+}
+
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  border-left: 2px var(--color-text) solid;
+  gap: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 16px;
+}
+
+.filter-checkbox-label:hover {
+  border-left: 4px var(--color-highlight) solid;
+}
+
+
+/* Custom checkbox styling for filter checkboxes (matches LoginForm.vue) */
+.filter-checkbox-label input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  height: 14px;
+  width: 14px;
+  border: 1px solid var(--color-subtext);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.filter-checkbox-label input[type='checkbox']:checked {
+  background-color: var(--color-highlight);
+  border: var(--color-highlight);
+}
+
+.filter-checkbox-label input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+  border-color: white;
+  border-style: solid;
 }
 </style>
