@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTicketsStore } from '@/stores/ticketStore'
-import { getTicketTypeColor } from '@/constants/ticketColors'
+import { getTicketTypeColor } from '@/constants/ticketColors.js'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 
 
@@ -9,6 +9,11 @@ export const DASHBOARD_TITLES = {
   bar: 'Tickets created',
   donut: 'Ticket type breakdown',
   area: 'Response time',
+}
+
+const formatLabel = dateStr => {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 // Utility helper to group by day
@@ -36,14 +41,12 @@ export function useDashboardData() {
     const escalated = tickets.filter(t => t.status === 'ESCALATED').length
     const awaiting  = tickets.filter(t => t.status === 'PENDING').length
     const clientRes = tickets.filter(t => t.status === 'IN_PROGRESS').length
-    const unlinked  = tickets.filter(t => !t.projectId).length
 
     return [
       { cardTitle: t('dash.openTicketsText'), cardInfo: totalOpen },
       { cardTitle: t('dash.escalatedTicketsText'), cardInfo: escalated },
       { cardTitle: t('dash.awaitingResponseText'), cardInfo: awaiting },
-      { cardTitle: t('dash.clientRespondedText'), cardInfo: clientRes },
-      { cardTitle: t('dash.unlinkedTicketsText'), cardInfo: unlinked }
+      { cardTitle: t('dash.clientRespondedText'), cardInfo: clientRes }
     ]
   })
 
@@ -56,25 +59,43 @@ export function useDashboardData() {
   // --- Bar chart: tickets created vs closed per day
   const barSeries = computed(() => {
     const tickets = store.filteredTickets
+    if (!tickets.length) return { series: [], categories: [] }
+
     const createdByDay = new Map()
     const closedByDay = new Map()
 
     for (const t of tickets) {
-      const createdKey = toDayKey(t.createdAt)
+      const createdKey = toDayKey(t.creationDate)
       createdByDay.set(createdKey, (createdByDay.get(createdKey) || 0) + 1)
-      if (t.closedAt) {
-        const closedKey = toDayKey(t.closedAt)
+
+      if (t.closingDate) {
+        const closedKey = toDayKey(t.closingDate)
         closedByDay.set(closedKey, (closedByDay.get(closedKey) || 0) + 1)
       }
     }
 
-    const allDays = Array.from(new Set([...createdByDay.keys(), ...closedByDay.keys()])).sort()
+    // Find date range: first created ticket → today
+    const firstDate = new Date(Math.min(...tickets.map(t => new Date(t.creationDate))))
+    const today = new Date()
+
+    // Build full list of dates between first and today
+    const allDays = []
+    const current = new Date(firstDate)
+    while (current <= today) {
+      allDays.push(toDayKey(current))
+      current.setDate(current.getDate() + 1)
+    }
+
+    // Construct the data arrays with 0 for missing days
+    const createdData = allDays.map(day => createdByDay.get(day) || 0)
+    const closedData = allDays.map(day => closedByDay.get(day) || 0)
+
     return {
       series: [
-        { name: 'Created', data: allDays.map(k => createdByDay.get(k) || 0) },
-        { name: 'Closed', data: allDays.map(k => closedByDay.get(k) || 0) }
+        { name: 'Created', data: createdData },
+        { name: 'Closed', data: closedData }
       ],
-      categories: allDays
+      categories: allDays.map(formatLabel)
     }
   })
 

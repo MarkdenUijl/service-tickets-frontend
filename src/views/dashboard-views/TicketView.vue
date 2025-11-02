@@ -26,7 +26,7 @@ const itemsSelected = ref([])
 const buttonHover = ref(false)
 
 const sortBy = ref(['priority', 'lastUpdated'])
-const sortType = ref(['desc', 'desc'])
+const sortType = ref(['asc', 'desc'])
 
 const { t, locale } = useI18n()
 
@@ -110,8 +110,41 @@ function onClickTicketRow(item) {
 }
 
 function onUpdateSort(sortOptions) {
-  sortBy.value = sortOptions.sortBy
-  sortType.value = sortOptions.sortType
+  const clickedColumn = sortOptions.sortBy;
+  const clickedType = sortOptions.sortType;
+
+  // Copy current arrays
+  let newSortBy = [...sortBy.value];
+  let newSortType = [...sortType.value];
+
+  // Find existing index of clicked column
+  const existingIndex = newSortBy.indexOf(clickedColumn);
+
+  if (clickedType === null) {
+    // Remove column if sortType is null
+    if (existingIndex !== -1) {
+      newSortBy.splice(existingIndex, 1);
+      newSortType.splice(existingIndex, 1);
+    }
+  } else {
+    // Remove existing if already in array
+    if (existingIndex !== -1) {
+      newSortBy.splice(existingIndex, 1);
+      newSortType.splice(existingIndex, 1);
+    }
+
+    // Add clicked column as first in sort order
+    newSortBy.unshift(clickedColumn);
+    newSortType.unshift(clickedType);
+  }
+  
+  // Update reactive values
+  sortBy.value = newSortBy;
+  sortType.value = newSortType;
+
+  console.log('Updated sort -> Column:', clickedColumn, 'Type:', clickedType);
+  console.log('New sortBy:', newSortBy);
+  console.log('New sortType:', newSortType);
 }
 
 const onCreateTicket = () => {
