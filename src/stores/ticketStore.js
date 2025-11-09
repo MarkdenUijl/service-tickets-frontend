@@ -3,22 +3,24 @@ import { ref, computed } from 'vue'
 import { fetchTickets, mergeTicketEvent } from '@/services/ticketsApi'
 
 export const useTicketsStore = defineStore('tickets', () => {
+  // ===============================
+  // STATE
+  // ===============================
   const tickets = ref([])
   const loading = ref(false)
   const lastSync = ref(null)
 
-  const activeRange = ref(null)   // { start: Date, end: Date } or null
+  // Dashboard filters
+  const dateRange = ref(null)
   const searchQuery = ref('')
 
-  const setFilters = ({ range, query }) => {
-    activeRange.value = range || null
-    searchQuery.value = (query || '').trim()
-  }
-
+  // ===============================
+  // ACTIONS
+  // ===============================
   const fetchAll = async () => {
     loading.value = true
     try {
-      const result = await fetchTickets({ range: activeRange.value, query: searchQuery.value })
+      const result = await fetchTickets()
       tickets.value = result
       lastSync.value = new Date()
     } finally {
@@ -26,24 +28,41 @@ export const useTicketsStore = defineStore('tickets', () => {
     }
   }
 
-  // Merge websocket events (created/updated/closed/etc.)
   const applyEvent = (evt) => {
     tickets.value = mergeTicketEvent(tickets.value, evt)
   }
 
-  // Filtered tickets (date range + text query)
+  const setDateRange = (range) => {
+    if (Array.isArray(range)) {
+      const [start, end] = range
+      dateRange.value = { start, end }
+    } else {
+      dateRange.value = range || null
+    }
+  }
+
+  const setSearchQuery = (query) => {
+    searchQuery.value = (query || '').trim()
+  }
+
+  // ===============================
+  // GETTERS
+  // ===============================
   const filteredTickets = computed(() => {
     let list = tickets.value
 
-    if (activeRange.value?.start || activeRange.value?.end) {
-      const startMs = activeRange.value?.start ? new Date(activeRange.value.start).getTime() : -Infinity
-      const endMs   = activeRange.value?.end ? new Date(activeRange.value.end).getTime() + 24*60*60*1000 - 1 : Infinity
+    // Date range filter
+    if (dateRange.value && (dateRange.value.start || dateRange.value.end)) {
+      const start = dateRange.value.start ? new Date(dateRange.value.start).setHours(0, 0, 0, 0) : -Infinity
+      const end = dateRange.value.end ? new Date(dateRange.value.end).setHours(23, 59, 59, 999) : Infinity
+
       list = list.filter(t => {
-        const createdMs = new Date(t.createdAt).getTime()
-        return createdMs >= startMs && createdMs <= endMs
+        const created = new Date(t.creationDate || t.createdAt).getTime()
+        return created >= start && created <= end
       })
     }
 
+    // Search filter
     if (searchQuery.value) {
       const q = searchQuery.value.toLowerCase()
       list = list.filter(t =>
@@ -56,13 +75,22 @@ export const useTicketsStore = defineStore('tickets', () => {
     return list
   })
 
+  // ===============================
+  // EXPORT INTERFACE
+  // ===============================
   return {
     // state
-    tickets, loading, lastSync,
-    activeRange, searchQuery,
+    tickets,
+    loading,
+    lastSync,
+    dateRange,
+    searchQuery,
 
     // actions
-    setFilters, fetchAll, applyEvent,
+    fetchAll,
+    applyEvent,
+    setDateRange,
+    setSearchQuery,
 
     // getters
     filteredTickets

@@ -220,17 +220,20 @@ const iconVariants = {
 
 
 const demoItems = [
-  'Lighting commissioning - Building A',
-  'Emergency callout - Plant room',
-  'Fault diagnostics - Floor 3',
-  'Sensor calibration - West wing',
-  'DALI loop check - Warehouse',
-  'As-built update - Atrium',
-  'Driver replacement - Block C',
-  'Energy audit - HQ campus',
-  'Scene programming - Auditorium',
-  'Warranty ticket - Panel LCP-12'
+  // 'Lighting commissioning - Building A',
+  // 'Emergency callout - Plant room',
+  // 'Fault diagnostics - Floor 3',
+  // 'Sensor calibration - West wing',
+  // 'DALI loop check - Warehouse',
+  // 'As-built update - Atrium',
+  // 'Driver replacement - Block C',
+  // 'Energy audit - HQ campus',
+  // 'Scene programming - Auditorium',
+  // 'Warranty ticket - Panel LCP-12'
 ]
+
+watch(dateRange, (newRange) => ticketsStore.setDateRange(newRange))
+watch(searchInput, (newQuery) => ticketsStore.setSearchQuery(newQuery))
 
 onMounted(() => {
   ticketsStore.fetchAll()
