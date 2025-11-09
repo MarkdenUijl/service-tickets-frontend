@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import { useRoute } from 'vue-router'
 import { formatIsoDate } from '@/utils/formatIsoDate'
@@ -41,6 +41,7 @@ const isStatusUpdating = ref(false)
 const hasLoadError = ref(false)
 const quillRef = ref(null)
 const showAllFiles = ref(false)
+const ticketId = ref(null)
 
 // Response form state
 const replyText = ref('')
@@ -237,12 +238,12 @@ const displayedFiles = computed(() => {
 })
 
 onMounted(() => {
-  const ticketId = route.params.id
-  connectToTicketDetail(ticketId, handleTicketUpdates(ticketData))
+  ticketId.value = route.params.id
+  connectToTicketDetail(ticketId.value, handleTicketUpdates(ticketData))
 })
 
-onUnmounted(() => {
-  disconnectFromTicketDetail(route.params.id)
+onBeforeUnmount(() => {
+  disconnectFromTicketDetail(ticketId.value)
 })
 </script>
 
