@@ -33,12 +33,25 @@ export const useTicketsStore = defineStore('tickets', () => {
   }
 
   const setDateRange = (range) => {
+    // Normalize incoming range (array or object)
+    let start = null
+    let end = null
+
     if (Array.isArray(range)) {
-      const [start, end] = range
-      dateRange.value = { start, end }
-    } else {
-      dateRange.value = range || null
+      [start, end] = range
+    } else if (range && typeof range === 'object') {
+      start = range.start
+      end = range.end
     }
+
+    // Default end date to "today" if not provided
+    if (!end) {
+      const today = new Date()
+      today.setHours(23, 59, 59, 999)
+      end = today
+    }
+
+    dateRange.value = start || end ? { start, end } : null
   }
 
   const setSearchQuery = (query) => {
@@ -53,8 +66,11 @@ export const useTicketsStore = defineStore('tickets', () => {
 
     // Date range filter
     if (dateRange.value && (dateRange.value.start || dateRange.value.end)) {
-      const start = dateRange.value.start ? new Date(dateRange.value.start).setHours(0, 0, 0, 0) : -Infinity
-      const end = dateRange.value.end ? new Date(dateRange.value.end).setHours(23, 59, 59, 999) : Infinity
+      const start = dateRange.value.start
+        ? new Date(dateRange.value.start).setHours(0, 0, 0, 0)
+        : -Infinity
+
+      const end = new Date(dateRange.value.end).setHours(23, 59, 59, 999)
 
       list = list.filter(t => {
         const created = new Date(t.creationDate || t.createdAt).getTime()
