@@ -77,10 +77,13 @@ export function useDashboardData() {
     // Find date range: first created ticket → today
     const firstDate = new Date(Math.min(...tickets.map(t => new Date(t.creationDate))))
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
     // Build full list of dates between first and today
     const allDays = []
     const current = new Date(firstDate)
+    current.setHours(0, 0, 0, 0)
+
     while (current <= today) {
       allDays.push(toDayKey(current))
       current.setDate(current.getDate() + 1)
