@@ -81,10 +81,9 @@ export const useTicketsStore = defineStore('tickets', () => {
     // Search filter
     if (searchQuery.value) {
       const q = searchQuery.value.toLowerCase()
+
       list = list.filter(t =>
-        (t.title && t.title.toLowerCase().includes(q)) ||
-        (t.projectName && t.projectName.toLowerCase().includes(q)) ||
-        (t.id && String(t.id).includes(q))
+        (t.project?.name && t.project?.name.toLowerCase().includes(q))
       )
     }
 

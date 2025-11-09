@@ -1,6 +1,6 @@
 <script setup>
 import { GridLayout } from 'grid-layout-plus'
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { motion } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import { useTicketsStore } from '@/stores/ticketStore'
@@ -16,6 +16,7 @@ import { useWindowSize } from '@/composables/useWindowSize'
 import { useStableSize } from '@/composables/useStableSize'
 import { useDashboardData } from '@/composables/useDashboardData'
 import SearchCombo from '@/components/user-input/SearchCombo.vue'
+import { useProjectLookup } from '@/composables/useProjectLookup'
 
 // --- UI State
 const STORAGE_KEY = 'dashboardTileLayout'
@@ -26,6 +27,11 @@ const dateRange = ref(null)
 const searchInput = ref('')
 const { t } = useI18n()
 const ticketsStore = useTicketsStore()
+const { projects, fetchProjects } = useProjectLookup()
+
+const projectNames = computed(() =>
+  projects.value.map(p => p.name).filter(Boolean)
+)
 
 // layout state
 const savedLayout = localStorage.getItem(STORAGE_KEY)
@@ -154,8 +160,11 @@ const handleChangeType = ({ id, type }) => {
 }
 
 const handleClearPreferences = () => {
-  searchInput.value = ''
   dateRange.value = null
+  ticketsStore.setDateRange(null)
+
+  searchInput.value = ''
+  ticketsStore.setSearchQuery('')
 }
 
 // On mobile switch: compress to 1x1 and remember original; restore when leaving mobile
@@ -176,12 +185,6 @@ watch(
   },
   { immediate: true }
 )
-
-// --- Demo chart data & options (kept local; can be moved to utils later if reused)
-const demoSeries = [
-  { name: 'created', data: [10, 20, 5, 30, 40, 25] },
-  { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
-]
 
 const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
 const DEFAULT_SERIES_TYPES = new Set(['bar', 'line', 'area', 'scatter'])
@@ -218,25 +221,16 @@ const iconVariants = {
   check: { d: 'M5 13l4 4L19 7', rotate: 365, transition: { type: 'spring', stiffness: 200, damping: 20 } }
 }
 
-
-const demoItems = [
-  // 'Lighting commissioning - Building A',
-  // 'Emergency callout - Plant room',
-  // 'Fault diagnostics - Floor 3',
-  // 'Sensor calibration - West wing',
-  // 'DALI loop check - Warehouse',
-  // 'As-built update - Atrium',
-  // 'Driver replacement - Block C',
-  // 'Energy audit - HQ campus',
-  // 'Scene programming - Auditorium',
-  // 'Warranty ticket - Panel LCP-12'
-]
-
 watch(dateRange, (newRange) => ticketsStore.setDateRange(newRange))
 watch(searchInput, (newQuery) => ticketsStore.setSearchQuery(newQuery))
 
 onMounted(() => {
+  fetchProjects()
   ticketsStore.fetchAll()
+})
+
+onBeforeUnmount(() => {
+  handleClearPreferences()
 })
 </script>
 
@@ -244,7 +238,7 @@ onMounted(() => {
   <div class="dashboard-view-wrapper" ref="wrapperRef">
     <div class="dashboard-header-items">
       <RouteInfo />
-      <SearchCombo v-model="searchInput" :placeholder="t('dash.searchProjectsText')" :items="demoItems"/>
+      <SearchCombo v-model="searchInput" :placeholder="t('dash.searchProjectsText')" :items="projectNames"/>
       
       <FilterDatePicker v-model="dateRange" />
       <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
