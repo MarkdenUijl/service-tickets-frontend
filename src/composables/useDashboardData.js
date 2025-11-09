@@ -90,8 +90,12 @@ export function useDashboardData() {
     }
 
     // Construct the data arrays with 0 for missing days
-    const createdData = allDays.map(day => createdByDay.get(day) || 0)
-    const closedData = allDays.map(day => closedByDay.get(day) || 0)
+    // const createdData = allDays.map(day => createdByDay.get(day) || 0)
+    // const closedData = allDays.map(day => closedByDay.get(day) || 0)
+
+    const createdData = allDays.map(day => [new Date(day).getTime(), createdByDay.get(day) || 0])
+    const closedData = allDays.map(day => [new Date(day).getTime(), closedByDay.get(day) || 0])
+
 
     return {
       series: [
@@ -163,14 +167,18 @@ export function useDashboardData() {
    */
   const barOptions = computed(() => ({
     chart: { id: 'tickets-per-day' },
-    xaxis: { categories: barSeries.value.categories },
+    xaxis: {
+      type: 'datetime',
+      tickAmount: 10,
+      labels: {
+        format: 'dd MMM', // automatic formatting
+        rotate: -45
+      }
+    },
     plotOptions: { bar: { borderRadius: 2, borderRadiusApplication: 'end' } },
     colors: [
       'var(--color-secondary)',
-      'var(--color-highlight)',
-      'var(--color-first-complementary)',
-      'var(--color-second-complementary)',
-      'var(--color-third-complementary)'
+      'var(--color-highlight)'
     ],
     stroke: { width: 2 },
     legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },

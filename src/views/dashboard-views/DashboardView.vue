@@ -52,15 +52,6 @@ const {
 // Keep a copy of the original grid to restore after mobile single-column mode
 const originalLayout = ref(null)
 
-// Header cards
-// const cards = [
-//   { cardTitle: 'Open tickets', cardInfo: 52 },
-//   { cardTitle: 'Escalated tickets', cardInfo: 10 },
-//   { cardTitle: 'Awaiting response', cardInfo: 16 },
-//   { cardTitle: 'Client responded', cardInfo: 22 },
-//   { cardTitle: 'Unlinked tickets', cardInfo: 4 }
-// ]
-
 // --- Responsive sizing (computed; no imperative resize handlers)
 const wrapperRef = ref(null)
 const { width: wrapperWidth } = useStableSize(wrapperRef, 150)
@@ -191,77 +182,6 @@ const demoSeries = [
   { name: 'created', data: [10, 20, 5, 30, 40, 25] },
   { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
 ]
-
-// const donutSeries = [
-//   { label: 'Open', value: 52 },
-//   { label: 'Escalated', value: 10 },
-//   { label: 'Awaiting response', value: 16 },
-//   { label: 'Client responded', value: 22 },
-//   { label: 'Unlinked', value: 4 }
-// ]
-
-// const barOptions = {
-//   chart: { id: 'tickets-by-month' },
-//   xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-//   plotOptions: { bar: { borderRadius: 2, borderRadiusApplication: 'end' } },
-//   colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
-//   stroke: { width: 2 },
-//   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
-//   grid: { borderColor: 'var(--color-subtext)' }
-// }
-
-// const areaOptions = {
-//   chart: { id: 'tickets-by-month' },
-//   xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-//   colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
-//   stroke: { width: 2 },
-//   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
-//   grid: { borderColor: 'var(--color-subtext)' },
-//   fill: {
-//     type: 'gradient',
-//     gradient: {
-//       gradientToColors: ['var(--color-menu-background)'],
-//       shadeIntensity: 1,
-//       opacityFrom: 0.4,
-//       opacityTo: 0,
-//       stops: [0, 85, 100]
-//     }
-//   }
-// }
-
-// const donutOptions = {
-//   chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-type-breakdown' },
-//   colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
-//   stroke: { width: 4, colors: ['var(--color-menu-background)'] },
-//   legend: {
-//     position: 'bottom',
-//     horizontalAlign: 'center',
-//     itemMargin: { horizontal: 8, vertical: 4 },
-//     formatter(seriesName) {
-//       const s = String(seriesName ?? '')
-//       return s.length > 32 ? `${s.slice(0, 29)}…` : s
-//     }
-//   },
-//   tooltip: { fillSeriesColor: false },
-//   plotOptions: {
-//     pie: {
-//       startAngle: -90,
-//       endAngle: 90,
-//       expandOnClick: false,
-//       offsetY: 0,
-//       customScale: 1.06,
-//       donut: {
-//         size: '75%',
-//         labels: {
-//           show: true,
-//           name: { show: true },
-//           value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
-//           total: { show: true, showAlways: true, fontSize: 14, label: 'Total tickets', fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
-//         }
-//       }
-//     }
-//   }
-// }
 
 const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
 const DEFAULT_SERIES_TYPES = new Set(['bar', 'line', 'area', 'scatter'])
