@@ -109,7 +109,7 @@ const filterTogglePath = {
             layout
             role="option"
             tabindex="0"
-            :while-hover="{ backgroundColor: 'var(--color-shadow)', paddingLeft: '24px' }"
+            :while-hover="{ backgroundColor: 'var(--color-shadow)', paddingLeft: '20px' }"
             @mousedown.prevent="selectItem(item)"
           >
             <p>{{ item[labelKey] }}</p>

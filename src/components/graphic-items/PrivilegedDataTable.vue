@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import EasyDataTable from 'vue3-easy-data-table'
 import { useAuthStore } from '@/stores/authStore'
+import { PRIVILEGES } from '@/constants/privileges'
 
 const props = defineProps({
   headers: Array,
@@ -15,7 +16,7 @@ const props = defineProps({
   headerClassName: String,
   privilegeKey: {
     type: String,
-    default: 'CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE'
+    default: PRIVILEGES.MODERATE_SERVICE_TICKETS
   }
 })
 

@@ -10,12 +10,14 @@ import { useTickets } from '@/composables/useTickets'
 import { safeApiCall } from '@/utils/safeApiCall'
 import { useAuthStore } from '@/stores/authStore'
 import { handleTicketUpdates } from '@/services/ticketSocketHandler'
+import { PRIVILEGES } from '@/constants/privileges'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 import TicketSourcePill from '@/components/graphic-items/TicketSourcePill.vue'
+import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import DOMPurify from 'dompurify'
 import UserInfoTile from '@/components/common/UserInfoTile.vue'
@@ -25,7 +27,6 @@ import RecentTicketsList from '@/components/lists/RecentTicketsList.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
 import FileItem from '@/components/lists/FileItem.vue'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -107,6 +108,7 @@ async function deleteAttachment(fileId) {
 
 const isClosed = computed(() => ticketData.value?.status === 'CLOSED')
 const isEscalated = computed(() => ticketData.value?.status === 'ESCALATED')
+const isCancelled = computed(() => ticketData.value?.status === 'CANCELLED')
 const canEscalate = computed(() => !!ticketData.value && !isClosed.value && !isEscalated.value)
 
 
@@ -139,7 +141,9 @@ async function escalateTicket() {
   await updateTicketStatus('ESCALATED')
 }
 
-
+async function cancelTicket() {
+  await updateTicketStatus('CANCELLED')
+}
 
 
 /**
@@ -207,7 +211,7 @@ const isReplyDisabled = computed(() => {
   const quillText = quillRef.value?.getText()?.replace(/\s+/g, '') || ''
   const hasQuillText = quillText.length > 0
 
-  const hasTime = hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE') 
+  const hasTime = hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS) 
     ? timeSpentMinutes.value !== null && timeSpentMinutes.value > 0
     : true
 
@@ -267,12 +271,12 @@ onUnmounted(() => {
                 <TicketStatusPill :status="ticketData.status" />
                 <TicketTypePill :type="ticketData.type" />
                 <TicketSourcePill :source="ticketData.source" />
-                <TicketPriorityPill v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" :priority="ticketData.priority" />
+                <TicketPriorityPill v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" :priority="ticketData.priority" />
               </div>
             </div>
 
 
-            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="status-actions">
+            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="status-actions">
               <button
                 v-if="canEscalate"
                 type="button"
@@ -290,6 +294,18 @@ onUnmounted(() => {
                 @click="isClosed ? openTicket() : closeTicket()"
               >
                 {{ isClosed ? t('ticket.detailsOpenTicketText') : t('ticket.detailsCloseTicketText') }}
+              </button>
+            </div>
+
+            <div v-else class="status-actions">
+              <button
+                v-if="!isCancelled"
+                type="button"
+                class="status-button"
+                :disabled="isStatusUpdating"
+                @click="cancelTicket()"
+              >
+                {{ t('ticket.detailsCancelTicketText') }}
               </button>
             </div>
 
@@ -330,7 +346,7 @@ onUnmounted(() => {
 
         <!-- ADD RESPONSE -->
         <section 
-          v-if="!isClosed"
+          v-if="!isClosed && !isCancelled"
           class="ticket-detail-section" 
           id="ticket-add-response"
         >
@@ -358,7 +374,7 @@ onUnmounted(() => {
               aria-busy="submitting"
             />
 
-            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="time-log-control">
+            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="time-log-control">
               <SvgIcon name="icon-clock" width="16px" />
               <input
                 type="number"
@@ -375,7 +391,7 @@ onUnmounted(() => {
 
       <!-- META INFO -->
       <div id="ticket-meta">
-        <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="ticket-meta-information">
+        <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="ticket-meta-information">
           <section class="ticket-meta-information-section">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsCallerInfoHeaderText') }}</h3>
 

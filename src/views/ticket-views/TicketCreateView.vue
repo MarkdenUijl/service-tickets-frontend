@@ -6,6 +6,7 @@ import { useTicketValidation } from '@/composables/useTicketValidation'
 import { useUserLookup } from '@/composables/useUserLookup'
 import { useAuthStore } from '@/stores/authStore'
 import { useI18n } from 'vue-i18n'
+import { PRIVILEGES } from '@/constants/privileges'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
 import api from '@/services/api'
@@ -58,7 +59,7 @@ let fetchUsers = () => {}
 let fetchUsersByFilter = () => {}
 let autofillUserDetails = () => {}
 
-if (hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')) {
+if (hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)) {
   const userLookup = useUserLookup(ticketData)
   users = userLookup.users
   fetchUsers = userLookup.fetchUsers
@@ -228,7 +229,7 @@ const ticketSources = [
               />
             </div>
 
-            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="ticket-form-section">
+            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="ticket-form-section">
               <span class="ticket-form-header">{{ t('ticket.creationAdditionalInfoText') }}</span>
 
               <div id="ticket-admin-information">

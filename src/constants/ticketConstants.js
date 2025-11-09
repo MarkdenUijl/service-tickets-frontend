@@ -3,7 +3,8 @@ export const TICKET_STATUSES = [
   'CLOSED',
   'PENDING',
   'IN_PROGRESS',
-  'ESCALATED'
+  'ESCALATED',
+  'CANCELLED'
 ]
 
 export const TICKET_TYPES = [

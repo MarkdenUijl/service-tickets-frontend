@@ -10,6 +10,7 @@ import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 
 import api from '@/services/api'
 import { useTicketsStore } from '@/stores/ticketStore'
+import { useTicketViewStore } from '@/stores/ticketViewStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import { TICKET_STATUSES, TICKET_TYPES, PRIORITY_ORDER, TICKET_PRIORITIES } from '@/constants/ticketConstants'
@@ -17,28 +18,26 @@ import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter();
 
 const loading = ref(false)
 const searchInput = ref('')
 const ticketsStore = useTicketsStore()
+const ticketViewStore = useTicketViewStore()
 const itemsSelected = ref([])
 const buttonHover = ref(false)
 
-const sortBy = ref(['priorityValue', 'lastUpdated'])
-const sortType = ref(['desc', 'desc'])
 const isFilterOpen = ref(false)
-const selectedStatuses = ref([...TICKET_STATUSES.filter(s => s !== 'CLOSED')])
-const selectedTypes = ref([...TICKET_TYPES])
-const selectedPriorities = ref([...TICKET_PRIORITIES])
+const { selectedStatuses, selectedTypes, selectedPriorities, sortBy, sortType } = storeToRefs(ticketViewStore)
 
 const { t, locale } = useI18n()
 
 const filterSections = reactive([
   {
     id: 'status',
-    title: 'STATUS',
+    title: 'Status',
     isOpen: false,
     type: 'checkbox',
     options: TICKET_STATUSES,
@@ -46,7 +45,7 @@ const filterSections = reactive([
   },
   {
     id: 'type',
-    title: 'TYPE',
+    title: 'Type',
     isOpen: false,
     type: 'checkbox',
     options: TICKET_TYPES,
@@ -54,7 +53,7 @@ const filterSections = reactive([
   },
   {
     id: 'priority',
-    title: 'PRIORITY',
+    title: 'Priority',
     isOpen: false,
     type: 'checkbox',
     options: TICKET_PRIORITIES,
@@ -153,41 +152,42 @@ async function handleBulkDelete() {
 
 function onClickTicketRow(item) {
   console.log(item)
-  router.push({ name: 'ticket-detail', params: { id: item.id } });
+  router.push({ name: 'ticket-detail', params: { id: item.id } })
 }
 
 function onUpdateSort(sortOptions) {
-  const clickedColumn = sortOptions.sortBy;
-  const clickedType = sortOptions.sortType;
+  const clickedColumn = sortOptions.sortBy
+  const clickedType = sortOptions.sortType
 
-  // Copy current arrays
-  let newSortBy = [...sortBy.value];
-  let newSortType = [...sortType.value];
+  // Clone existing state
+  let newSortBy = [...sortBy.value]
+  let newSortType = [...sortType.value]
 
-  // Find existing index of clicked column
-  const existingIndex = newSortBy.indexOf(clickedColumn);
+  // Find if the clicked column already exists
+  const existingIndex = newSortBy.indexOf(clickedColumn)
 
   if (clickedType === null) {
-    // Remove column if sortType is null
+    // Remove the column and its corresponding sort type cleanly
     if (existingIndex !== -1) {
-      newSortBy.splice(existingIndex, 1);
-      newSortType.splice(existingIndex, 1);
+      newSortType.splice(existingIndex, 1)
+    } else {
+      newSortType.splice(0, 1)
     }
   } else {
-    // Remove existing if already in array
+    // Remove existing entry if present
     if (existingIndex !== -1) {
-      newSortBy.splice(existingIndex, 1);
-      newSortType.splice(existingIndex, 1);
+      newSortBy.splice(existingIndex, 1)
+      newSortType.splice(existingIndex, 1)
     }
 
-    // Add clicked column as first in sort order
-    newSortBy.unshift(clickedColumn);
-    newSortType.unshift(clickedType);
+    // Add as new top sort
+    newSortBy.unshift(clickedColumn)
+    newSortType.unshift(clickedType)
   }
-  
-  // Update reactive values
-  sortBy.value = newSortBy;
-  sortType.value = newSortType;
+
+  // Replace arrays to trigger reactivity and ensure sync
+  sortBy.value = [...newSortBy]
+  sortType.value = [...newSortType]
 }
 
 const onCreateTicket = () => {
@@ -312,7 +312,7 @@ onMounted(() => {
                 :class="{ open: section.isOpen }"
                 @click="toggleFilterSection(section)"
               >
-                {{ section.title }}
+                {{ t(`ticket.column${capitalizeWords(section.title)}Text`) }}
               </div>
 
               <AnimatePresence>
@@ -332,7 +332,7 @@ onMounted(() => {
                     class="filter-checkbox-label"
                   >
                     <input type="checkbox" :value="option" v-model="section.model" />
-                    {{ option }}
+                    {{ t(`ticket.${section.title.toLowerCase()}${capitalizeWords(option)}Text`) }}
                   </label>
                 </motion.div>
               </AnimatePresence>
@@ -342,6 +342,7 @@ onMounted(() => {
       </div>
 
       <PrivilegedDataTable
+        :key="sortBy.join(',') + sortType.join(',')"
         :headers="columns"
         :items="filteredItems"
         :search-value="searchInput"
@@ -572,8 +573,8 @@ onMounted(() => {
   border: 1px solid var(--color-subtext);
   border-radius: 4px;
   padding: 16px;
+  width: 320px;
   top: 44px;
-  width: 100%;
   box-shadow: 0 4px 12px var(--color-shadow);
   font-weight: 600;
   color: var(--color-text);

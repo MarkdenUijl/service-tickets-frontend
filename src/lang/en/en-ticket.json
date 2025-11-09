@@ -14,7 +14,7 @@
     "columnStatusText": "Status",
     "typeHardwareText": "Hardware",
     "typeSoftwareText": "Software",
-    "typeChangeText": "Change",
+    "typeChangeText": "Change request",
     "typeQuestionText": "Question",
     "typeUnknownText": "Unknown",
     "priorityLowText": "Low",
@@ -26,6 +26,7 @@
     "statusPendingText": "Pending",
     "statusIn_progressText": "In progress",
     "statusEscalatedText": "Escalated",
+    "statusCancelledText": "Cancelled",
     "sourceWebText": "Web",
     "sourcePhoneText": "Phone",
     "sourceMailText": "Email",
@@ -85,6 +86,7 @@
     "detailsEscalateTicketText": "Escalate ticket",
     "detailsCloseTicketText": "Close ticket",
     "detailsOpenTicketText": "Open ticket",
+    "detailsCancelTicketText": "Cancel ticket",
     "recentTicketsByUserText": "Recent tickets by user:",
     "recentTicketsOnProjectText": "Recent tickets on project:"
 }
