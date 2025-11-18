@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 // is configured once. If this is missing, we warn (non-fatal) so the app can
 // still run with relative URLs in dev.
 const API_URL = import.meta.env.VITE_BACKEND_URL
-const auth = useAuthStore()
+// const auth = useAuthStore()
 
 if (!API_URL) {
   console.warn('[api] VITE_BACKEND_URL is not set; axios will use relative URLs')
@@ -67,8 +67,9 @@ api.interceptors.request.use(
     }
 
     if (!isPublic) {
-      const token = auth.token
-      // WHY: Attach token only when present; otherwise let the backend 401.
+      const auth = useAuthStore()
+      const token = auth?.token
+      
       if (token) {
         config.headers['Authorization'] = `Bearer ${token.trim()}`
       }

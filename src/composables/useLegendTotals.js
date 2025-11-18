@@ -73,8 +73,15 @@ export function useLegendTotals(
     const seriesArr = unref(normalizedSeries)
 
     return seriesArr.map((s) => {
-      // Cartesian: { name, data: number[] }
-      if (Array.isArray(s?.data)) return s.data.reduce(sumFinite, 0)
+      // Cartesian: { name, data: number[] | [x, y][] | {x, y}[] }
+      if (Array.isArray(s?.data)) {
+        return s.data.reduce((acc, v) => {
+          if (typeof v === 'number') return acc + v
+          if (Array.isArray(v)) return acc + (Number.isFinite(v[1]) ? v[1] : 0)
+          if (v && typeof v === 'object' && Number.isFinite(v.y)) return acc + v.y
+          return acc
+        }, 0)
+      }
       // Radial: series can be a number (already the total)
       if (typeof s === 'number') return s
       // Fallback for shapes like { value: number }

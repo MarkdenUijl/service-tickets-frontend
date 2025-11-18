@@ -1,8 +1,9 @@
 <script setup>
 import { GridLayout } from 'grid-layout-plus'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { motion } from 'motion-v'
 import { useI18n } from 'vue-i18n'
+import { useTicketsStore } from '@/stores/ticketStore'
 
 import CartesianChart from '@/components/data-visualisation/CartesianChart.vue'
 import RadialChart from '@/components/data-visualisation/RadialChart.vue'
@@ -13,7 +14,9 @@ import FilterDatePicker from '@/components/user-input/FilterDatePicker.vue'
 
 import { useWindowSize } from '@/composables/useWindowSize'
 import { useStableSize } from '@/composables/useStableSize'
+import { useDashboardData } from '@/composables/useDashboardData'
 import SearchCombo from '@/components/user-input/SearchCombo.vue'
+import { useProjectLookup } from '@/composables/useProjectLookup'
 
 // --- UI State
 const STORAGE_KEY = 'dashboardTileLayout'
@@ -23,6 +26,12 @@ const isChecked = ref(false)
 const dateRange = ref(null)
 const searchInput = ref('')
 const { t } = useI18n()
+const ticketsStore = useTicketsStore()
+const { projects, fetchProjects } = useProjectLookup()
+
+const projectNames = computed(() =>
+  projects.value.map(p => p.name).filter(Boolean)
+)
 
 // layout state
 const savedLayout = localStorage.getItem(STORAGE_KEY)
@@ -35,17 +44,19 @@ const layout = ref(
       ]
 )
 
+const {
+  DASHBOARD_TITLES,
+  cards,
+  barSeries,
+  donutSeries,
+  areaSeries,
+  barOptions,
+  donutOptions,
+  areaOptions
+} = useDashboardData()
+
 // Keep a copy of the original grid to restore after mobile single-column mode
 const originalLayout = ref(null)
-
-// Header cards
-const cards = [
-  { cardTitle: 'Open tickets', cardInfo: 52 },
-  { cardTitle: 'Escalated tickets', cardInfo: 10 },
-  { cardTitle: 'Awaiting response', cardInfo: 16 },
-  { cardTitle: 'Client responded', cardInfo: 22 },
-  { cardTitle: 'Unlinked tickets', cardInfo: 4 }
-]
 
 // --- Responsive sizing (computed; no imperative resize handlers)
 const wrapperRef = ref(null)
@@ -149,8 +160,11 @@ const handleChangeType = ({ id, type }) => {
 }
 
 const handleClearPreferences = () => {
-  searchInput.value = ''
   dateRange.value = null
+  ticketsStore.setDateRange(null)
+
+  searchInput.value = ''
+  ticketsStore.setSearchQuery('')
 }
 
 // On mobile switch: compress to 1x1 and remember original; restore when leaving mobile
@@ -172,88 +186,34 @@ watch(
   { immediate: true }
 )
 
-// --- Demo chart data & options (kept local; can be moved to utils later if reused)
-const demoSeries = [
-  { name: 'created', data: [10, 20, 5, 30, 40, 25] },
-  { name: 'closed', data: [8, 15, 7, 28, 35, 20] }
-]
-
-const donutSeries = [
-  { label: 'Open', value: 52 },
-  { label: 'Escalated', value: 10 },
-  { label: 'Awaiting response', value: 16 },
-  { label: 'Client responded', value: 22 },
-  { label: 'Unlinked', value: 4 }
-]
-
-const barOptions = {
-  chart: { id: 'tickets-by-month' },
-  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-  plotOptions: { bar: { borderRadius: 2, borderRadiusApplication: 'end' } },
-  colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
-  stroke: { width: 2 },
-  legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
-  grid: { borderColor: 'var(--color-subtext)' }
-}
-
-const areaOptions = {
-  chart: { id: 'tickets-by-month' },
-  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
-  colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
-  stroke: { width: 2 },
-  legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
-  grid: { borderColor: 'var(--color-subtext)' },
-  fill: {
-    type: 'gradient',
-    gradient: {
-      gradientToColors: ['var(--color-menu-background)'],
-      shadeIntensity: 1,
-      opacityFrom: 0.4,
-      opacityTo: 0,
-      stops: [0, 85, 100]
-    }
-  }
-}
-
-const donutOptions = {
-  chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-type-breakdown' },
-  colors: ['var(--color-secondary)', 'var(--color-highlight)', 'var(--color-first-complementary)', 'var(--color-second-complementary)', 'var(--color-third-complementary)'],
-  stroke: { width: 4, colors: ['var(--color-menu-background)'] },
-  legend: {
-    position: 'bottom',
-    horizontalAlign: 'center',
-    itemMargin: { horizontal: 8, vertical: 4 },
-    formatter(seriesName) {
-      const s = String(seriesName ?? '')
-      return s.length > 32 ? `${s.slice(0, 29)}…` : s
-    }
-  },
-  tooltip: { fillSeriesColor: false },
-  plotOptions: {
-    pie: {
-      startAngle: -90,
-      endAngle: 90,
-      expandOnClick: false,
-      offsetY: 0,
-      customScale: 1.06,
-      donut: {
-        size: '75%',
-        labels: {
-          show: true,
-          name: { show: true },
-          value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
-          total: { show: true, showAlways: true, fontSize: 14, label: 'Total tickets', fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
-        }
-      }
-    }
-  }
-}
-
 const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
 const DEFAULT_SERIES_TYPES = new Set(['bar', 'line', 'area', 'scatter'])
 
-const getSeriesForType = (type) => (type === 'donut' ? donutSeries : demoSeries)
-const getOptionsForType = (type) => OPTIONS_BY_TYPE[type] || {}
+const getSeriesForType = (type) => {
+  switch (type) {
+    case 'bar':
+      return barSeries.value.series || []
+    case 'area':
+      return areaSeries.value.series || []
+    case 'donut':
+      return donutSeries.value || []
+    default:
+      return []
+  }
+}
+
+const getOptionsForType = (type) => {
+  switch (type) {
+    case 'bar':
+      return barOptions.value || {}
+    case 'area':
+      return areaOptions.value || {}
+    case 'donut':
+      return donutOptions.value || {}
+    default:
+      return {}
+  }
+}
 
 // Add button icon variants
 const iconVariants = {
@@ -261,26 +221,24 @@ const iconVariants = {
   check: { d: 'M5 13l4 4L19 7', rotate: 365, transition: { type: 'spring', stiffness: 200, damping: 20 } }
 }
 
+watch(dateRange, (newRange) => ticketsStore.setDateRange(newRange))
+watch(searchInput, (newQuery) => ticketsStore.setSearchQuery(newQuery))
 
-const demoItems = [
-  'Lighting commissioning - Building A',
-  'Emergency callout - Plant room',
-  'Fault diagnostics - Floor 3',
-  'Sensor calibration - West wing',
-  'DALI loop check - Warehouse',
-  'As-built update - Atrium',
-  'Driver replacement - Block C',
-  'Energy audit - HQ campus',
-  'Scene programming - Auditorium',
-  'Warranty ticket - Panel LCP-12'
-]
+onMounted(() => {
+  fetchProjects()
+  ticketsStore.fetchAll()
+})
+
+onBeforeUnmount(() => {
+  handleClearPreferences()
+})
 </script>
 
 <template>
   <div class="dashboard-view-wrapper" ref="wrapperRef">
     <div class="dashboard-header-items">
       <RouteInfo />
-      <SearchCombo v-model="searchInput" :placeholder="t('dash.searchProjectsText')" :items="demoItems"/>
+      <SearchCombo v-model="searchInput" :placeholder="t('dash.searchProjectsText')" :items="projectNames"/>
       
       <FilterDatePicker v-model="dateRange" />
       <motion.button class="clear-filter-button" @click="handleClearPreferences" :while-press="{ scale: 0.97 }">
@@ -303,6 +261,7 @@ const demoItems = [
       <DashboardDataTile
         v-for="item in layout"
         :key="item.i"
+        :header="DASHBOARD_TITLES[item.type] || 'Dashboard Data'"
         :x="item.x"
         :y="item.y"
         :w="item.w"

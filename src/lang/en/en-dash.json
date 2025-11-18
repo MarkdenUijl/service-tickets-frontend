@@ -22,5 +22,10 @@
     "lastYearText": "Last year",
     "customRangeText": "Custom range",
     "fullRangeText": "Since start",
-    "clearPreferencesText": "Clear preferences"
+    "clearPreferencesText": "Clear preferences",
+    "openTicketsText": "Open tickets",
+    "escalatedTicketsText": "Escalated tickets",
+    "awaitingResponseText": "Awaiting response",
+    "clientRespondedText": "Client responded",
+    "unlinkedTicketsText": "Unlinked tickets"
 }

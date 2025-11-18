@@ -6,11 +6,14 @@ import { useI18n } from 'vue-i18n'
 
 import { useWindowSize } from '@/composables/useWindowSize'
 import { useStableSize } from '@/composables/useStableSize'
+import { useDashboardData } from '@/composables/useDashboardData'
 
 const { t } = useI18n()
 const { windowWidth } = useWindowSize()
+const { DASHBOARD_TITLES } = useDashboardData()
 
 const props = defineProps({
+  header: { type: String, required: true },
   x: { type: Number, required: true },
   y: { type: Number, required: true },
   w: { type: Number, required: true },
@@ -131,9 +134,9 @@ const tileMenuOptions = reactive([
     isOpen: false,
     hideOnMobile: false,
     menuItems: [
-      { id: 'bar', optionTitle: 'Bar', clickAction: () => setType('bar') },
-      { id: 'area', optionTitle: 'Area', clickAction: () => setType('area') },
-      { id: 'donut', optionTitle: 'Donut', clickAction: () => setType('donut') }
+      { id: 'bar', optionTitle: DASHBOARD_TITLES['bar'], clickAction: () => setType('bar') },
+      { id: 'area', optionTitle: DASHBOARD_TITLES['area'], clickAction: () => setType('area') },
+      { id: 'donut', optionTitle: DASHBOARD_TITLES['donut'], clickAction: () => setType('donut') }
     ]
   }
 ])
@@ -249,7 +252,7 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
     </AnimatePresence>
 
     <div class="tile-header">
-      <slot name="header">TILE HEADER</slot>
+      <slot name="header">{{ props.header }}</slot>
     </div>
 
     <div class="tile-content" ref="contentEl">
@@ -297,8 +300,8 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
   flex-direction: column;
   border-radius: 4px;
   z-index: 10;
-  border: none;            /* button reset for a11y switch */
-  background: transparent; /* button reset for a11y switch */
+  border: none;
+  background: transparent;
 }
 
 .tile-menu-button .dot {

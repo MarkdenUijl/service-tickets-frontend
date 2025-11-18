@@ -51,6 +51,10 @@ const props = defineProps({
   background-color: var(--color-tile-dire-back);
   color: var(--color-tile-dire-contrast);
 }
+.status-cancelled {
+  background-color: var(--color-tile-neutral-back);
+  color: var(--color-tile-neutral-contrast);
+}
 
 .size-small {
   width: 72px;

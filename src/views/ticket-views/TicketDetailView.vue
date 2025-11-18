@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { motion } from 'motion-v'
 import { QuillEditor } from '@vueup/vue-quill'
 import { useRoute } from 'vue-router'
 import { formatIsoDate } from '@/utils/formatIsoDate'
@@ -10,12 +11,14 @@ import { useTickets } from '@/composables/useTickets'
 import { safeApiCall } from '@/utils/safeApiCall'
 import { useAuthStore } from '@/stores/authStore'
 import { handleTicketUpdates } from '@/services/ticketSocketHandler'
+import { PRIVILEGES } from '@/constants/privileges'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 import TicketSourcePill from '@/components/graphic-items/TicketSourcePill.vue'
+import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import DOMPurify from 'dompurify'
 import UserInfoTile from '@/components/common/UserInfoTile.vue'
@@ -25,7 +28,6 @@ import RecentTicketsList from '@/components/lists/RecentTicketsList.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
 import FileItem from '@/components/lists/FileItem.vue'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -40,6 +42,13 @@ const isStatusUpdating = ref(false)
 const hasLoadError = ref(false)
 const quillRef = ref(null)
 const showAllFiles = ref(false)
+const ticketId = ref(null)
+
+// Editing state
+const isEditingDescription = ref(false)
+const editDescriptionText = ref('')
+const editingResponseId = ref(null)
+const editingResponseText = ref('')
 
 // Response form state
 const replyText = ref('')
@@ -107,6 +116,7 @@ async function deleteAttachment(fileId) {
 
 const isClosed = computed(() => ticketData.value?.status === 'CLOSED')
 const isEscalated = computed(() => ticketData.value?.status === 'ESCALATED')
+const isCancelled = computed(() => ticketData.value?.status === 'CANCELLED')
 const canEscalate = computed(() => !!ticketData.value && !isClosed.value && !isEscalated.value)
 
 
@@ -119,7 +129,6 @@ async function updateTicketStatus(nextStatus) {
   await safeApiCall(
     async () => {
         await api.patch(`/serviceTickets/${ticketData.value.id}/status`, { status: nextStatus })
-      // Rely on websocket broadcast to refresh ticketData
     },
     'Failed to update ticket status'
   )
@@ -139,7 +148,9 @@ async function escalateTicket() {
   await updateTicketStatus('ESCALATED')
 }
 
-
+async function cancelTicket() {
+  await updateTicketStatus('CANCELLED')
+}
 
 
 /**
@@ -183,13 +194,103 @@ async function submitReply() {
   submitting.value = false
 }
 
+/**
+ * Edit ticket description or response.
+ */
+function startEditDescription() {
+  if (!ticketData.value) return
+  editDescriptionText.value = ticketData.value.description || ''
+  isEditingDescription.value = true
+}
+
+function cancelEditDescription() {
+  if (!ticketData.value) return
+  editDescriptionText.value = ticketData.value.description || ''
+  isEditingDescription.value = false
+}
+
+async function saveDescription() {
+  if (!ticketData.value) return
+
+  const sanitizedDescription = DOMPurify.sanitize(editDescriptionText.value)
+
+  const updated = await safeApiCall(
+    () => api.patch(`/serviceTickets/${ticketData.value.id}`, {
+      description: sanitizedDescription
+    }),
+    'Failed to update ticket description'
+  )
+
+  if (!updated) return
+
+  // Update local ticket data so UI reflects changes immediately
+  ticketData.value.description = sanitizedDescription
+  isEditingDescription.value = false
+}
+
+function startEditResponse(response) {
+  editingResponseId.value = response.id
+  editingResponseText.value = response.text
+}
+
+function cancelEditResponse() {
+  editingResponseId.value = null
+  editingResponseText.value = ''
+}
+
+async function saveEditedResponse(response) {
+  const sanitized = DOMPurify.sanitize(editingResponseText.value)
+
+  const updated = await safeApiCall(
+    () => api.patch(`/ticketResponses/${response.id}`, {
+      response: sanitized
+    }),
+    'Failed to update response'
+  )
+
+  if (!updated) return
+
+  // Update local state
+  const target = ticketData.value.responses.find(r => r.id === response.id)
+  if (target) {
+    target.response = sanitized
+  }
+
+  editingResponseId.value = null
+  editingResponseText.value = ''
+}
+
+watch(
+  () => ticketData.value,
+  (newTicket) => {
+    if (!newTicket) return
+    isEditingDescription.value = false
+    editDescriptionText.value = newTicket.description || ''
+  },
+  { immediate: true }
+)
+
+
 // --- Computed helpers --- //
+const isTicketOwner = computed(() => {
+  if (!auth.user || !ticketData.value?.submittedBy) return false
+  return auth.user.email === ticketData.value.submittedBy.email
+})
+
+function isResponseOwner(response) {
+  if (!auth.user?.email) return false
+  if (!response?.email) return false
+
+  return auth.user.email === response.email
+}
+
 const responses = computed(() => {
   const list = ticketData.value?.responses || []
   return list.map((r) => {
     const { date, time } = formatIsoDate(r.creationDate)
     return {
       id: r.id || `${r.creationDate}-${r.submittedBy?.email}`,
+      email: r.submittedBy?.email,
       authorFirstName: r.submittedBy?.firstName,
       authorLastName: r.submittedBy?.lastName,
       engineerResponse: r.engineerResponse,
@@ -207,7 +308,7 @@ const isReplyDisabled = computed(() => {
   const quillText = quillRef.value?.getText()?.replace(/\s+/g, '') || ''
   const hasQuillText = quillText.length > 0
 
-  const hasTime = hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE') 
+  const hasTime = hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS) 
     ? timeSpentMinutes.value !== null && timeSpentMinutes.value > 0
     : true
 
@@ -232,13 +333,14 @@ const displayedFiles = computed(() => {
   return Object.fromEntries(entries.slice(0, 3))
 })
 
+
 onMounted(() => {
-  const ticketId = route.params.id
-  connectToTicketDetail(ticketId, handleTicketUpdates(ticketData))
+  ticketId.value = route.params.id
+  connectToTicketDetail(ticketId.value, handleTicketUpdates(ticketData))
 })
 
-onUnmounted(() => {
-  disconnectFromTicketDetail(route.params.id)
+onBeforeUnmount(() => {
+  disconnectFromTicketDetail(ticketId.value)
 })
 </script>
 
@@ -267,12 +369,11 @@ onUnmounted(() => {
                 <TicketStatusPill :status="ticketData.status" />
                 <TicketTypePill :type="ticketData.type" />
                 <TicketSourcePill :source="ticketData.source" />
-                <TicketPriorityPill v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" :priority="ticketData.priority" />
+                <TicketPriorityPill v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" :priority="ticketData.priority" />
               </div>
             </div>
 
-
-            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="status-actions">
+            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="status-actions">
               <button
                 v-if="canEscalate"
                 type="button"
@@ -293,23 +394,80 @@ onUnmounted(() => {
               </button>
             </div>
 
+            <div v-else class="status-actions">
+              <button
+                v-if="!isCancelled"
+                type="button"
+                class="status-button"
+                :disabled="isStatusUpdating"
+                @click="cancelTicket()"
+              >
+                {{ t('ticket.detailsCancelTicketText') }}
+              </button>
+            </div>
+
           </header>
   
           <VisualSeparator />
   
           <!-- DESCRIPTION -->
           <section class="ticket-detail-item">
-            <UserInfoTile 
-              :firstName="ticketData.submittedBy.firstName" 
-              :lastName="ticketData.submittedBy.lastName"
-              :subtext="`${creationDate.date}, ${creationDate.time}`"
-              :isFree="true"
-            />
-            <p>{{ ticketData.description }}</p>
+            <div class="owner-details">
+              <UserInfoTile 
+                :firstName="ticketData.submittedBy.firstName" 
+                :lastName="ticketData.submittedBy.lastName"
+                :subtext="`${creationDate.date}, ${creationDate.time}`"
+                :isFree="true"
+              />
+
+              <motion.button
+                v-if="isTicketOwner && !isEditingDescription && !isClosed && !isCancelled"
+                type="button"
+                class="edit-button"
+                @click="startEditDescription"
+                :initial="{ opacity: 0, scale: 0.9, y: -4 }"
+                :animate="{ opacity: 1, scale: 1, y: 0 }"
+                :transition="{ duration: 0.2, easing: 'ease-out' }"
+                :whileHover="{ scale: 1.12, y: -2 }"
+                :whileTap="{ scale: 0.9 }"
+              >
+                <SvgIcon name="edit-icon" width="16px" height="18px"/>
+              </motion.button>
+            </div>
+
+            <!-- View mode -->
+            <template v-if="!isEditingDescription">
+              <p>{{ ticketData.description }}</p>
+            </template>
+
+            <!-- Edit mode -->
+            <template v-else>
+              <textarea
+                v-model="editDescriptionText"
+                class="description-edit-area"
+                rows="6"
+              />
+
+              <div class="response-actions">
+                <button
+                  type="button"
+                  class="status-button"
+                  @click="saveDescription"
+                >
+                  {{ t('base.saveText') }}
+                </button>
+
+                <button
+                  type="button"
+                  class="status-button"
+                  @click="cancelEditDescription"
+                >
+                  {{ t('base.cancelText') }}
+                </button>
+              </div>
+            </template>
           </section>
         </div>
-
-        
 
         <!-- RESPONSES -->
         <section v-if="responses.length"  class="ticket-detail-section" id="ticket-responses">
@@ -318,19 +476,58 @@ onUnmounted(() => {
             class="response-item ticket-detail-item"
             :class="response.engineerResponse ? 'engineer-response' : ''"
           >
-            <UserInfoTile 
-              :firstName="response.authorFirstName" 
-              :lastName="response.authorLastName"
-              :subtext="`${response.date}, ${response.time}`"
-              :isFree="true"
-            />
-            <p v-html="response.text"></p>
+            <div class="owner-details">
+              <UserInfoTile 
+                :firstName="response.authorFirstName" 
+                :lastName="response.authorLastName"
+                :subtext="`${response.date}, ${response.time}`"
+                :isFree="true"
+              />
+              
+              <motion.button
+                v-if="isResponseOwner(response) && editingResponseId !== response.id"
+                class="edit-button"
+                @click="startEditResponse(response)"
+                :initial="{ opacity: 0, scale: 0.9, y: -4 }"
+                :animate="{ opacity: 1, scale: 1, y: 0 }"
+                :transition="{ duration: 0.2, easing: 'ease-out' }"
+                :whileHover="{ scale: 1.12, y: -2 }"
+                :whileTap="{ scale: 0.9 }"
+              >
+                <SvgIcon name="edit-icon" width="16px" height="18px" />
+              </motion.button>
+            </div>
+
+            <!-- View mode -->
+            <p v-if="editingResponseId !== response.id" v-html="response.text"></p>
+
+            <!-- Edit mode -->
+            <div v-else>
+              <div>
+                <QuillEditor
+                  v-model:content="editingResponseText"
+                  content-type="html"
+                  theme="snow"
+                  toolbar="minimal"
+                />
+  
+                <div class="response-actions">
+                  <button class="status-button" @click="saveEditedResponse(response)">
+                    {{ t('base.saveText') }}
+                  </button>
+  
+                  <button class="status-button" @click="cancelEditResponse">
+                    {{ t('base.cancelText') }}
+                  </button>
+                </div>
+              </div>
+              </div>
           </section>
         </section>
 
         <!-- ADD RESPONSE -->
         <section 
-          v-if="!isClosed"
+          v-if="!isClosed && !isCancelled"
           class="ticket-detail-section" 
           id="ticket-add-response"
         >
@@ -358,7 +555,7 @@ onUnmounted(() => {
               aria-busy="submitting"
             />
 
-            <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="time-log-control">
+            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="time-log-control">
               <SvgIcon name="icon-clock" width="16px" />
               <input
                 type="number"
@@ -375,7 +572,7 @@ onUnmounted(() => {
 
       <!-- META INFO -->
       <div id="ticket-meta">
-        <div v-if="hasPrivilege('CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE')" class="ticket-meta-information">
+        <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="ticket-meta-information">
           <section class="ticket-meta-information-section">
             <h3 class="ticket-meta-header">{{ t('ticket.detailsCallerInfoHeaderText') }}</h3>
 
@@ -571,6 +768,58 @@ onUnmounted(() => {
   white-space: pre-line;
 }
 
+.owner-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  height: 100%;
+}
+
+.status-button {
+  position: relative;
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.status-button:hover {
+  background: var(--color-soft-pink);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.edit-button {
+  color: var(--color-text);
+  padding: 8px;
+}
+
+.description-edit-area {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: 'Ubuntu', sans-serif;
+  resize: vertical;
+}
+
 /* --- File list --- */
 .ticket-files {
   display: flex;
@@ -752,34 +1001,5 @@ button:disabled,
 
 :deep(.ql-editor.ql-blank::before) {
   color: var(--color-subtext);
-}
-
-
-
-
-.status-actions {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  height: 100%;
-}
-
-.status-button {
-  position: relative;
-  background: var(--color-background);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.status-button:hover {
-  background: var(--color-soft-pink);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 </style>
