@@ -144,4 +144,5 @@ body {
 
 button {
   all: unset;
+  cursor: pointer;
 }
