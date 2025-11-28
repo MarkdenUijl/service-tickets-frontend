@@ -20,7 +20,7 @@ import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vu
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import { storeToRefs } from 'pinia'
 
-const router = useRouter();
+const router = useRouter()
 
 const loading = ref(false)
 const searchInput = ref('')
@@ -359,6 +359,7 @@ onMounted(() => {
         :sort-type="sortType"
         @click-row="onClickTicketRow"
         @update-sort="onUpdateSort"
+        :restricted-columns="['priorityValue']"
       >
         <template #item-priorityValue="{ priorityValue, priority }">
           <TicketPriorityPill :priority="priority" />
@@ -545,10 +546,7 @@ onMounted(() => {
   gap: 16px;
 }
 
-
-
-
-/* TESTING: */
+/* FILTERS */
 .status-checkboxes {
   display: flex;
   gap: 16px;

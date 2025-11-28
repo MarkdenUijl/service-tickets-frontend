@@ -64,6 +64,7 @@
     "creationErrorProjectRequiredText": "Please select project.",
     "creationErrorHoudeNumberRequiredText": "Please enter number.",
     "creationErrorZipCodeRequiredText": "Please enter zipcode.",
+    "creationErrorNoProjectMatchText": "This address does not match any project.",
     "creationCreateTicketText": "Create ticket",
     "detailsLoadingText": "Loading ticket details",
     "detailsLoadingErrorText": "Failed to load ticket details.",

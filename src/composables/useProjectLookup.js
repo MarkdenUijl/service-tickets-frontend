@@ -7,6 +7,12 @@ import api from '@/services/api'
  */
 export function useProjectLookup(ticketData) {
   const projects = ref([])
+  const hasNoProjectMatch = ref(false)
+
+  function clearProjectsAndSelection() {
+    projects.value = []
+    ticketData.projectId = ''
+  }
 
   async function fetchProjects() {
     try {
@@ -28,20 +34,50 @@ export function useProjectLookup(ticketData) {
 
   async function fetchProjectsByAddress() {
     const params = buildProjectQueryParams()
-    try {
-      const response = await api.get('/projects', { params })
-      projects.value = response.data
 
+    // If there is no address info, go back to the default: show all projects
+    if (Object.keys(params).length === 0) {
+      hasNoProjectMatch.value = false
+      await fetchProjects()
+
+      return
+    }
+
+    try {
+      // reset previous state
+      hasNoProjectMatch.value = false
+
+      const response = await api.get('/projects', { params })
+      projects.value = response.data || []
+
+      if (projects.value.length === 0) {
+        // No matches -> empty dropdown + flag
+        clearProjectsAndSelection()
+        hasNoProjectMatch.value = true
+        return
+      }
+
+      // We *do* have matches -> normal behaviour
       if (projects.value.length === 1) {
         ticketData.projectId = projects.value[0].id
-      } else if (projects.value.length === 0) {
-        ticketData.projectId = ''
       } else {
         const ids = projects.value.map(p => p.id)
-        if (!ids.includes(ticketData.projectId)) ticketData.projectId = ''
+        if (!ids.includes(ticketData.projectId)) {
+          ticketData.projectId = ''
+        }
       }
     } catch (error) {
-      console.error('Error fetching projects by address:', error)
+      // Treat 404 as "no matches", everything else as a real error
+      const status = error?.status || error?.response?.status
+
+      if (status === 404) {
+        clearProjectsAndSelection()
+        hasNoProjectMatch.value = true
+      } else {
+        console.error('Error fetching projects by address:', error)
+        clearProjectsAndSelection()
+        hasNoProjectMatch.value = false
+      }
     }
   }
 
@@ -68,6 +104,7 @@ export function useProjectLookup(ticketData) {
     projects,
     fetchProjects,
     fetchProjectsByAddress,
-    autofillAddress
+    autofillAddress,
+    hasNoProjectMatch
   }
 }

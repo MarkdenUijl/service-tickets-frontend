@@ -9,12 +9,35 @@ import api from '@/services/api'
 export function useUserLookup(ticketData) {
   const users = ref([])
 
+  function clearUsersAndSelection() {
+    users.value = []
+    ticketData.submittedByUserId = null
+  }
+
+  // async function fetchUsers() {
+  //   try {
+  //     const response = await api.get('/users')
+  //     users.value = response.data
+  //   } catch (error) {
+  //     console.error('Error fetching users:', error)
+  //   }
+  // }
+
   async function fetchUsers() {
     try {
       const response = await api.get('/users')
-      users.value = response.data
+      users.value = response.data || []
+
+      // Keep current selection only if it still exists
+      if (ticketData.submittedByUserId) {
+        const ids = users.value.map(u => u.id)
+        if (!ids.includes(ticketData.submittedByUserId)) {
+          ticketData.submittedByUserId = null
+        }
+      }
     } catch (error) {
       console.error('Error fetching users:', error)
+      clearUsersAndSelection()
     }
   }
 
@@ -27,22 +50,33 @@ export function useUserLookup(ticketData) {
 
   async function fetchUsersByFilter() {
     const params = buildUserQueryParams()
+
+    // If there are no filters, go back to the default: full user list
+    if (Object.keys(params).length === 0) {
+      await fetchUsers()
+      return
+    }
+
     try {
       const response = await api.get('/users', { params })
-      users.value = response.data
+      users.value = response.data || []
 
-      // Auto-select logic like project lookup
       if (users.value.length === 1) {
+        // Single match → auto-select
         ticketData.submittedByUserId = users.value[0].id
       } else if (users.value.length === 0) {
+        // No matches → clear selection
         ticketData.submittedByUserId = null
       } else {
+        // Multiple matches → keep current selection only if it's still valid
         const ids = users.value.map(u => u.id)
-        if (!ids.includes(ticketData.submittedByUserId)) ticketData.submittedByUserId = null
+        if (!ids.includes(ticketData.submittedByUserId)) {
+          ticketData.submittedByUserId = null
+        }
       }
-
     } catch (error) {
       console.error('Error fetching users by filter:', error)
+      clearUsersAndSelection()
     }
   }
 
