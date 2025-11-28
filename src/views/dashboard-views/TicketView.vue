@@ -82,7 +82,6 @@ const filteredItems = computed(() =>
 )
 
 const columns = computed(() => {
-  locale.value
   return [
     { text: t('ticket.columnPriorityText'), value: 'priorityValue', sortable: true },
     { text: t('ticket.columnTicketTitleText'), value: 'name' },
@@ -130,16 +129,16 @@ function normalizeTicket(ticket) {
   }
 }
 
+function handleFilterClick() {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
 async function deleteTicket(ticketId) {
   try {
     await api.delete(`/serviceTickets/${ticketId}`)
   } catch (error) {
     console.log(error?.status || error)
   }
-}
-
-function handleFilterClick() {
-  isFilterOpen.value = !isFilterOpen.value
 }
 
 async function handleBulkDelete() {
@@ -286,7 +285,7 @@ onMounted(() => {
           @click.stop="handleFilterClick"
         >
           <SvgIcon name="filter-icon" height="20px" width="20px" />
-          <span>{{ t('ticket.filterButtonText') }}</span>
+          <span>{{ t('base.filterButtonText') }}</span>
         </button>
 
         <SearchInput :placeholder="t('ticket.searchTicketText')" variant="inline" v-model="searchInput" />
@@ -349,7 +348,7 @@ onMounted(() => {
         :rows-per-page="10"
         :theme-color="'var(--color-highlight)'"
         header-class-name="table-header"
-        table-class-name="ticket-table"
+        table-class-name="data-table"
         header-text-direction="center"
         body-text-direction="center"
         v-model:items-selected="itemsSelected"
@@ -459,40 +458,6 @@ onMounted(() => {
   line-height: 1.2;
 }
 
-.ticket-table {
-  user-select: none;
-
-  --easy-table-border: none;
-  --easy-table-row-border: none;
-
-  --easy-table-header-font-size: 14px;
-
-  --easy-table-header-height: 40px;
-  --easy-table-body-row-height: 60px;
-  --easy-table-footer-height: 60px;
-
-  --easy-table-body-row-font-size: 12px;
-
-  --easy-table-header-font-color: var(--color-text);
-  --easy-table-header-background-color: var(--color-menu-background);
-  --easy-table-body-row-font-color: var(--color-text);
-  --easy-table-body-row-background-color: var(--color-menu-background);
-  --easy-table-footer-font-color: var(--color-text);
-  --easy-table-footer-background-color: var(--color-menu-background);
-
-  --easy-table-body-row-hover-font-color: var(--color-text);
-  --easy-table-body-row-hover-background-color: none;
-
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.ticket-table th {
-  font-weight: 700;
-}
-
 .ticket-name-indicator {
   font-weight: 700;
   display: inline-block;
@@ -516,36 +481,6 @@ onMounted(() => {
   font-style: italic;
 }
 
-.dashboard-header-button {
-  width: 136px;
-  height: 28px;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--color-text);
-  background: var(--color-menu-background);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 2px 4px;
-}
-
-.dashboard-header-button[disabled] {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.dashboard-header-button span {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.dashboard-button-container {
-  display: flex;
-  gap: 16px;
-}
-
 /* FILTERS */
 .status-checkboxes {
   display: flex;
@@ -563,7 +498,6 @@ onMounted(() => {
 }
 
 /* Filter Popout Styles */
-
 .filter-popout {
   position: absolute;
   z-index: 20;

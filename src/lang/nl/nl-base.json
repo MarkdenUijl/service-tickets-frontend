@@ -12,5 +12,6 @@
   "saveText": "Opslaan",
   "cancelText": "Annuleren",
   "showMoreText": "Laat meer zien...",
-  "showLessText": "Laat minder zien..."
+  "showLessText": "Laat minder zien...",
+  "filterButtonText" : "Filters"
 }

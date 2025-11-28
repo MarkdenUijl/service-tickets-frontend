@@ -12,5 +12,6 @@
   "saveText": "Save",
   "cancelText": "Cancel",
   "showMoreText": "Show more...",
-  "showLessText": "Show less..."
+  "showLessText": "Show less...",
+  "filterButtonText": "Filters"
 }

@@ -1,7 +1,6 @@
 {
     "createTicketText": "Maak Ticket",
     "deleteTicketsText": "Verwijder tickets",
-    "filterButtonText" : "Filters",
     "searchTicketText" : "Zoek ticket...",
     "columnIdText": "ID",
     "columnPriorityText": "Prioriteit",

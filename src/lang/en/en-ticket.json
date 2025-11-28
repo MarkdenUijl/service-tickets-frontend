@@ -1,7 +1,6 @@
 {
     "createTicketText": "Create Ticket",
     "deleteTicketsText": "Delete tickets",
-    "filterButtonText": "Filters",
     "searchTicketText": "Search ticket...",
     "columnIdText": "ID",
     "columnPriorityText": "Priority",

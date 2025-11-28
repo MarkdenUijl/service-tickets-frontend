@@ -19,6 +19,8 @@ const UnauthorizedView = () => import('@/views/dashboard-views/UnauthorizedView.
 const TicketCreateView = () => import('@/views/ticket-views/TicketCreateView.vue');
 const TicketDetailView = () => import('@/views/ticket-views/TicketDetailView.vue');
 
+const ProjectCreateView = () => import('@/views/project-views/ProjectCreateView.vue');
+
 const routes = [
     {
         path: '/auth',
@@ -108,6 +110,16 @@ const routes = [
                     titleKey: 'dash.navProjectsText' 
                 }
             },
+                {
+                    path: 'projects/create',
+                    name: 'project-create',
+                    component: ProjectCreateView,
+                    meta: { 
+                        titleKey: 'project.createProjectText',
+                        parent: 'projects',
+                        showInMenu: false 
+                    }
+                },
             {
                 path: 'contracts',
                 name: 'contracts',

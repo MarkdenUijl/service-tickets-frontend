@@ -11,18 +11,23 @@ import nlDash from './lang/nl/nl-dash.json';
 import enTicket from './lang/en/en-ticket.json';
 import nlTicket from './lang/nl/nl-ticket.json';
 
+import enProject from './lang/en/en-project.json';
+import nlProject from './lang/nl/nl-project.json';
+
 const messages = {
   en: {
     auth: enAuth,
     base: enBase,
     dash: enDash,
-    ticket: enTicket
+    ticket: enTicket,
+    project: enProject
   },
   nl: {
     auth: nlAuth,
     base: nlBase,
     dash: nlDash,
-    ticket: nlTicket
+    ticket: nlTicket,
+    project: nlProject
   }
 };
 
