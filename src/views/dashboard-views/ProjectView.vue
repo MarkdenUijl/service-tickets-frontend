@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/projectStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { useRouter } from 'vue-router'
+import api from '@/services/api'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -58,13 +59,11 @@ function normalizeProject(project) {
 }
 
 async function deleteProject(projectId) {
-  // try {
-  //   await api.delete(`/projects/${projectId}`)
-  // } catch (error) {
-  //   console.log(error?.status || error)
-  // }
-
-  console.log(`Project to be deleted has id ${projectId}`)
+  try {
+    await api.delete(`/projects/${projectId}`)
+  } catch (error) {
+    console.log(error?.status || error)
+  }
 }
 
 async function handleBulkDelete() {
@@ -73,6 +72,8 @@ async function handleBulkDelete() {
     await deleteProject(item.id)
   }
   itemsSelected.value = []
+
+  projectStore.fetchAll()
 }
 
 const onCreateProject = () => {
@@ -87,8 +88,6 @@ function onClickProjectRow(item) {
 
 onMounted(() => {
   projectStore.fetchAll()
-
-  console.log(projectStore.projects)
 })
 </script>
 
@@ -248,6 +247,16 @@ onMounted(() => {
         buttons-pagination
         @click-row="onClickProjectRow"
       >
+        <template #item-name="{ name }">
+          <span class="project-name-indicator">{{ name }}</span>
+        </template>
+
+        <template #item-contractTypeDisplay="{ contractTypeDisplay }">
+          <span class="project-contract-indicator">
+              {{ contractTypeDisplay }}
+          </span>
+        </template>
+
         <template #empty-message>
           <span class="ticket-no-data">{{ t('ticket.noDataFoundText') }}</span>
         </template>
@@ -297,6 +306,20 @@ onMounted(() => {
 
 #project-filter-button span {
   font-size: 13px;
+  font-weight: 700;
+}
+
+.project-name-indicator {
+  font-weight: 700;
+  display: inline-block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-contract-indicator {
+  color: var(--color-subtext);
   font-weight: 700;
 }
 </style>

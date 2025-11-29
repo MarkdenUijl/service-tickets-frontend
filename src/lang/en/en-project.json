@@ -4,5 +4,21 @@
   "columnProjectCityText": "Project city",
   "columnProjectContractText": "Contract",
   "deleteProjectsText": "Delete projects",
-  "createProjectText": "Create project"
+  "createProjectText": "Create project",
+  "creationErrorNameRequiredText": "Project name is required",
+  "creationErrorNameShortText": "Project name too short",
+  "creationErrorCityRequiredText": "City is required",
+  "creationErrorZipCodeRequiredText": "Zipcode is required",
+  "creationErrorInvalidZipCodeText": "Invalid zipcode",
+  "creationErrorStreetRequiredText": "Need to enter a street name",
+  "creationErrorHouseNumberRequiredText": "Housenumber required",
+  "creationErrorNumberNotDigitsText": "Not numeric",
+  "creationProjectDetailsText": "Fill in project details",
+  "creationProjectNameText": "Project name",
+  "creationProjectCityText": "City",
+  "creationProjectZipCodeText": "Zip code",
+  "creationProjectStreetText": "Street",
+  "creationProjectHouseNumberText": "House number",
+  "creationCreateProjectText": "Create project",
+  "creationProjectExistsText": "A project already exists on this address"
 }

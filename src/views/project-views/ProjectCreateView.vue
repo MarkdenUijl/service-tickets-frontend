@@ -1,136 +1,82 @@
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useProjectLookup } from '@/composables/useProjectLookup'
-import { useTicketValidation } from '@/composables/useTicketValidation'
-import { useUserLookup } from '@/composables/useUserLookup'
-import { useAuthStore } from '@/stores/authStore'
 import { useI18n } from 'vue-i18n'
-import { PRIVILEGES } from '@/constants/privileges'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
 import api from '@/services/api'
-import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
-import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
-import TextArea from '@/components/user-input/TextArea.vue'
-import FileDropzone from '@/components/user-input/FileDropzone.vue'
+import { useProjectValidation } from '@/composables/useProjectValidation'
 
 const router = useRouter()
-const auth = useAuthStore()
 const { t } = useI18n()
-const hasPrivilege = auth.hasPrivilege
 
 const loading = ref(false)
-const selectedFiles = ref([])
+
+const hasCreationError = ref(false)
+const creationErrorTextKey = ref('')
 
 // Core form data
-const ticketData = reactive({
+const projectData = reactive({
   name: '',
-  type: '',
-  description: '',
-  projectId: '',
-  submittedByUserId: null,
-  firstName: '',
-  lastName: '',
-  street: '',
-  houseNumber: '',
-  zipCode: '',
   city: '',
-  source: null
+  zipCode: '',
+  street: '',
+  houseNumber: ''
 })
 
 // Composables
 const {
   errors,
   isNameValid,
+  isCityValid,
+  isZipCodeValid,
   isStreetValid,
   isHouseNumberValid,
-  isZipCodeValid,
-  isCityValid,
-  validateAll,
-} = useTicketValidation(ticketData)
+  validateAll
+} = useProjectValidation(projectData)
 
-const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress, hasNoProjectMatch } =
-  useProjectLookup(ticketData)
-
-let users = ref([])
-let fetchUsers = () => {}
-let fetchUsersByFilter = () => {}
-let autofillUserDetails = () => {}
-
-if (hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)) {
-  const userLookup = useUserLookup(ticketData)
-  users = userLookup.users
-  fetchUsers = userLookup.fetchUsers
-  fetchUsersByFilter = userLookup.fetchUsersByFilter
-  autofillUserDetails = userLookup.autofillUserDetails
-
-  onMounted(fetchUsers)
-}
-
-// Autofill project details when selection changes
-watch(() => ticketData.projectId, autofillAddress)
-
-// Autofill user details when submittedByUserId changes
-watch(() => ticketData.submittedByUserId, autofillUserDetails)
-
-// Load projects on mount
-onMounted(fetchProjects)
-
-// Submit ticket creation form
+// Submit project creation form
 async function handleSubmit() {
   if (!validateAll()) return
 
-  let { name, type, description, projectId, submittedByUserId, source } = ticketData
+  let { name, city, zipCode, street, houseNumber } = projectData
 
   loading.value = true
   try {
-    const { data } = await api.post('/serviceTickets', {
+    const { data } = await api.post('/projects', {
       name,
-      status: 'OPEN',
-      type,
-      description,
-      projectId,
-      submittedByUserId,
-      source,
+      city,
+      zipCode,
+      street,
+      houseNumber
     })
 
-    const createdTicketId = data.id
-
-    if (selectedFiles.value.length > 0) {
-      const formData = new FormData()
-      selectedFiles.value.forEach(file => formData.append('files', file))
-      await api.post(`/serviceTickets/${createdTicketId}/files`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-    }
-
-    router.push('/dashboard/tickets')
+    router.push('/dashboard/projects')
   } catch (err) {
     console.error('Error creating ticket:', err)
+
+    if (err.status === 409) {
+      hasCreationError.value = true
+      creationErrorTextKey.value = 'creationProjectExistsText'
+    }
   } finally {
     loading.value = false
   }
 }
 
-const handleTicketCancel = () => {
-  router.push('/dashboard/tickets')
+const handleProjectCancel = () => {
+  router.push('/dashboard/projects')
 }
 
-const ticketTypes = [
-  { name: t('ticket.typeHardwareText'), type: 'HARDWARE' },
-  { name: t('ticket.typeSoftwareText'), type: 'SOFTWARE' },
-  { name: t('ticket.typeQuestionText'), type: 'QUESTION' },
-  { name: t('ticket.typeChangeText'), type: 'CHANGE' },
-  { name: t('ticket.typeUnknownText'), type: 'UNKNOWN' }
-]
-
-const ticketSources = [
-  { name: t('ticket.sourceWebText'), source: 'WEB' },
-  { name: t('ticket.sourcePhoneText'), source: 'PHONE' },
-  { name: t('ticket.sourceMailText'), source: 'MAIL' },
-]
+watch(
+  () => projectData,
+  () => {
+    hasCreationError.value = false
+    creationErrorTextKey.value = ''
+  },
+  { deep: true }
+)
 </script>
 
 <template>
@@ -139,124 +85,69 @@ const ticketSources = [
       <RouteInfo />
     </div>
 
-    <div class="ticket-create-form-wrapper">
-      <form class="ticket-create-form" @submit.prevent="handleSubmit">
-        <div class="ticket-form-items">
-          <div class="ticket-form-section">
-            <span class="ticket-form-header">{{ t('ticket.creationTicketDetailsText') }}</span>
+    <div class="project-create-form-wrapper">
+      <form class="project-create-form" @submit.prevent="handleSubmit">
+        <div class="project-form-items">
+          <div class="project-form-section">
+            <span class="project-form-header">{{ t('project.creationProjectDetailsText') }}</span>
+            
+            <ValidatedInput
+              id="name"
+              v-model="projectData.name"
+              type="text"
+              :placeholder="t('project.creationProjectNameText')"
+              :isValid="isNameValid && errors.name === '' && !hasCreationError"
+              :validationText="hasCreationError ? ' ' : errors.name"
+            />
 
-            <div class="ticket-information">
+            <div class="address-line">
               <ValidatedInput
-                id="name"
-                v-model="ticketData.name"
+                id="city"
+                v-model="projectData.city"
                 type="text"
-                :placeholder="t('ticket.creationTicketNameText')"
-                :isValid="isNameValid && errors.name === ''"
-                :validationText="errors.name"
+                :placeholder="t('project.creationProjectCityText')"
+                :isValid="isCityValid && errors.city === '' && !hasCreationError"
+                :validationText="hasCreationError ? ' ' : errors.city"
               />
 
-              <div class="input-wrapper short-line">
-                <SearchDropdown v-model="ticketData.type" :items="ticketTypes" :placeholder="t('ticket.creationTicketTypeText')"
-                  label-key="name" value-key="type" :iconIndent="24" :dropdownHeight="60" />
-                <span class="validation-text" v-if="errors.type">{{ errors.type }}</span>
-              </div>
+              <ValidatedInput
+                id="zipcode"
+                v-model="projectData.zipCode"
+                type="text"
+                :placeholder="t('project.creationProjectZipCodeText')"
+                :isValid="isZipCodeValid && errors.zipCode === '' && !hasCreationError"
+                :validationText="hasCreationError ? ' ' : errors.zipCode"
+              />
             </div>
-
-            <div class="input-wrapper" style="height: 100%;">
-              <TextArea v-model="ticketData.description" :label="t('ticket.creationTicketDescriptionText')" :rows="5" />
-              <span class="validation-text" v-if="errors.description">{{ errors.description }}</span>
-            </div>
-
-            <FileDropzone v-model="selectedFiles" :maxFiles="8" :placeholder="t('ticket.creationTicketFilesText')" />
-          </div>
-
-          <VisualSeparator orientation="vertical" />
-
-          <div class="ticket-form-section">
-            <span class="ticket-form-header">{{ t('ticket.creationProjectDetailsText') }}</span>
-
-            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="input-wrapper">
-              <SearchDropdown v-model="ticketData.projectId" :items="projects" :placeholder="t('ticket.creationProjectSelectText')"
-                label-key="name" value-key="id" :iconIndent="24" :dropdownHeight="60" />
-              <span class="validation-text" v-if="errors.projectId">{{ errors.projectId }}</span>
-            </div>
-
-            <VisualSeparator v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" :separatorText="t('ticket.creationSeparatorText')" />
 
             <div class="address-line">
               <ValidatedInput
                 id="street"
-                v-model="ticketData.street"
+                v-model="projectData.street"
                 type="text"
-                :placeholder="t('ticket.creationProjectStreetText')"
-                :isValid="isStreetValid && errors.street === '' && !hasNoProjectMatch"
-                :validationText="hasNoProjectMatch ? ' ' : errors.street"
-                @blur="fetchProjectsByAddress"
+                :placeholder="t('project.creationProjectStreetText')"
+                :isValid="isStreetValid && errors.street === '' && !hasCreationError"
+                :validationText="hasCreationError ? ' ' : errors.street"
               />
 
               <ValidatedInput
                 id="houseNumber"
                 class="short-line"
-                v-model="ticketData.houseNumber"
+                v-model="projectData.houseNumber"
                 type="text"
-                :placeholder="t('ticket.creationProjectHouseNoText')"
-                :isValid="isHouseNumberValid && errors.houseNumber === '' && !hasNoProjectMatch"
-                :validationText="hasNoProjectMatch ? ' ' : errors.houseNumber"
-                @blur="fetchProjectsByAddress"
-              />
-            </div>
-
-            <div class="address-line">
-              <ValidatedInput
-                id="zipcode"
-                class="short-line"
-                v-model="ticketData.zipCode"
-                type="text"
-                :placeholder="t('ticket.creationProjectZipCodeText')"
-                :isValid="isZipCodeValid && errors.zipCode === '' && !hasNoProjectMatch"
-                :validationText="hasNoProjectMatch ? ' ' : errors.zipCode"
-                @blur="fetchProjectsByAddress"
-              />
-
-              <ValidatedInput
-                id="city"
-                v-model="ticketData.city"
-                type="text"
-                :placeholder="t('ticket.creationProjectCityText')"
-                :isValid="isCityValid && errors.city === '' && !hasNoProjectMatch"
-                :validationText="hasNoProjectMatch ? ' ' : errors.city"
-                @blur="fetchProjectsByAddress"
+                :placeholder="t('project.creationProjectHouseNumberText')"
+                :isValid="isHouseNumberValid && errors.houseNumber === '' && !hasCreationError"
+                :validationText="hasCreationError ? ' ' : errors.houseNumber"
               />
               
-              <span v-if="hasNoProjectMatch" class="form-warning-text">
-                {{ t('ticket.creationErrorNoProjectMatchText') }}
+              <span v-if="hasCreationError" class="form-warning-text">
+                {{ t(`project.${creationErrorTextKey}`) }}
               </span>
             </div>
 
-
-            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="ticket-form-section">
-              <span class="ticket-form-header">{{ t('ticket.creationAdditionalInfoText') }}</span>
-
-              <div id="ticket-admin-information">
-                <div class="address-line">
-                  <SearchDropdown v-model="ticketData.submittedByUserId" :items="users" :placeholder="t('ticket.creationSubmittedByText')"
-                    label-key="email" value-key="id" :iconIndent="24" :dropdownHeight="60" />
-                  <SearchDropdown class="short-line" v-model="ticketData.source" :items="ticketSources" :placeholder="t('ticket.creationSourceText')" label-key="name"
-                    value-key="source" :iconIndent="24" :dropdownHeight="60" />
-                </div>
-
-                <div class="ticket-information ">
-                  <ValidatedInput id="firstName" v-model="ticketData.firstName" type="text" :placeholder="t('ticket.creationFirstNameText')"
-                    @blur="fetchUsersByFilter" />
-                  <ValidatedInput id="lastName" v-model="ticketData.lastName" type="text" :placeholder="t('ticket.creationLastNameText')"
-                    @blur="fetchUsersByFilter" />
-                </div>
-              </div>
-            </div>
-
-            <div id="ticket-buttons-container">
-              <LoaderButton :loading="loading" :label="t('ticket.creationCreateTicketText')" type="submit" />
-              <LoaderButton :label="t('base.cancelText')" @click="handleTicketCancel" />
+            <div id="project-buttons-container">
+              <LoaderButton :loading="loading" :label="t('project.creationCreateProjectText')" type="submit" />
+              <LoaderButton :label="t('base.cancelText')" @click="handleProjectCancel" />
             </div>
           </div>
         </div>
@@ -267,7 +158,7 @@ const ticketSources = [
 </template>
 
 <style scoped>
-.ticket-create-form-wrapper {
+.project-create-form-wrapper {
   margin: 12px;
   padding: 48px;
   background-color: var(--color-menu-background);
@@ -279,7 +170,7 @@ const ticketSources = [
   flex: 1;
 }
 
-.ticket-create-form {
+.project-create-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -288,19 +179,13 @@ const ticketSources = [
   align-items: center;
 }
 
-.ticket-form-items {
+.project-form-items {
   display: flex;
   flex-direction: row;
   gap: 16px;
   width: 100%;
   flex: 1;
-  justify-content: center;
-}
-
-.ticket-information {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
+  justify-content: flex-start;
 }
 
 #ticket-admin-information {
@@ -309,7 +194,7 @@ const ticketSources = [
   gap: 16px;
 }
 
-.ticket-form-section {
+.project-form-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -318,14 +203,15 @@ const ticketSources = [
   height: 100%;
 }
 
-#ticket-buttons-container {
+#project-buttons-container {
+  margin-top: 16px;
   width: 100%;
   display: flex;
   justify-content: center;
   gap: 16px;
 }
 
-.ticket-form-header {
+.project-form-header {
   font-size: 18px;
   font-weight: 700;
   font-family: 'Noto sans JP';
