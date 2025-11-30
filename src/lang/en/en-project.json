@@ -20,5 +20,19 @@
   "creationProjectStreetText": "Street",
   "creationProjectHouseNumberText": "House number",
   "creationCreateProjectText": "Create project",
-  "creationProjectExistsText": "A project already exists on this address"
+  "creationProjectExistsText": "A project already exists on this address",
+  "detailsLoadingText": "Project details loading",
+  "detailsLoadingErrorText": "Error loading project details",
+  "detailsGeneralInfoHeaderText": "General information",
+  "detailsProjectIdLabelText": "Project ID",
+  "detailsCityLabelText": "City",
+  "detailsZipCodeLabelText": "Zip code",
+  "detailsStreetLabelText": "Street",
+  "detailsHouseNumberLabelText": "House number",
+  "detailsContractHeaderText": "Service contract",
+  "detailsNoContractText": "No contract",
+  "detailsContractStartLabelText": "Start date",
+  "detailsContractEndLabelText": "End date",
+  "detailsTicketsHeaderText": "Tickets on this project",
+  "detailsProjectNotFoundText": "Project not found"
 }
