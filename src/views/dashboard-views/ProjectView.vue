@@ -10,9 +10,13 @@ import { useProjectStore } from '@/stores/projectStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import { PRIVILEGES } from '@/constants/privileges'
+import { useAuthStore } from '@/stores/authStore'
 
 const { t } = useI18n()
 const router = useRouter()
+const auth = useAuthStore()
+const hasPrivilege = auth.hasPrivilege
 
 const searchInput = ref('')
 const itemsSelected = ref([])
@@ -77,13 +81,16 @@ async function handleBulkDelete() {
 }
 
 const onCreateProject = () => {
-  console.log('CREATING PROJECT')
   router.push({ name: 'project-create' })
 }
 
 function onClickProjectRow(item) {
   console.log(item)
-  // router.push({ name: 'ticket-detail', params: { id: item.id } })
+  if (hasPrivilege(PRIVILEGES.SEE_PROJECTS)) {
+    router.push({ name: 'project-detail', params: { id: item.id } })
+  } else {
+    console.log(`You have no provileges to view this project`)
+  }
 }
 
 onMounted(() => {
@@ -96,7 +103,7 @@ onMounted(() => {
     <div class="dashboard-header-items">
       <RouteInfo />
 
-      <div class="dashboard-button-container">
+      <div class="dashboard-button-container" v-if="hasPrivilege(PRIVILEGES.MODIFY_PROJECTS)">
         <AnimatePresence>
           <motion.button
             v-if="itemsSelected.length > 0"
@@ -246,6 +253,7 @@ onMounted(() => {
         v-model:items-selected="itemsSelected"
         buttons-pagination
         @click-row="onClickProjectRow"
+        :privilege-key="PRIVILEGES.MODIFY_PROJECTS"
       >
         <template #item-name="{ name }">
           <span class="project-name-indicator">{{ name }}</span>
