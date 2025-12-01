@@ -36,7 +36,7 @@ const columns = computed(() => {
 
 function normalizeProject(project) {
     // Compute contract type value and display
-  const contractTypeValue = project.serviceContract?.type || 'NONE';
+  const contractTypeValue = project.serviceContract?.type || t('project.contractNoneText');
   let contractTypeDisplay = capitalizeWords(
     contractTypeValue
       .replaceAll('_', ' ')

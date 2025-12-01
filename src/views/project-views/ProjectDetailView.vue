@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { isContractCurrentlyValid, getRemainingContractTime, getContractTypeKey } from '@/utils/contractHelpers'
 import { safeApiCall } from '@/utils/safeApiCall'
@@ -10,8 +10,10 @@ import RouteInfo from '@/components/common/RouteInfo.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 
 // Core state
@@ -19,9 +21,11 @@ const projectData = ref(null)
 const isLoadingProject = ref(true)
 const hasLoadError = ref(false)
 
+// Tickets UI state
+const showAllTickets = ref(false)
+
 /**
  * Fetch project details by ID.
- * (Note: we use response.data here – axios returns a response object.)
  */
 async function loadProject() {
   isLoadingProject.value = true
@@ -56,19 +60,36 @@ const projectAddress = computed(() => {
   return [streetPart, zipCode, city].filter(Boolean).join(', ')
 })
 
-// Optional: tickets info for this project
-const hasTickets = computed(() => Array.isArray(projectData.value?.tickets) && projectData.value.tickets.length > 0)
+const hasTickets = computed(
+  () => Array.isArray(projectData.value?.tickets) && projectData.value.tickets.length > 0
+)
 
 const formattedTickets = computed(() => {
   if (!hasTickets.value) return []
-  return projectData.value.tickets.map(ticket => {
-    const { date } = formatIsoDate(ticket.creationDate)
-    return {
-      ...ticket,
-      creationDateFormatted: date
-    }
-  })
+
+  return projectData.value.tickets
+    .map(ticket => {
+      const { date } = formatIsoDate(ticket.creationDate)
+      return {
+        ...ticket,
+        creationDateFormatted: date
+      }
+    })
+    .sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)) // newest first
 })
+
+// Only show 3 tickets unless expanded
+const displayedTickets = computed(() => {
+  if (!hasTickets.value) return []
+  const list = formattedTickets.value
+  return showAllTickets.value ? list : list.slice(0, 3)
+})
+
+// Navigation helper
+function goToTicket(ticketId) {
+  if (!ticketId) return
+  router.push({ name: 'ticket-detail', params: { id: ticketId } })
+}
 </script>
 
 <template>
@@ -78,11 +99,11 @@ const formattedTickets = computed(() => {
     </div>
 
     <div v-if="isLoadingProject" class="project-detail-loading" aria-busy="true">
-      <span>{{ t('project.detailsLoadingText') }}</span>
+      <span>{{ t('ticket.detailsLoadingText') }}</span>
     </div>
 
     <div v-else-if="hasLoadError" class="project-detail-error">
-      <span>{{ t('project.detailsLoadingErrorText') }}</span>
+      <span>{{ t('ticket.detailsLoadingErrorText') }}</span>
     </div>
 
     <div v-else-if="projectData" class="project-detail-view">
@@ -106,31 +127,31 @@ const formattedTickets = computed(() => {
             <!-- General info -->
             <section class="project-info-block">
               <h3 class="project-section-title">
-                {{ t('project.detailsGeneralInfoHeaderText') }}
+                {{ t('project.detailsGeneralInfoHeaderText', 'General information') }}
               </h3>
 
               <TicketInfoLine 
-                :label="t('project.detailsProjectIdLabelText')"
+                :label="t('project.detailsProjectIdLabelText', 'Project ID')"
                 :value="projectData.id"
               />
 
               <TicketInfoLine 
-                :label="t('project.detailsCityLabelText')"
+                :label="t('project.detailsCityLabelText', 'City')"
                 :value="projectData.city"
               />
 
               <TicketInfoLine 
-                :label="t('project.detailsZipCodeLabelText')"
+                :label="t('project.detailsZipCodeLabelText', 'Zip code')"
                 :value="projectData.zipCode"
               />
 
               <TicketInfoLine 
-                :label="t('project.detailsStreetLabelText')"
+                :label="t('project.detailsStreetLabelText', 'Street')"
                 :value="projectData.street"
               />
 
               <TicketInfoLine 
-                :label="t('project.detailsHouseNumberLabelText')"
+                :label="t('project.detailsHouseNumberLabelText', 'House number')"
                 :value="projectData.houseNumber"
               />
             </section>
@@ -138,12 +159,12 @@ const formattedTickets = computed(() => {
             <!-- Contract info -->
             <section class="project-info-block">
               <h3 class="project-section-title">
-                {{ t('project.detailsContractHeaderText') }}
+                {{ t('project.detailsContractHeaderText', 'Service contract') }}
               </h3>
 
               <TicketInfoLine 
                 :label="t('ticket.detailsContractTypeLabelText')"
-                :value="serviceContract ? contractTypeLabel : t('project.detailsNoContractText')" 
+                :value="serviceContract ? contractTypeLabel : t('project.detailsNoContractText', 'No contract')" 
               />
 
               <TicketInfoLine 
@@ -161,50 +182,60 @@ const formattedTickets = computed(() => {
 
               <TicketInfoLine 
                 v-if="serviceContract?.startDate"
-                :label="t('project.detailsContractStartLabelText')"
+                :label="t('project.detailsContractStartLabelText', 'Start date')"
                 :value="serviceContract.startDate"
               />
 
               <TicketInfoLine 
                 v-if="serviceContract?.endDate"
-                :label="t('project.detailsContractEndLabelText')"
+                :label="t('project.detailsContractEndLabelText', 'End date')"
                 :value="serviceContract.endDate"
               />
             </section>
           </div>
         </section>
 
-        <!-- TICKETS LIST (simple, non-sticky) -->
+        <!-- TICKETS LIST -->
         <section
           v-if="hasTickets"
           class="project-detail-section"
           id="project-tickets"
         >
           <h3 class="project-section-title">
-            {{ t('project.detailsTicketsHeaderText') }}
+            {{ t('project.detailsTicketsHeaderText', 'Tickets on this project') }}
           </h3>
 
           <ul class="project-tickets-list">
             <li
-              v-for="ticket in formattedTickets"
+              v-for="ticket in displayedTickets"
               :key="ticket.id"
               class="project-ticket-row"
+              @click="goToTicket(ticket.id)"
             >
               <div class="project-ticket-main">
                 <span class="project-ticket-title">{{ ticket.name }}</span>
                 <span class="project-ticket-meta">
-                  <span class="project-ticket-status">{{ ticket.status }}</span>
+                  <TicketStatusPill :status="ticket.status"/>
                   <span class="project-ticket-date">{{ ticket.creationDateFormatted }}</span>
                 </span>
               </div>
             </li>
           </ul>
+
+          <button
+            v-if="formattedTickets.length > 3"
+            type="button"
+            class="toggle-tickets-button"
+            @click="showAllTickets = !showAllTickets"
+          >
+            {{ showAllTickets ? t('base.showLessText') : t('base.showMoreText') }}
+          </button>
         </section>
       </div>
     </div>
 
     <div v-else class="project-detail-error">
-      <span>{{ t('project.detailsProjectNotFoundText') }}</span>
+      <span>{{ t('ticket.detailsTicketNotFoundText') }}</span>
     </div>
   </div>
 </template>
@@ -224,6 +255,7 @@ const formattedTickets = computed(() => {
   gap: 16px;
 }
 
+/* Base card styling – similar to ticket-detail-section */
 .project-detail-section {
   background-color: var(--color-menu-background);
   border-radius: 8px;
@@ -233,6 +265,7 @@ const formattedTickets = computed(() => {
   gap: 16px;
 }
 
+/* HEADER */
 .project-header {
   display: flex;
   justify-content: space-between;
@@ -255,6 +288,7 @@ const formattedTickets = computed(() => {
   color: var(--color-subtext);
 }
 
+/* CONTENT GRID */
 .project-content-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -273,7 +307,7 @@ const formattedTickets = computed(() => {
   margin-bottom: 8px;
 }
 
-/* Tickets list */
+/* Tickets list – styled similar to the file list */
 .project-tickets-list {
   list-style: none;
   margin: 0;
@@ -284,17 +318,31 @@ const formattedTickets = computed(() => {
 }
 
 .project-ticket-row {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 8px;
-  background-color: var(--color-background);
   display: flex;
+  user-select: none;
   align-items: center;
   justify-content: space-between;
+  cursor: pointer;
+  color: var(--color-highlight);
+  background-color: var(--color-soft-pink);
+  border: 1px solid var(--color-highlight);
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: background-color 0.2s ease;
+}
+
+.project-ticket-row:hover {
+  background-color: var(--vt-c-pink);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
 .project-ticket-main {
   display: flex;
   flex-direction: column;
+  width: 100%;
   gap: 4px;
 }
 
@@ -305,18 +353,30 @@ const formattedTickets = computed(() => {
 
 .project-ticket-meta {
   display: flex;
-  gap: 12px;
+  /* width: 100%; */
+  justify-content: space-between;
   font-size: 11px;
-  color: var(--color-subtext);
-}
-
-.project-ticket-status {
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .project-ticket-date {
-  opacity: 0.9;
+  color: var(--color-text);
+}
+
+/* Toggle button – mirrors the files toggle style */
+.toggle-tickets-button {
+  align-self: flex-end;
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px;
+  margin-top: 8px;
+  background: none;
+  border: none;
+}
+
+.toggle-tickets-button:hover {
+  color: var(--color-highlight);
 }
 
 /* Loading / error states */

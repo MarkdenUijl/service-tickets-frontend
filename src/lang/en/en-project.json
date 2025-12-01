@@ -5,6 +5,7 @@
   "columnProjectContractText": "Contract",
   "deleteProjectsText": "Delete projects",
   "createProjectText": "Create project",
+  "contractNoneText": "None",
   "creationErrorNameRequiredText": "Project name is required",
   "creationErrorNameShortText": "Project name too short",
   "creationErrorCityRequiredText": "City is required",
