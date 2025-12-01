@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, onMounted, computed } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectLookup } from '@/composables/useProjectLookup'
 import { useTicketValidation } from '@/composables/useTicketValidation'
@@ -37,7 +37,7 @@ const ticketData = reactive({
   houseNumber: '',
   zipCode: '',
   city: '',
-  source: null,
+  source: null
 })
 
 // Composables
@@ -51,7 +51,7 @@ const {
   validateAll,
 } = useTicketValidation(ticketData)
 
-const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress } =
+const { projects, fetchProjects, fetchProjectsByAddress, autofillAddress, hasNoProjectMatch } =
   useProjectLookup(ticketData)
 
 let users = ref([])
@@ -175,13 +175,13 @@ const ticketSources = [
           <div class="ticket-form-section">
             <span class="ticket-form-header">{{ t('ticket.creationProjectDetailsText') }}</span>
 
-            <div class="input-wrapper">
+            <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="input-wrapper">
               <SearchDropdown v-model="ticketData.projectId" :items="projects" :placeholder="t('ticket.creationProjectSelectText')"
                 label-key="name" value-key="id" :iconIndent="24" :dropdownHeight="60" />
               <span class="validation-text" v-if="errors.projectId">{{ errors.projectId }}</span>
             </div>
 
-            <VisualSeparator :separatorText="t('ticket.creationSeparatorText')" />
+            <VisualSeparator v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" :separatorText="t('ticket.creationSeparatorText')" />
 
             <div class="address-line">
               <ValidatedInput
@@ -189,8 +189,8 @@ const ticketSources = [
                 v-model="ticketData.street"
                 type="text"
                 :placeholder="t('ticket.creationProjectStreetText')"
-                :isValid="isStreetValid && errors.street === ''"
-                :validationText="errors.street"
+                :isValid="isStreetValid && errors.street === '' && !hasNoProjectMatch"
+                :validationText="hasNoProjectMatch ? ' ' : errors.street"
                 @blur="fetchProjectsByAddress"
               />
 
@@ -200,8 +200,8 @@ const ticketSources = [
                 v-model="ticketData.houseNumber"
                 type="text"
                 :placeholder="t('ticket.creationProjectHouseNoText')"
-                :isValid="isHouseNumberValid && errors.houseNumber === ''"
-                :validationText="errors.houseNumber"
+                :isValid="isHouseNumberValid && errors.houseNumber === '' && !hasNoProjectMatch"
+                :validationText="hasNoProjectMatch ? ' ' : errors.houseNumber"
                 @blur="fetchProjectsByAddress"
               />
             </div>
@@ -213,8 +213,8 @@ const ticketSources = [
                 v-model="ticketData.zipCode"
                 type="text"
                 :placeholder="t('ticket.creationProjectZipCodeText')"
-                :isValid="isZipCodeValid && errors.zipCode === ''"
-                :validationText="errors.zipCode"
+                :isValid="isZipCodeValid && errors.zipCode === '' && !hasNoProjectMatch"
+                :validationText="hasNoProjectMatch ? ' ' : errors.zipCode"
                 @blur="fetchProjectsByAddress"
               />
 
@@ -223,11 +223,16 @@ const ticketSources = [
                 v-model="ticketData.city"
                 type="text"
                 :placeholder="t('ticket.creationProjectCityText')"
-                :isValid="isCityValid && errors.city === ''"
-                :validationText="errors.city"
+                :isValid="isCityValid && errors.city === '' && !hasNoProjectMatch"
+                :validationText="hasNoProjectMatch ? ' ' : errors.city"
                 @blur="fetchProjectsByAddress"
               />
+              
+              <span v-if="hasNoProjectMatch" class="form-warning-text">
+                {{ t('ticket.creationErrorNoProjectMatchText') }}
+              </span>
             </div>
+
 
             <div v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" class="ticket-form-section">
               <span class="ticket-form-header">{{ t('ticket.creationAdditionalInfoText') }}</span>
@@ -330,19 +335,19 @@ const ticketSources = [
   display: flex;
   flex-direction: row;
   gap: 16px;
+  position: relative;
 }
 
 .short-line {
   max-width: 30%;
 }
 
-/* .validation-text {
+.form-warning-text {
   position: absolute;
-  bottom: -16px;
-  right: 0;
-  z-index: 2;
-  font-size: 11px;
   color: var(--color-highlight);
-  pointer-events: none;
-} */
+  padding-left: 4px;
+  font-size: 12px;
+  bottom: -20px;
+  right: 0px;
+}
 </style>

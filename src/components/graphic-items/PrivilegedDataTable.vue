@@ -17,6 +17,10 @@ const props = defineProps({
   privilegeKey: {
     type: String,
     default: PRIVILEGES.MODERATE_SERVICE_TICKETS
+  },
+  restrictedColumns: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -34,14 +38,35 @@ const itemsSelectedProxy = computed({
     }
   }
 })
+
+
+// Computed: can see restricted columns/items?
+const canSeeRestricted = computed(() => hasPrivilege(props.privilegeKey))
+
+const visibleHeaders = computed(() => {
+  if (canSeeRestricted.value) return props.headers
+  if (!props.restrictedColumns || props.restrictedColumns.length === 0) return props.headers
+  return (props.headers || []).filter(h => !props.restrictedColumns.includes(h.value))
+})
+
+const visibleItems = computed(() => {
+  if (canSeeRestricted.value || !props.restrictedColumns || props.restrictedColumns.length === 0) return props.items
+  return (props.items || []).map(item => {
+    const clone = { ...item }
+    for (const col of props.restrictedColumns) {
+      if (col in clone) delete clone[col]
+    }
+    return clone
+  })
+})
 </script>
 
 <template>
   <!-- With privilege -->
   <EasyDataTable
     v-if="hasPrivilege(props.privilegeKey)"
-    :headers="props.headers"
-    :items="props.items"
+    :headers="visibleHeaders"
+    :items="visibleItems"
     :search-value="props.searchValue"
     :sort-by="props.sortBy"
     :sort-type="props.sortType"
@@ -63,8 +88,8 @@ const itemsSelectedProxy = computed({
   <!-- Without privilege -->
   <EasyDataTable
     v-else
-    :headers="props.headers"
-    :items="props.items"
+    :headers="visibleHeaders"
+    :items="visibleItems"
     :search-value="props.searchValue"
     :sort-by="props.sortBy"
     :sort-type="props.sortType"

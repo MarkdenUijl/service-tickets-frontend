@@ -1,7 +1,6 @@
 {
     "createTicketText": "Maak Ticket",
     "deleteTicketsText": "Verwijder tickets",
-    "filterButtonText" : "Filters",
     "searchTicketText" : "Zoek ticket...",
     "columnIdText": "ID",
     "columnPriorityText": "Prioriteit",
@@ -64,6 +63,7 @@
     "creationErrorProjectRequiredText": "Selecteer een project.",
     "creationErrorHoudeNumberRequiredText": "Voer een huisnummer in.",
     "creationErrorZipCodeRequiredText": "Voer een postcode in.",
+    "creationErrorNoProjectMatchText": "Dit adres matched niet met een project.",
     "creationCreateTicketText": "Maak ticket",
     "detailsLoadingText": "Ticketgegevens worden geladen",
     "detailsLoadingErrorText": "Ticketgegevens konden niet worden geladen.",

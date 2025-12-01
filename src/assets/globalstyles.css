@@ -113,3 +113,68 @@
 .multi-sort__number {
   display: none;
 }
+
+.data-table {
+  user-select: none;
+
+  --easy-table-border: none;
+  --easy-table-row-border: none;
+
+  --easy-table-header-font-size: 14px;
+
+  --easy-table-header-height: 40px;
+  --easy-table-body-row-height: 60px;
+  --easy-table-footer-height: 60px;
+
+  --easy-table-body-row-font-size: 12px;
+
+  --easy-table-header-font-color: var(--color-text);
+  --easy-table-header-background-color: var(--color-menu-background);
+  --easy-table-body-row-font-color: var(--color-text);
+  --easy-table-body-row-background-color: var(--color-menu-background);
+  --easy-table-footer-font-color: var(--color-text);
+  --easy-table-footer-background-color: var(--color-menu-background);
+
+  --easy-table-body-row-hover-font-color: var(--color-text);
+  --easy-table-body-row-hover-background-color: none;
+
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.data-table th {
+  font-weight: 700;
+}
+
+/* Dashboard headed buttons */
+.dashboard-header-button {
+  width: 136px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text);
+  background: var(--color-menu-background);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 2px 4px;
+}
+
+.dashboard-header-button[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.dashboard-header-button span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dashboard-button-container {
+  display: flex;
+  gap: 16px;
+}

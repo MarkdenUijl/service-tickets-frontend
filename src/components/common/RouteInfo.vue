@@ -111,6 +111,7 @@ const mainTitleParts = computed(() => {
   font-size: 32px;
   font-weight: 900;
   line-height: 32px;
+  text-wrap: nowrap;
 }
 
 .route-info-nav {

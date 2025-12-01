@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { isTokenValid } from '@/utils/auth';
 import { useAuthStore } from '@/stores/authStore';
+import { PRIVILEGES } from '@/constants/privileges';
 
 const AuthLayout = () => import('@/layouts/AuthLayout.vue');
 const AccountCreationConfirmationView = () => import('@/views/auth-views/AccountCreationConfirmationView.vue');
@@ -18,6 +19,9 @@ const UnauthorizedView = () => import('@/views/dashboard-views/UnauthorizedView.
 
 const TicketCreateView = () => import('@/views/ticket-views/TicketCreateView.vue');
 const TicketDetailView = () => import('@/views/ticket-views/TicketDetailView.vue');
+
+const ProjectCreateView = () => import('@/views/project-views/ProjectCreateView.vue');
+const ProjectDetailView = () => import('@/views/project-views/ProjectDetailView.vue');
 
 const routes = [
     {
@@ -63,7 +67,7 @@ const routes = [
                 component: DashboardView,
                 meta: { 
                     requiresAuth: true,
-                    privilege: 'CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE',
+                    privilege: PRIVILEGES.MODERATE_SERVICE_TICKETS,
                     parent: 'dashboard',
                     titleKey: 'dash.navOverviewText' 
                 }
@@ -103,11 +107,35 @@ const routes = [
                 component: ProjectView,
                 meta: { 
                     requiresAuth: true,
-                    privilege: 'CAN_SEE_PROJECTS_PRIVILEGE',
+                    privilege: PRIVILEGES.SEE_PROJECTS,
                     parent: 'dashboard',
                     titleKey: 'dash.navProjectsText' 
                 }
             },
+                {
+                    path: 'projects/create',
+                    name: 'project-create',
+                    component: ProjectCreateView,
+                    meta: { 
+                        requiresAuth: true,
+                        privilege: PRIVILEGES.MODIFY_PROJECTS,
+                        titleKey: 'project.createProjectText',
+                        parent: 'projects',
+                        showInMenu: false 
+                    }
+                },
+                {
+                    path: 'projects/:id',
+                    name: 'project-detail',
+                    component: ProjectDetailView,
+                    meta: { 
+                        requiresAuth: true,
+                        privilege: PRIVILEGES.SEE_PROJECTS,
+                        parent: 'projects',
+                        dynamicTitle: route => `Project #${route.params.id}`,
+                        showInMenu: false 
+                    }
+                },
             {
                 path: 'contracts',
                 name: 'contracts',
