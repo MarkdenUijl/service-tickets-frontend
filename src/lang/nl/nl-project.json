@@ -3,7 +3,6 @@
   "columnProjectNameText": "Naam project",
   "columnProjectCityText": "Stad",
   "columnProjectContractText": "Contract",
-  "contractNoneText": "Geen",
   "deleteProjectsText": "Projecten verwijderen",
   "createProjectText": "Project aanmaken",
   "creationErrorNameRequiredText": "Projectnaam is verplicht",
@@ -31,9 +30,14 @@
   "detailsStreetLabelText": "Straat",
   "detailsHouseNumberLabelText": "Huisnummer",
   "detailsContractHeaderText": "Servicecontract",
+  "detailsContractNoneText": "Geen",
   "detailsNoContractText": "Geen contract",
   "detailsContractStartLabelText": "Startdatum",
   "detailsContractEndLabelText": "Einddatum",
   "detailsTicketsHeaderText": "Tickets op dit project",
-  "detailsProjectNotFoundText": "Project niet gevonden"
+  "detailsProjectNotFoundText": "Project niet gevonden",
+  "columnContracttypesText": "Contract type",
+  "contracttypesFull_timeText": "24 uur",
+  "contracttypesOffice_hoursText": "kantooruren",
+  "contracttypesNoneText": "geen"
 }

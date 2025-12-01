@@ -1,7 +1,7 @@
 <script setup>
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, reactive } from 'vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import { motion, AnimatePresence } from 'motion-v'
 import SearchInput from '@/components/user-input/SearchInput.vue'
@@ -12,6 +12,8 @@ import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { PRIVILEGES } from '@/constants/privileges'
 import { useAuthStore } from '@/stores/authStore'
+import FilterPopout from '@/components/lists/FilterPopout.vue'
+import { PROJECT_CONTRACTS } from '@/constants/projectConstants'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -23,8 +25,18 @@ const itemsSelected = ref([])
 const loading = ref(false)
 const projectStore = useProjectStore()
 const buttonHover = ref(false)
+const isFilterOpen = ref(false)
+
+const selectedContractTypes = ref([...PROJECT_CONTRACTS])
 
 const items = computed(() => projectStore.projects.map(normalizeProject))
+
+const filteredItems = computed(() =>
+  items.value.filter(
+    project => 
+      selectedContractTypes.value.includes(project.contractTypeValue)
+  )
+)
 
 const columns = computed(() => {
   return [
@@ -36,12 +48,15 @@ const columns = computed(() => {
 
 function normalizeProject(project) {
     // Compute contract type value and display
-  const contractTypeValue = project.serviceContract?.type || t('project.contractNoneText');
-  let contractTypeDisplay = capitalizeWords(
-    contractTypeValue
-      .replaceAll('_', ' ')
-      .toLowerCase()
-  );
+  const contractTypeValue = project.serviceContract?.type || 'NONE';
+  
+  let contractTypeDisplay = project.serviceContract 
+  ? capitalizeWords(
+      contractTypeValue
+        .replaceAll('_', ' ')
+        .toLowerCase()
+    )
+  : t('project.detailsContractNoneText')
 
   // Check for contract end date and expiration
   const contractEndDateStr = project.serviceContract?.endDate
@@ -61,6 +76,21 @@ function normalizeProject(project) {
     contractTypeDisplay
   }
 }
+
+function handleFilterClick() {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const filterSections = reactive([
+  {
+    id: 'contractTypes',
+    title: 'ContractTypes',
+    isOpen: false,
+    type: 'checkbox',
+    options: PROJECT_CONTRACTS,
+    model: selectedContractTypes
+  }
+])
 
 async function deleteProject(projectId) {
   try {
@@ -190,59 +220,16 @@ onMounted(() => {
 
         <SearchInput :placeholder="t('project.searchProjectText')" variant="inline" v-model="searchInput" />
 
-        <!-- <AnimatePresence>
-          <motion.div
-            class="filter-popout"
-            v-if="isFilterOpen"
-            v-click-outside="onClickOutside"
-            role="region"
-            :initial="{ opacity: 0, y: -16 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :exit="{ opacity: 0, y: -16 }"
-            :transition="{ type: 'spring', stiffness: 300, damping: 24 }"
-          >
-            <div
-              v-for="section in filterSections"
-              :key="section.id"
-              class="filter-section"
-            >
-              <div 
-                class="filter-section-header" 
-                :class="{ open: section.isOpen }"
-                @click="toggleFilterSection(section)"
-              >
-                {{ t(`ticket.column${capitalizeWords(section.title)}Text`) }}
-              </div>
-
-              <AnimatePresence>
-                <motion.div
-                  v-if="section.isOpen"
-                  class="filter-section-content"
-                  :id="`filter-section-${section.id}-content`"
-                  :initial="{ opacity: 0.3, maxHeight: 0 }"
-                  :animate="{ opacity: 1, maxHeight: 300 }"
-                  :exit="{ opacity: 0.3, maxHeight: 0 }"
-                  :transition="{ type: 'spring', stiffness: 100, damping: 16, bounce: 0.1 }"
-                  style="overflow: hidden;"
-                >
-                  <label
-                    v-for="option in section.options"
-                    :key="option"
-                    class="filter-checkbox-label"
-                  >
-                    <input type="checkbox" :value="option" v-model="section.model" />
-                    {{ t(`ticket.${section.title.toLowerCase()}${capitalizeWords(option)}Text`) }}
-                  </label>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </AnimatePresence> -->
+        <FilterPopout
+          v-model:isOpen="isFilterOpen"
+          :sections="filterSections"
+          namespace="project"
+        />
       </div>
 
       <PrivilegedDataTable
         :headers="columns"
-        :items="items"
+        :items="filteredItems"
         :search-value="searchInput"
         :rows-per-page="10"
         :theme-color="'var(--color-highlight)'"
