@@ -1,19 +1,20 @@
 <script setup>
-import RouteInfo from '@/components/common/RouteInfo.vue'
-import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import { onMounted, ref, computed, reactive } from 'vue'
-import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import { motion, AnimatePresence } from 'motion-v'
-import SearchInput from '@/components/user-input/SearchInput.vue'
 import { useI18n } from 'vue-i18n'
-import { useProjectStore } from '@/stores/projectStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { useRouter } from 'vue-router'
-import api from '@/services/api'
 import { PRIVILEGES } from '@/constants/privileges'
+import { useProjectStore } from '@/stores/projectStore'
 import { useAuthStore } from '@/stores/authStore'
-import FilterPopout from '@/components/lists/FilterPopout.vue'
 import { PROJECT_CONTRACTS } from '@/constants/projectConstants'
+
+import RouteInfo from '@/components/common/RouteInfo.vue'
+import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
+import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
+import SearchInput from '@/components/user-input/SearchInput.vue'
+import api from '@/services/api'
+import FilterPopout from '@/components/lists/FilterPopout.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -48,7 +49,7 @@ const columns = computed(() => {
 
 function normalizeProject(project) {
     // Compute contract type value and display
-  const contractTypeValue = project.serviceContract?.type || 'NONE';
+  const contractTypeValue = project.serviceContract?.type || 'NONE'
   
   let contractTypeDisplay = project.serviceContract 
   ? capitalizeWords(
@@ -115,7 +116,6 @@ const onCreateProject = () => {
 }
 
 function onClickProjectRow(item) {
-  console.log(item)
   if (hasPrivilege(PRIVILEGES.SEE_PROJECTS)) {
     router.push({ name: 'project-detail', params: { id: item.id } })
   } else {
@@ -253,7 +253,7 @@ onMounted(() => {
         </template>
 
         <template #empty-message>
-          <span class="ticket-no-data">{{ t('ticket.noDataFoundText') }}</span>
+          <span class="project-no-data">{{ t('project.noDataFoundText') }}</span>
         </template>
       </PrivilegedDataTable>
     </div>
@@ -316,5 +316,10 @@ onMounted(() => {
 .project-contract-indicator {
   color: var(--color-subtext);
   font-weight: 700;
+}
+
+.project-no-data {
+  color: var(--color-text);
+  font-style: italic;
 }
 </style>

@@ -39,5 +39,6 @@
   "columnContracttypesText": "Contract type",
   "contracttypesFull_timeText": "full time",
   "contracttypesOffice_hoursText": "office hours",
-  "contracttypesNoneText": "none"
+  "contracttypesNoneText": "none",
+  "noDataFoundText": "No projects found in database"
 }

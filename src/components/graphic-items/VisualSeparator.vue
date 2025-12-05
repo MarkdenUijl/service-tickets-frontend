@@ -36,7 +36,7 @@
 
 .vertical {
   flex-direction: column;
-  height: 100%;
+  align-self: stretch;
 }
 
 .separator-line {

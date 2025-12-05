@@ -39,5 +39,6 @@
   "columnContracttypesText": "Contract type",
   "contracttypesFull_timeText": "24 uur",
   "contracttypesOffice_hoursText": "kantooruren",
-  "contracttypesNoneText": "geen"
+  "contracttypesNoneText": "geen",
+  "noDataFoundText": "Geen projecten gevonden in database"
 }

@@ -9,7 +9,6 @@ import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 
 const route = useRoute()

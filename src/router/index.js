@@ -142,7 +142,7 @@ const routes = [
                 component: ContractView,
                 meta: { 
                     requiresAuth: true,
-                    privilege: 'CAN_SEE_CONTRACTS_PRIVILEGE',
+                    privilege: PRIVILEGES.MODIFY_CONTRACTS,
                     parent: 'dashboard',
                     titleKey: 'dash.navContractsText' 
                 }
@@ -153,20 +153,20 @@ const routes = [
                 component: UsersView,
                 meta: { 
                     requiresAuth: true,
-                    privilege: 'CAN_ACCESS_USERS_PRIVILEGE',
+                    privilege: PRIVILEGES.MODIFY_USERS,
                     parent: 'dashboard',
                     titleKey: 'dash.navUsersText' 
                 }
             },
-            {
-                path: 'settings',
-                name: 'settings',
-                component: SettingsView,
-                meta: { 
-                    parent: 'dashboard',
-                    titleKey: 'dash.navSettingsText' 
-                }
-            },
+            // {
+            //     path: 'settings',
+            //     name: 'settings',
+            //     component: SettingsView,
+            //     meta: { 
+            //         parent: 'dashboard',
+            //         titleKey: 'dash.navSettingsText' 
+            //     }
+            // },
             {
                 path: '/unauthorized',
                 name: 'unauthorized',

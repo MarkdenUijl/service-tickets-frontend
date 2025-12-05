@@ -1,0 +1,20 @@
+{
+  "deleteContractsText": "Delete contracts",
+  "searchContractsText": "Search contract...",
+  "noDataFoundText": "No contracts found in database",
+  "detailsHeaderText": "Contract details",
+  "usedTimeLabelText": "Used time",
+  "startDateLabelText": "Start date",
+  "endDateLabelText": "End date",
+  "adjustHeaderText": "Adjust contract",
+  "adjustUsedTimeLabelText": "Adjust used time (minutes)",
+  "adjustContractTimeLabelText": "Adjust contract time (minutes)",
+  "adjustEndDateLabelText": "Adjust end date",
+  "saveChangesText": "Save changes",
+  "renewHeaderText": "Renew contract",
+  "renewDescriptionText": "Renew this service contract for a year by selecting the new contract hours and coverage type, or use quick renew to copy the current settings.",
+  "renewHoursLabelText": "New contract hours",
+  "renewTypeLabelText": "New contract type",
+  "quickRenewText": "Quick renew",
+  "renewContractText": "Renew contract"
+}
