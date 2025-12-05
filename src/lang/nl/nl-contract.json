@@ -1,3 +1,20 @@
 {
-  
+  "deleteContractsText": "Contracten verwijderen",
+  "searchContractsText": "Contract zoeken...",
+  "noDataFoundText": "Geen contracten gevonden in de database",
+  "detailsHeaderText": "Contractdetails",
+  "usedTimeLabelText": "Gebruikte tijd",
+  "startDateLabelText": "Startdatum",
+  "endDateLabelText": "Einddatum",
+  "adjustHeaderText": "Contract aanpassen",
+  "adjustUsedTimeLabelText": "Gebruikte tijd aanpassen (minuten)",
+  "adjustContractTimeLabelText": "Contracttijd aanpassen (minuten)",
+  "adjustEndDateLabelText": "Einddatum aanpassen",
+  "saveChangesText": "Wijzigingen opslaan",
+  "renewHeaderText": "Contract verlengen",
+  "renewDescriptionText": "Verleng dit servicecontract voor een jaar door de nieuwe contracturen en dekkingstype te selecteren, of gebruik snel verlengen om de huidige instellingen te kopiëren.",
+  "renewHoursLabelText": "Nieuwe contracturen",
+  "renewTypeLabelText": "Nieuw contracttype",
+  "quickRenewText": "Snel verlengen",
+  "renewContractText": "Contract verlengen"
 }
