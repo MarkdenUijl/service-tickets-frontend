@@ -6,6 +6,7 @@ import { PRIVILEGES } from '@/constants/privileges'
 import { useContracttStore } from '@/stores/contractStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { getUsedTimeColorClass } from '@/utils/getUsedTimeColorClass'
+import { updateContract, renewContract } from '@/services/contractsApi'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
@@ -23,6 +24,8 @@ const itemsSelected = ref([])
 const loading = ref(false)
 const buttonHover = ref(false)
 const expandedContractDrafts = reactive({})
+const sortBy = ref(['endDate'])
+const sortType = ref(['desc'])
 
 const columns = computed(() => {
   return [
@@ -103,14 +106,49 @@ function isRenewDraftPristine(contract) {
   return draft.renewHours === base.hours && draft.renewType === base.type
 }
 
+function buildContractUpdateBody(contract, draftOverrides = {}) {
+  const baseType = contract.type || contract.contractTypeValue
+  const projectId = contract.projectId
+
+  const contractTimeFromOverrides =
+    typeof draftOverrides.hours === 'number'
+      ? draftOverrides.hours * 60
+      : draftOverrides.contractTime
+
+  return {
+    projectId,
+    type: draftOverrides.type || baseType,
+    contractTime: typeof contractTimeFromOverrides === 'number'
+      ? contractTimeFromOverrides
+      : contract.contractTime,
+    usedTime: typeof draftOverrides.usedTime === 'number'
+      ? draftOverrides.usedTime
+      : contract.usedTime,
+    startDate: contract.startDate,
+    endDate: draftOverrides.endDate || contract.endDate
+  }
+}
+
+async function saveContractChanges(contract, draftOverrides) {
+  const body = buildContractUpdateBody(contract, draftOverrides)
+
+  try {
+    loading.value = true
+    await updateContract(contract.id, body)
+    await contractStore.fetchAll()
+  } catch (error) {
+    console.error('Failed to update contract', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 async function handleUpdateContract(contract) {
   const draft = getContractDraft(contract)
 
-  // TODO: replace with real API call when backend is ready
-  console.log('Update contract', {
-    id: contract.id,
-    usedTime: draft.usedTime,
+  await saveContractChanges(contract, {
     contractTime: draft.contractTime,
+    usedTime: draft.usedTime,
     endDate: draft.endDate
   })
 }
@@ -118,29 +156,30 @@ async function handleUpdateContract(contract) {
 async function handleRenewContract(contract) {
   const draft = getContractDraft(contract)
 
-  // TODO: replace with real API call when backend is ready
-  console.log('Renew contract', {
-    id: contract.id,
-    renewHours: draft.renewHours,
-    currentEndDate: draft.endDate,
-    renewType: draft.renewType,
-  })
+  try {
+    loading.value = true
+
+    await renewContract(contract.id, {
+      type: draft.renewType,
+      hours: draft.renewHours
+    })
+
+    await contractStore.fetchAll()
+  } catch (error) {
+    console.error('Failed to renew contract', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function handleQuickRenewContract(contract) {
   const draft = getContractDraft(contract)
   const base = getContractBaseRenewConfig(contract)
 
-  // Set draft to mirror the existing contract configuration
   draft.renewHours = base.hours
   draft.renewType = base.type
 
-  console.log('Quick renew contract', {
-    id: contract.id,
-    renewHours: draft.renewHours,
-    renewType: draft.renewType,
-    currentEndDate: draft.endDate
-  })
+  await handleRenewContract(contract)
 }
 
 const contractHoursItems = [
@@ -251,6 +290,8 @@ onMounted(() => {
         :search-value="searchInput"
         :rows-per-page="10"
         :theme-color="'var(--color-highlight)'"
+        :sortBy="sortBy"
+        :sortType="sortType"
         header-class-name="table-header"
         table-class-name="data-table"
         header-text-direction="center"

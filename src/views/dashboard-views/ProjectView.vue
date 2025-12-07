@@ -116,6 +116,7 @@ const onCreateProject = () => {
 }
 
 function onClickProjectRow(item) {
+  console.log(item)
   if (hasPrivilege(PRIVILEGES.SEE_PROJECTS)) {
     router.push({ name: 'project-detail', params: { id: item.id } })
   } else {
