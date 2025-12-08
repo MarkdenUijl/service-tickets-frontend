@@ -23,6 +23,8 @@ const TicketDetailView = () => import('@/views/ticket-views/TicketDetailView.vue
 const ProjectCreateView = () => import('@/views/project-views/ProjectCreateView.vue');
 const ProjectDetailView = () => import('@/views/project-views/ProjectDetailView.vue');
 
+const ContractCreateView = () => import('@/views/contract-views/ContractCreateView.vue');
+
 const routes = [
     {
         path: '/auth',
@@ -133,6 +135,18 @@ const routes = [
                         privilege: PRIVILEGES.SEE_PROJECTS,
                         parent: 'projects',
                         dynamicTitle: route => `Project #${route.params.id}`,
+                        showInMenu: false 
+                    }
+                },
+                {
+                    path: 'projects/create-contract',
+                    name: 'contract-create',
+                    component: ContractCreateView,
+                    meta: { 
+                        requiresAuth: true,
+                        titleKey: 'contract.createContractText',
+                        privilege: PRIVILEGES.MODIFY_CONTRACTS,
+                        parent: 'projects',
                         showInMenu: false 
                     }
                 },

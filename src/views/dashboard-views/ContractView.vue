@@ -15,6 +15,7 @@ import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
+import api from '@/services/api'
 
 const { t } = useI18n()
 const contractStore = useContracttStore()
@@ -199,12 +200,18 @@ function onClickContractRow(item) {
   console.log(item)
 }
 
+async function deleteContract(contractId) {
+  try {
+    await api.delete(`/serviceContracts/${contractId}`)
+  } catch (error) {
+    console.log(error?.status || error)
+  }
+}
+
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
   for (const item of itemsSelected.value) {
-    // await deleteProject(item.id)
-
-    console.log(item)
+    await deleteContract(item.id)
   }
   itemsSelected.value = []
 

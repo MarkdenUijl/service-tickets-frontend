@@ -16,5 +16,14 @@
   "renewHoursLabelText": "Nieuwe contracturen",
   "renewTypeLabelText": "Nieuw contracttype",
   "quickRenewText": "Snel verlengen",
-  "renewContractText": "Contract verlengen"
+  "renewContractText": "Contract verlengen",
+  "createContractText": "Contract aanmaken",
+  "creationContractDetailsText": "Maak service contract aan",
+  "creationLinkedProjectLabelText": "Gekoppeld project",
+  "creationContractTypeLabelText": "Contract type",
+  "creationContractHoursLabelText": "Contract uren",
+  "creationStartDateLabelText": "Start datum",
+  "creationContractValidationText": "Formulier is incompleet",
+  "creationContractExistsText": "Contract bestaat al",
+  "creationContractGenericErrorText": "Storing bij het aanmaken van contract"
 }

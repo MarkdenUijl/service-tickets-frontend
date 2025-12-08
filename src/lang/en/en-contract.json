@@ -16,5 +16,14 @@
   "renewHoursLabelText": "New contract hours",
   "renewTypeLabelText": "New contract type",
   "quickRenewText": "Quick renew",
-  "renewContractText": "Renew contract"
+  "renewContractText": "Renew contract",
+  "createContractText": "Create contract",
+  "creationContractDetailsText": "Create service contract",
+  "creationLinkedProjectLabelText": "Linked project",
+  "creationContractTypeLabelText": "Contract type",
+  "creationContractHoursLabelText": "Contract hours",
+  "creationStartDateLabelText": "Start date",
+  "creationContractValidationText": "Form is incomplete",
+  "creationContractExistsText": "Contract already exists",
+  "creationContractGenericErrorText": "Error creating contract"
 }
