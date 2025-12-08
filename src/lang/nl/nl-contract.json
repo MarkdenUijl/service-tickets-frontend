@@ -25,5 +25,6 @@
   "creationStartDateLabelText": "Start datum",
   "creationContractValidationText": "Formulier is incompleet",
   "creationContractExistsText": "Contract bestaat al",
-  "creationContractGenericErrorText": "Storing bij het aanmaken van contract"
+  "creationContractGenericErrorText": "Storing bij het aanmaken van contract",
+  "ContractStatus": "Contract status"
 }

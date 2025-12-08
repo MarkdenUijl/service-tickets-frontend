@@ -25,5 +25,8 @@
   "creationStartDateLabelText": "Start date",
   "creationContractValidationText": "Form is incomplete",
   "creationContractExistsText": "Contract already exists",
-  "creationContractGenericErrorText": "Error creating contract"
+  "creationContractGenericErrorText": "Error creating contract",
+  "ContractStatus": "Contract status",
+  "columnContractstatusText": "Contract status",
+  "contractstatusShow_expiredText": "Show expired"
 }

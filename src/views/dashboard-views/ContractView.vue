@@ -16,6 +16,7 @@ import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import api from '@/services/api'
+import FilterPopout from '@/components/lists/FilterPopout.vue'
 
 const { t } = useI18n()
 const contractStore = useContracttStore()
@@ -27,6 +28,11 @@ const buttonHover = ref(false)
 const expandedContractDrafts = reactive({})
 const sortBy = ref(['endDate'])
 const sortType = ref(['desc'])
+const isFilterOpen = ref(false)
+
+const showExpiredContracts = computed(() =>
+  selectedContractFilters.value.includes('SHOW_EXPIRED')
+)
 
 const columns = computed(() => {
   return [
@@ -40,23 +46,36 @@ const columns = computed(() => {
 
 const items = computed(() => contractStore.contracts.map(normalizeContract))
 
+const filteredItems = computed(() =>
+  items.value.filter(contract => {
+    // If expired should NOT be shown, filter them out
+    if (!showExpiredContracts.value && contract.isExpired) {
+      return false
+    }
+    return true
+  })
+)
+
 function normalizeContract(contract) {
   const contractTypeValue = contract.type
-  
+
   let contractTypeDisplay = capitalizeWords(
-      contractTypeValue
-        .replaceAll('_', ' ')
-        .toLowerCase()
-    )
-  
+    contractTypeValue
+      .replaceAll('_', ' ')
+      .toLowerCase()
+  )
+
   const contractEndDateStr = contract.endDate
-  
+  let isExpired = false
+
   if (contractEndDateStr) {
     const contractEndDate = new Date(contractEndDateStr)
-    const today = new Date();
+    const today = new Date()
     contractEndDate.setHours(0, 0, 0, 0)
     today.setHours(0, 0, 0, 0)
+
     if (contractEndDate < today) {
+      isExpired = true
       contractTypeDisplay = t('ticket.detailsContractStatusExpiredText')
     }
   }
@@ -69,9 +88,29 @@ function normalizeContract(contract) {
     contractTypeValue,
     contractTypeDisplay,
     usedTimeDisplay,
-    usedTimeColorClass
+    usedTimeColorClass,
+    isExpired
   }
 }
+
+function handleFilterClick() {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const CONTRACT_FILTERS = ['SHOW_EXPIRED']
+
+const selectedContractFilters = ref([])
+
+const filterSections = reactive([
+  {
+    id: 'contractStatus',
+    title: 'ContractStatus',
+    isOpen: false,
+    type: 'checkbox',
+    options: CONTRACT_FILTERS,
+    model: selectedContractFilters
+  }
+])
 
 function getContractBaseRenewConfig(contract) {
   const baseType = contract.type || contract.contractTypeValue || 'OFFICE_HOURS'
@@ -287,13 +326,37 @@ onMounted(() => {
     </div>
 
     <div class="contract-layout">
-      <div id="contract-filter-bar">
+      <!-- <div id="contract-filter-bar">
         <SearchInput :placeholder="t('contract.searchContractsText')" variant="standalone" v-model="searchInput" />
+      </div> -->
+      <div id="contract-filter-bar">
+        <button
+          id="contract-filter-button"
+          type="button"
+          :disabled="loading"
+          :aria-busy="loading ? 'true' : 'false'"
+          @click.stop="handleFilterClick"
+        >
+          <SvgIcon name="filter-icon" height="20px" width="20px" />
+          <span>{{ t('base.filterButtonText') }}</span>
+        </button>
+
+        <SearchInput
+          :placeholder="t('contract.searchContractsText')"
+          variant="inline"
+          v-model="searchInput"
+        />
+
+        <FilterPopout
+          v-model:isOpen="isFilterOpen"
+          :sections="filterSections"
+          namespace="contract"
+        />
       </div>
 
       <PrivilegedDataTable
         :headers="columns"
-        :items="items"
+        :items="filteredItems"
         :search-value="searchInput"
         :rows-per-page="10"
         :theme-color="'var(--color-highlight)'"
@@ -484,6 +547,31 @@ onMounted(() => {
   flex-direction: row;
   overflow: visible;
   position: relative;
+}
+
+#contract-filter-button {
+  width: 120px;
+  border-radius: 4px 0 0 4px;
+  border: 1px solid var(--color-subtext);
+  border-right: none;
+  cursor: pointer;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-left: 12px;
+}
+
+#contract-filter-button[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+#contract-filter-button span {
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .project-name-indicator {
