@@ -2,11 +2,12 @@
 import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useProjectValidation } from '@/composables/useProjectValidation'
+
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
 import api from '@/services/api'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
-import { useProjectValidation } from '@/composables/useProjectValidation'
 
 const router = useRouter()
 const { t } = useI18n()

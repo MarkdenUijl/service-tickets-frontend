@@ -23,6 +23,8 @@ const TicketDetailView = () => import('@/views/ticket-views/TicketDetailView.vue
 const ProjectCreateView = () => import('@/views/project-views/ProjectCreateView.vue');
 const ProjectDetailView = () => import('@/views/project-views/ProjectDetailView.vue');
 
+const ContractCreateView = () => import('@/views/contract-views/ContractCreateView.vue');
+
 const routes = [
     {
         path: '/auth',
@@ -136,13 +138,25 @@ const routes = [
                         showInMenu: false 
                     }
                 },
+                {
+                    path: 'projects/create-contract',
+                    name: 'contract-create',
+                    component: ContractCreateView,
+                    meta: { 
+                        requiresAuth: true,
+                        titleKey: 'contract.createContractText',
+                        privilege: PRIVILEGES.MODIFY_CONTRACTS,
+                        parent: 'projects',
+                        showInMenu: false 
+                    }
+                },
             {
                 path: 'contracts',
                 name: 'contracts',
                 component: ContractView,
                 meta: { 
                     requiresAuth: true,
-                    privilege: 'CAN_SEE_CONTRACTS_PRIVILEGE',
+                    privilege: PRIVILEGES.MODIFY_CONTRACTS,
                     parent: 'dashboard',
                     titleKey: 'dash.navContractsText' 
                 }
@@ -153,20 +167,20 @@ const routes = [
                 component: UsersView,
                 meta: { 
                     requiresAuth: true,
-                    privilege: 'CAN_ACCESS_USERS_PRIVILEGE',
+                    privilege: PRIVILEGES.MODIFY_USERS,
                     parent: 'dashboard',
                     titleKey: 'dash.navUsersText' 
                 }
             },
-            {
-                path: 'settings',
-                name: 'settings',
-                component: SettingsView,
-                meta: { 
-                    parent: 'dashboard',
-                    titleKey: 'dash.navSettingsText' 
-                }
-            },
+            // {
+            //     path: 'settings',
+            //     name: 'settings',
+            //     component: SettingsView,
+            //     meta: { 
+            //         parent: 'dashboard',
+            //         titleKey: 'dash.navSettingsText' 
+            //     }
+            // },
             {
                 path: '/unauthorized',
                 name: 'unauthorized',

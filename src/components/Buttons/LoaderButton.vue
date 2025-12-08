@@ -5,7 +5,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   label: { type: String, required: true },
   type: { type: String, default: 'button' },
-  disabled: { type: Boolean, default: false }
+  disabled: { type: Boolean, default: false },
+  variant: { type: String, default: 'solid' }
 })
 </script>
 
@@ -13,7 +14,7 @@ const props = defineProps({
   <motion.button
     :type="props.type"
     :disabled="props.loading || props.disabled"
-    class="loader-button"
+    :class="['loader-button', `loader-button--${props.variant}`]"
     :whilePress="{ scale: 0.95 }"
   >
     <template v-if="!props.loading">
@@ -42,13 +43,31 @@ const props = defineProps({
   border: none;
   border-radius: 8px;
 
-  background-color: var(--color-highlight);
-  color: white;
   font-weight: bold;
 
   cursor: pointer;
   position: relative;
   overflow: hidden;
+
+
+  border: 1px solid transparent;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+}
+
+.loader-button--solid {
+  background-color: var(--color-highlight);
+  color: white;
+}
+
+.loader-button--outline {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.loader-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .spinner {

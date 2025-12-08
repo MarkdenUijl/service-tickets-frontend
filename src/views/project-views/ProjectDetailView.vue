@@ -9,7 +9,6 @@ import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 
 const route = useRoute()
@@ -90,6 +89,20 @@ function goToTicket(ticketId) {
   if (!ticketId) return
   router.push({ name: 'ticket-detail', params: { id: ticketId } })
 }
+
+
+// Navigation helper for creating a new contract
+function goToContractCreate() {
+  console.log('Creating contract...')
+  if (!projectData.value) return
+
+  router.push({
+    name: 'contract-create',
+    query: {
+      projectId: projectData.value.id
+    }
+  })
+}
 </script>
 
 <template>
@@ -162,7 +175,52 @@ function goToTicket(ticketId) {
                 {{ t('project.detailsContractHeaderText', 'Service contract') }}
               </h3>
 
-              <TicketInfoLine 
+              <!-- Existing contract information -->
+              <template v-if="serviceContract">
+                <TicketInfoLine 
+                  :label="t('ticket.detailsContractTypeLabelText')"
+                  :value="contractTypeLabel"
+                />
+
+                <TicketInfoLine 
+                  :label="t('ticket.detailsContractStatusLabelText')"
+                  :value="isContractValid ? t('ticket.detailsContractStatusValidText') : t('ticket.detailsContractStatusExpiredText')"
+                  :valueClass="isContractValid ? 'valid' : 'expired'"
+                />
+
+                <TicketInfoLine 
+                  :label="t('ticket.detailsContractTimeLabelText')"
+                  :value="remainingContractMinutes"
+                />
+
+                <TicketInfoLine 
+                  v-if="serviceContract?.startDate"
+                  :label="t('project.detailsContractStartLabelText', 'Start date')"
+                  :value="serviceContract.startDate"
+                />
+
+                <TicketInfoLine 
+                  v-if="serviceContract?.endDate"
+                  :label="t('project.detailsContractEndLabelText', 'End date')"
+                  :value="serviceContract.endDate"
+                />
+              </template>
+
+              <!-- No contract: show call-to-action -->
+              <template v-else>
+                <p class="no-contract-text">
+                  {{ t('project.detailsNoContractText') }}
+                </p>
+
+                <button
+                  type="button"
+                  class="create-contract-button"
+                  @click="goToContractCreate"
+                >
+                  {{ t('project.detailsCreateContractButtonText') }}
+                </button>
+              </template>
+              <!-- <TicketInfoLine 
                 :label="t('ticket.detailsContractTypeLabelText')"
                 :value="serviceContract ? contractTypeLabel : t('project.detailsNoContractText', 'No contract')" 
               />
@@ -190,7 +248,7 @@ function goToTicket(ticketId) {
                 v-if="serviceContract?.endDate"
                 :label="t('project.detailsContractEndLabelText', 'End date')"
                 :value="serviceContract.endDate"
-              />
+              /> -->
             </section>
           </div>
         </section>
@@ -306,6 +364,32 @@ function goToTicket(ticketId) {
   font-weight: 700;
   margin-bottom: 8px;
 }
+
+.no-contract-text {
+  font-size: 13px;
+  color: var(--color-subtext);
+}
+
+.create-contract-button {
+  margin-top: 8px;
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-highlight);
+  background-color: transparent;
+  color: var(--color-highlight);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.create-contract-button:hover {
+  background-color: var(--color-soft-pink);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+}
+
 
 /* Tickets list – styled similar to the file list */
 .project-tickets-list {

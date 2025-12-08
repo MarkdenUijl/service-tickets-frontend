@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n';
+
 import enAuth from './lang/en/en-auth.json';
 import nlAuth from './lang/nl/nl-auth.json';
 
@@ -14,20 +15,25 @@ import nlTicket from './lang/nl/nl-ticket.json';
 import enProject from './lang/en/en-project.json';
 import nlProject from './lang/nl/nl-project.json';
 
+import enContract from './lang/en/en-contract.json';
+import nlContract from './lang/nl/nl-contract.json';
+
 const messages = {
   en: {
     auth: enAuth,
     base: enBase,
     dash: enDash,
     ticket: enTicket,
-    project: enProject
+    project: enProject,
+    contract: enContract
   },
   nl: {
     auth: nlAuth,
     base: nlBase,
     dash: nlDash,
     ticket: nlTicket,
-    project: nlProject
+    project: nlProject,
+    contract: nlContract
   }
 };
 

@@ -31,7 +31,8 @@
   "detailsHouseNumberLabelText": "House number",
   "detailsContractHeaderText": "Service contract",
   "detailsContractNoneText": "None",
-  "detailsNoContractText": "No contract",
+  "detailsNoContractText": "No service contract is currently active for this project.",
+  "detailsCreateContractButtonText": "Create service contract",
   "detailsContractStartLabelText": "Start date",
   "detailsContractEndLabelText": "End date",
   "detailsTicketsHeaderText": "Tickets on this project",
@@ -39,5 +40,6 @@
   "columnContracttypesText": "Contract type",
   "contracttypesFull_timeText": "full time",
   "contracttypesOffice_hoursText": "office hours",
-  "contracttypesNoneText": "none"
+  "contracttypesNoneText": "none",
+  "noDataFoundText": "No projects found in database"
 }
