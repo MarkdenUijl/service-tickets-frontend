@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { isContractCurrentlyValid, getRemainingContractTime, getContractTypeKey } from '@/utils/contractHelpers'
 import { safeApiCall } from '@/utils/safeApiCall'
 import { formatIsoDate } from '@/utils/formatIsoDate'
+import { useAuthStore } from '@/stores/authStore'
+import { PRIVILEGES } from '@/constants/privileges'
 import api from '@/services/api'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
@@ -14,6 +16,8 @@ import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const auth = useAuthStore()
+const hasPrivilege = auth.hasPrivilege
 
 // Core state
 const projectData = ref(null)
@@ -213,6 +217,7 @@ function goToContractCreate() {
                 </p>
 
                 <button
+                  v-if="hasPrivilege(PRIVILEGES.MODIFY_CONTRACTS)"
                   type="button"
                   class="create-contract-button"
                   @click="goToContractCreate"
@@ -220,35 +225,6 @@ function goToContractCreate() {
                   {{ t('project.detailsCreateContractButtonText') }}
                 </button>
               </template>
-              <!-- <TicketInfoLine 
-                :label="t('ticket.detailsContractTypeLabelText')"
-                :value="serviceContract ? contractTypeLabel : t('project.detailsNoContractText', 'No contract')" 
-              />
-
-              <TicketInfoLine 
-                v-if="serviceContract"
-                :label="t('ticket.detailsContractStatusLabelText')"
-                :value="isContractValid ? t('ticket.detailsContractStatusValidText') : t('ticket.detailsContractStatusExpiredText')"
-                :valueClass="isContractValid ? 'valid' : 'expired'"
-              />
-
-              <TicketInfoLine 
-                v-if="serviceContract"
-                :label="t('ticket.detailsContractTimeLabelText')"
-                :value="remainingContractMinutes"
-              />
-
-              <TicketInfoLine 
-                v-if="serviceContract?.startDate"
-                :label="t('project.detailsContractStartLabelText', 'Start date')"
-                :value="serviceContract.startDate"
-              />
-
-              <TicketInfoLine 
-                v-if="serviceContract?.endDate"
-                :label="t('project.detailsContractEndLabelText', 'End date')"
-                :value="serviceContract.endDate"
-              /> -->
             </section>
           </div>
         </section>

@@ -4,10 +4,14 @@ import RouteInfo from '@/components/common/RouteInfo.vue'
 import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import { PRIVILEGES } from '@/constants/privileges'
+import { splitPhoneNumber, joinPhoneNumber } from '@/utils/phoneNumber'
 
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import SearchInput from '@/components/user-input/SearchInput.vue'
+import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
+import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
+import ValidatedPhoneInput from '@/components/user-input/ValidatedPhoneInput.vue'
 
 const { t } = useI18n()
 
@@ -16,128 +20,243 @@ const itemsSelected = ref([])
 const loading = ref(false)
 const buttonHover = ref(false)
 
+const expandedUserDrafts = reactive({})
+
 const columns = computed(() => {
   return [
-    { text: 'Project', value: 'projectName', sortable: true },
-    { text: 'Type', value: 'type', sortable: true },
-    { text: 'Start date', value: 'startDate', sortable: true },
-    { text: 'End date', value: 'endDate', sortable: true },
-    { text: 'Used time', value: 'usedTime', sortable: true }
+    { text: 'First name', value: 'firstName', sortable: true },
+    { text: 'Last name', value: 'lastName', sortable: true },
+    { text: 'E-mail', value: 'email', sortable: true },
+    { text: 'Phone', value: 'phoneNumber', sortable: true },
+    { text: 'Role', value: 'roles', sortable: true }
   ]
 })
 
+function formatRoleName(roleName) {
+  if (!roleName) return ''
+  return roleName.replace(/^ROLE_/, '')
+              .toLowerCase()
+              .replace(/^\w/, c => c.toUpperCase())
+}
+
 const items = [
     {
-        "id": 151,
-        "contractTime": 360,
-        "usedTime": 120,
-        "startDate": "2024-01-01",
-        "endDate": "2024-12-31",
-        "projectName": "Delft Tech Park",
-        "type": "FULL_TIME"
+        "id": 1,
+        "firstName": "Admin",
+        "lastName": "Tester",
+        "email": "admin@tester.nl",
+        "phoneNumber": "+31612345678",
+        "roles": [
+            {
+                "id": 1,
+                "name": "ROLE_ADMIN",
+                "privileges": [
+                    {
+                        "id": 451,
+                        "name": "CAN_MODERATE_TICKET_RESPONSES_PRIVILEGE"
+                    },
+                    {
+                        "id": 51,
+                        "name": "CAN_MODIFY_CONTRACTS_PRIVILEGE"
+                    },
+                    {
+                        "id": 1,
+                        "name": "CAN_SEE_CONTRACTS_PRIVILEGE"
+                    },
+                    {
+                        "id": 101,
+                        "name": "CAN_SEE_PROJECTS_PRIVILEGE"
+                    },
+                    {
+                        "id": 351,
+                        "name": "CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE"
+                    },
+                    {
+                        "id": 251,
+                        "name": "CAN_ACCESS_USERS_PRIVILEGE"
+                    },
+                    {
+                        "id": 151,
+                        "name": "CAN_MODIFY_PROJECTS_PRIVILEGE"
+                    },
+                    {
+                        "id": 401,
+                        "name": "CAN_MAKE_ENGINEER_RESPONSE_PRIVILEGE"
+                    },
+                    {
+                        "id": 201,
+                        "name": "CAN_SEE_USERS_PRIVILEGE"
+                    },
+                    {
+                        "id": 301,
+                        "name": "CAN_MODIFY_USERS_PRIVILEGE"
+                    }
+                ]
+            }
+        ],
+        "tickets": []
     },
     {
-        "id": 201,
-        "contractTime": 600,
-        "usedTime": 200,
-        "startDate": "2024-03-01",
-        "endDate": "2025-02-28",
-        "projectName": "Leiden BioCenter",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 251,
-        "contractTime": 720,
-        "usedTime": 250,
-        "startDate": "2023-07-01",
-        "endDate": "2024-06-30",
-        "projectName": "Arnhem Bridge Offices",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 351,
-        "contractTime": 900,
-        "usedTime": 100,
-        "startDate": "2024-01-15",
-        "endDate": "2025-01-15",
-        "projectName": "Zwolle North",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 401,
-        "contractTime": 480,
-        "usedTime": 100,
-        "startDate": "2024-02-01",
-        "endDate": "2025-01-31",
-        "projectName": "Tilburg Centrum",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 451,
-        "contractTime": 240,
-        "usedTime": 80,
-        "startDate": "2024-06-01",
-        "endDate": "2025-05-31",
-        "projectName": "Breda Innovation Hub",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 501,
-        "contractTime": 360,
-        "usedTime": 40,
-        "startDate": "2023-11-01",
-        "endDate": "2024-10-31",
-        "projectName": "Apeldoorn Campus",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 301,
-        "contractTime": 300,
-        "usedTime": 71,
-        "startDate": "2024-05-01",
-        "endDate": "2025-04-30",
-        "projectName": "Haarlem HQ",
-        "type": "FULL_TIME"
+        "id": 51,
+        "firstName": "Engineer",
+        "lastName": "Tester",
+        "email": "engineer@tester.nl",
+        "phoneNumber": "+31612345678",
+        "roles": [
+            {
+                "id": 51,
+                "name": "ROLE_ENGINEER",
+                "privileges": [
+                    {
+                        "id": 1,
+                        "name": "CAN_SEE_CONTRACTS_PRIVILEGE"
+                    },
+                    {
+                        "id": 101,
+                        "name": "CAN_SEE_PROJECTS_PRIVILEGE"
+                    },
+                    {
+                        "id": 351,
+                        "name": "CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE"
+                    },
+                    {
+                        "id": 251,
+                        "name": "CAN_ACCESS_USERS_PRIVILEGE"
+                    },
+                    {
+                        "id": 401,
+                        "name": "CAN_MAKE_ENGINEER_RESPONSE_PRIVILEGE"
+                    },
+                    {
+                        "id": 201,
+                        "name": "CAN_SEE_USERS_PRIVILEGE"
+                    }
+                ]
+            }
+        ],
+        "tickets": []
     },
     {
         "id": 101,
-        "contractTime": 480,
-        "usedTime": 27,
-        "startDate": "2023-01-01",
-        "endDate": "2023-12-31",
-        "projectName": "Groningen Central",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 1,
-        "contractTime": 480,
-        "usedTime": 11,
-        "startDate": "2023-01-01",
-        "endDate": "2023-12-31",
-        "projectName": "Amsterdam Tower",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 601,
-        "contractTime": 480,
-        "usedTime": 160,
-        "startDate": "2024-07-01",
-        "endDate": "2025-06-30",
-        "projectName": "Universiteit Delft",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 551,
-        "contractTime": 600,
-        "usedTime": 192,
-        "startDate": "2024-04-01",
-        "endDate": "2025-03-31",
-        "projectName": "Tergooi",
-        "type": "FULL_TIME"
+        "firstName": "User",
+        "lastName": "Tester",
+        "email": "user@tester.nl",
+        "phoneNumber": "+31612345678",
+        "roles": [
+            {
+                "id": 101,
+                "name": "ROLE_USER",
+                "privileges": [
+                    {
+                        "id": 201,
+                        "name": "CAN_SEE_USERS_PRIVILEGE"
+                    }
+                ]
+            }
+        ],
+        "tickets": [
+            {
+                "id": 1,
+                "submittedBy": {
+                    "id": 101,
+                    "firstName": "User",
+                    "lastName": "Tester",
+                    "email": "user@tester.nl",
+                    "phoneNumber": "+31612345678"
+                },
+                "name": "Probleem in amsterdam",
+                "status": "CLOSED",
+                "type": "SOFTWARE",
+                "source": "PHONE",
+                "priority": "LOW",
+                "description": "Het gaat hier helemaal mis!",
+                "responses": [
+                    {
+                        "id": 1,
+                        "submittedBy": {
+                            "id": 1,
+                            "firstName": "Admin",
+                            "lastName": "Tester",
+                            "email": "admin@tester.nl",
+                            "phoneNumber": "+31612345678"
+                        },
+                        "response": "<p>Ik ga hier iets schrijven en dit oplossen voor je!</p>",
+                        "creationDate": "2025-12-07T17:01:19Z",
+                        "engineerResponse": true
+                    },
+                    {
+                        "id": 2,
+                        "submittedBy": {
+                            "id": 1,
+                            "firstName": "Admin",
+                            "lastName": "Tester",
+                            "email": "admin@tester.nl",
+                            "phoneNumber": "+31612345678"
+                        },
+                        "response": "<p>Ik sluit het ticket</p>",
+                        "creationDate": "2025-12-09T13:40:13Z",
+                        "engineerResponse": true
+                    }
+                ],
+                "minutesSpent": 11,
+                "creationDate": "2025-12-07T17:00:49Z",
+                "lastUpdated": "2025-12-09T13:40:13Z",
+                "closingDate": "2025-12-09T13:40:15Z",
+                "files": {},
+                "project": {
+                    "id": 1,
+                    "name": "Amsterdam Tower",
+                    "serviceContract": {
+                        "id": 602,
+                        "contractTime": 480,
+                        "usedTime": 11,
+                        "startDate": "2025-12-07",
+                        "endDate": "2026-12-07",
+                        "projectName": "Amsterdam Tower",
+                        "type": "OFFICE_HOURS"
+                    }
+                }
+            }
+        ]
     }
 ]
 
-function onClickContractRow(item) {
+const userRoleItems = computed(() => {
+  const seen = new Set()
+  const roleOptions = []
+
+  items.forEach(user => {
+    const roleName = user.roles?.[0]?.name
+    if (roleName && !seen.has(roleName)) {
+      seen.add(roleName)
+      roleOptions.push({
+        value: roleName,
+        label: formatRoleName(roleName)
+      })
+    }
+  })
+
+  return roleOptions
+})
+
+function getUserDraft(user) {
+  if (!expandedUserDrafts[user.id]) {
+    const primaryRole = user.roles?.[0]?.name || ''
+    const { countryCode, localNumber } = splitPhoneNumber(user.phoneNumber || '')
+
+    expandedUserDrafts[user.id] = {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phoneCountryCode: countryCode || '',
+      phoneLocal: localNumber || '',
+      roleName: primaryRole
+    }
+  }
+
+  return expandedUserDrafts[user.id]
+}
+
+function onClickUserRow(item) {
   console.log(item)
 }
 
@@ -151,6 +270,20 @@ async function handleBulkDelete() {
   itemsSelected.value = []
 
   // projectStore.fetchAll()
+}
+
+async function handleUpdateUser(user) {
+  const draft = getUserDraft(user)
+
+  const payload = {
+    id: user.id,
+    firstName: draft.firstName,
+    lastName: draft.lastName,
+    phoneNumber: joinPhoneNumber(draft.phoneCountryCode, draft.phoneLocal),
+    roleName: draft.roleName
+  }
+
+  console.log('User update payload:', payload)
 }
 </script>
 
@@ -247,18 +380,106 @@ async function handleBulkDelete() {
         body-text-direction="center"
         v-model:items-selected="itemsSelected"
         buttons-pagination
-        @click-row="onClickContractRow"
-        :privilege-key="PRIVILEGES.MODIFY_CONTRACTS"
+        @click-row="onClickUserRow"
+        :privilege-key="PRIVILEGES.MODIFY_USERS"
       >
-        <!-- <template #item-name="{ name }">
-          <span class="project-name-indicator">{{ name }}</span>
+        <template #item-roles="{ roles }">
+          <span>{{ formatRoleName(roles[0]?.name) }}</span>
         </template>
 
-        <template #item-contractTypeDisplay="{ contractTypeDisplay }">
-          <span class="project-contract-indicator">
-              {{ contractTypeDisplay }}
-          </span>
-        </template> -->
+        <template #expand="user">
+          <div class="row-expand-container">
+            <div class="contract-expand-section">
+              <span class="contract-expand-header">
+                {{ t('user.adjustHeaderText') }}
+              </span>
+
+              <div class="contract-expand-grid">
+                <!-- First name -->
+                <div class="contract-expand-field">
+                  <label
+                    class="contract-expand-label"
+                    :for="`firstName-${user.id}`"
+                  >
+                    {{ t('user.firstNameLabelText') }}
+                  </label>
+                  <input
+                    :id="`firstName-${user.id}`"
+                    v-model="getUserDraft(user).firstName"
+                    type="text"
+                    class="contract-expand-input"
+                  />
+                </div>
+
+                <!-- Last name -->
+                <div class="contract-expand-field">
+                  <label
+                    class="contract-expand-label"
+                    :for="`lastName-${user.id}`"
+                  >
+                    {{ t('user.lastNameLabelText') }}
+                  </label>
+                  <input
+                    :id="`lastName-${user.id}`"
+                    v-model="getUserDraft(user).lastName"
+                    type="text"
+                    class="contract-expand-input"
+                  />
+                </div>
+
+                <!-- Phone number -->
+                <div class="contract-expand-field">
+                  <label
+                    class="contract-expand-label"
+                    :for="`phoneNumber-${user.id}`"
+                  >
+                    {{ t('user.phoneNumberLabelText') }}
+                  </label>
+                  <!-- <input
+                    :id="`phoneNumber-${user.id}`"
+                    v-model="getUserDraft(user).phoneNumber"
+                    type="tel"
+                    class="contract-expand-input"
+                  /> -->
+                  <ValidatedPhoneInput
+                    class="user-expand-phone-input"
+                    :id="`phoneNumber-${user.id}`"
+                    v-model="getUserDraft(user).phoneLocal"
+                    :country-code="getUserDraft(user).phoneCountryCode"
+                    :placeholder="t('auth.phone')"
+                  />
+                </div>
+
+                <!-- Role dropdown -->
+                <div class="contract-expand-field">
+                  <label
+                    class="contract-expand-label"
+                    :for="`role-${user.id}`"
+                  >
+                    {{ t('user.roleLabelText') }}
+                  </label>
+
+                  <SearchDropdown
+                    :items="userRoleItems"
+                    :model-value="getUserDraft(user).roleName"
+                    value-key="value"
+                    label-key="label"
+                    :icon-indent="12"
+                    @update:modelValue="value => (getUserDraft(user).roleName = value)"
+                  />
+                </div>
+              </div>
+
+              <div class="contract-expand-actions">
+                <LoaderButton
+                  :loading="false"
+                  :label="t('user.saveChangesText')"
+                  @click.stop="handleUpdateUser(user)"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
 
         <template #empty-message>
           <span class="ticket-no-data">{{ t('ticket.noDataFoundText') }}</span>
