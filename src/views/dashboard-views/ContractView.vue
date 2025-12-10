@@ -3,7 +3,7 @@ import { onMounted, ref, computed, reactive } from 'vue'
 import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import { PRIVILEGES } from '@/constants/privileges'
-import { useContracttStore } from '@/stores/contractStore'
+import { useContractStore } from '@/stores/contractStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { getUsedTimeColorClass } from '@/utils/getUsedTimeColorClass'
 import { updateContract, renewContract } from '@/services/contractsApi'
@@ -19,7 +19,7 @@ import api from '@/services/api'
 import FilterPopout from '@/components/lists/FilterPopout.vue'
 
 const { t } = useI18n()
-const contractStore = useContracttStore()
+const contractStore = useContractStore()
 
 const searchInput = ref('')
 const itemsSelected = ref([])

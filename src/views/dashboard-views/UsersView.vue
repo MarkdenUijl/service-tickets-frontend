@@ -1,19 +1,22 @@
 <script setup>
 import { onMounted, ref, computed, reactive } from 'vue'
-import RouteInfo from '@/components/common/RouteInfo.vue'
 import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import { PRIVILEGES } from '@/constants/privileges'
 import { splitPhoneNumber, joinPhoneNumber } from '@/utils/phoneNumber'
+import { useUserStore } from '@/stores/userStore'
+import { updateUser } from '@/services/usersApi'
 
+import RouteInfo from '@/components/common/RouteInfo.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import SearchInput from '@/components/user-input/SearchInput.vue'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
-import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import ValidatedPhoneInput from '@/components/user-input/ValidatedPhoneInput.vue'
+import TextInput from '@/components/user-input/TextInput.vue'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 
 const searchInput = ref('')
 const itemsSelected = ref([])
@@ -39,205 +42,13 @@ function formatRoleName(roleName) {
               .replace(/^\w/, c => c.toUpperCase())
 }
 
-const items = [
-    {
-        "id": 1,
-        "firstName": "Admin",
-        "lastName": "Tester",
-        "email": "admin@tester.nl",
-        "phoneNumber": "+31612345678",
-        "roles": [
-            {
-                "id": 1,
-                "name": "ROLE_ADMIN",
-                "privileges": [
-                    {
-                        "id": 451,
-                        "name": "CAN_MODERATE_TICKET_RESPONSES_PRIVILEGE"
-                    },
-                    {
-                        "id": 51,
-                        "name": "CAN_MODIFY_CONTRACTS_PRIVILEGE"
-                    },
-                    {
-                        "id": 1,
-                        "name": "CAN_SEE_CONTRACTS_PRIVILEGE"
-                    },
-                    {
-                        "id": 101,
-                        "name": "CAN_SEE_PROJECTS_PRIVILEGE"
-                    },
-                    {
-                        "id": 351,
-                        "name": "CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE"
-                    },
-                    {
-                        "id": 251,
-                        "name": "CAN_ACCESS_USERS_PRIVILEGE"
-                    },
-                    {
-                        "id": 151,
-                        "name": "CAN_MODIFY_PROJECTS_PRIVILEGE"
-                    },
-                    {
-                        "id": 401,
-                        "name": "CAN_MAKE_ENGINEER_RESPONSE_PRIVILEGE"
-                    },
-                    {
-                        "id": 201,
-                        "name": "CAN_SEE_USERS_PRIVILEGE"
-                    },
-                    {
-                        "id": 301,
-                        "name": "CAN_MODIFY_USERS_PRIVILEGE"
-                    }
-                ]
-            }
-        ],
-        "tickets": []
-    },
-    {
-        "id": 51,
-        "firstName": "Engineer",
-        "lastName": "Tester",
-        "email": "engineer@tester.nl",
-        "phoneNumber": "+31612345678",
-        "roles": [
-            {
-                "id": 51,
-                "name": "ROLE_ENGINEER",
-                "privileges": [
-                    {
-                        "id": 1,
-                        "name": "CAN_SEE_CONTRACTS_PRIVILEGE"
-                    },
-                    {
-                        "id": 101,
-                        "name": "CAN_SEE_PROJECTS_PRIVILEGE"
-                    },
-                    {
-                        "id": 351,
-                        "name": "CAN_MODERATE_SERVICE_TICKETS_PRIVILEGE"
-                    },
-                    {
-                        "id": 251,
-                        "name": "CAN_ACCESS_USERS_PRIVILEGE"
-                    },
-                    {
-                        "id": 401,
-                        "name": "CAN_MAKE_ENGINEER_RESPONSE_PRIVILEGE"
-                    },
-                    {
-                        "id": 201,
-                        "name": "CAN_SEE_USERS_PRIVILEGE"
-                    }
-                ]
-            }
-        ],
-        "tickets": []
-    },
-    {
-        "id": 101,
-        "firstName": "User",
-        "lastName": "Tester",
-        "email": "user@tester.nl",
-        "phoneNumber": "+31612345678",
-        "roles": [
-            {
-                "id": 101,
-                "name": "ROLE_USER",
-                "privileges": [
-                    {
-                        "id": 201,
-                        "name": "CAN_SEE_USERS_PRIVILEGE"
-                    }
-                ]
-            }
-        ],
-        "tickets": [
-            {
-                "id": 1,
-                "submittedBy": {
-                    "id": 101,
-                    "firstName": "User",
-                    "lastName": "Tester",
-                    "email": "user@tester.nl",
-                    "phoneNumber": "+31612345678"
-                },
-                "name": "Probleem in amsterdam",
-                "status": "CLOSED",
-                "type": "SOFTWARE",
-                "source": "PHONE",
-                "priority": "LOW",
-                "description": "Het gaat hier helemaal mis!",
-                "responses": [
-                    {
-                        "id": 1,
-                        "submittedBy": {
-                            "id": 1,
-                            "firstName": "Admin",
-                            "lastName": "Tester",
-                            "email": "admin@tester.nl",
-                            "phoneNumber": "+31612345678"
-                        },
-                        "response": "<p>Ik ga hier iets schrijven en dit oplossen voor je!</p>",
-                        "creationDate": "2025-12-07T17:01:19Z",
-                        "engineerResponse": true
-                    },
-                    {
-                        "id": 2,
-                        "submittedBy": {
-                            "id": 1,
-                            "firstName": "Admin",
-                            "lastName": "Tester",
-                            "email": "admin@tester.nl",
-                            "phoneNumber": "+31612345678"
-                        },
-                        "response": "<p>Ik sluit het ticket</p>",
-                        "creationDate": "2025-12-09T13:40:13Z",
-                        "engineerResponse": true
-                    }
-                ],
-                "minutesSpent": 11,
-                "creationDate": "2025-12-07T17:00:49Z",
-                "lastUpdated": "2025-12-09T13:40:13Z",
-                "closingDate": "2025-12-09T13:40:15Z",
-                "files": {},
-                "project": {
-                    "id": 1,
-                    "name": "Amsterdam Tower",
-                    "serviceContract": {
-                        "id": 602,
-                        "contractTime": 480,
-                        "usedTime": 11,
-                        "startDate": "2025-12-07",
-                        "endDate": "2026-12-07",
-                        "projectName": "Amsterdam Tower",
-                        "type": "OFFICE_HOURS"
-                    }
-                }
-            }
-        ]
-    }
+const items = computed(() => userStore.users)
+
+const roles = [
+  { label: t('user.roleAdminText'), role: 'ROLE_ADMIN' },
+  { label: t('user.roleEngineerText'), role: 'ROLE_ENGINEER' },
+  { label: t('user.roleUserText'), role: 'ROLE_USER' }
 ]
-
-const userRoleItems = computed(() => {
-  const seen = new Set()
-  const roleOptions = []
-
-  items.forEach(user => {
-    const roleName = user.roles?.[0]?.name
-    if (roleName && !seen.has(roleName)) {
-      seen.add(roleName)
-      roleOptions.push({
-        value: roleName,
-        label: formatRoleName(roleName)
-      })
-    }
-  })
-
-  return roleOptions
-})
 
 function getUserDraft(user) {
   if (!expandedUserDrafts[user.id]) {
@@ -263,28 +74,40 @@ function onClickUserRow(item) {
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
   for (const item of itemsSelected.value) {
-    // await deleteProject(item.id)
+    // await deleteUser(item.id)
 
     console.log(item)
   }
   itemsSelected.value = []
 
-  // projectStore.fetchAll()
+  // userStore.fetchAll()
 }
 
 async function handleUpdateUser(user) {
   const draft = getUserDraft(user)
+  const id = user.id
 
   const payload = {
-    id: user.id,
     firstName: draft.firstName,
     lastName: draft.lastName,
     phoneNumber: joinPhoneNumber(draft.phoneCountryCode, draft.phoneLocal),
-    roleName: draft.roleName
+    roles: [draft.roleName]
   }
 
-  console.log('User update payload:', payload)
+  try {
+    loading.value = true
+    await updateUser(id, payload)
+    await userStore.fetchAll()
+  } catch (error) {
+    console.error('Failed to update user', error)
+  } finally {
+    loading.value = false
+  }
 }
+
+onMounted(() => {
+  userStore.fetchAll()
+})
 </script>
 
 <template>
@@ -347,24 +170,11 @@ async function handleUpdateUser(user) {
               <span>{{ t('project.deleteProjectsText') }}</span>
             </motion.button>
           </AnimatePresence>
-  
-          <!-- <motion.button
-            class="dashboard-header-button"
-            type="button"
-            :disabled="loading"
-            :aria-busy="loading ? 'true' : 'false'"
-            :transition="{ duration: 0.2 }"
-            :whileHover="{ scale: 1.03 }"
-            @click="onCreateProject"
-          >
-            <SvgIcon name="create-ticket-icon" width="20px" height="20px" />
-            <span>{{ t('project.createProjectText') }}</span>
-          </motion.button> -->
         </div>
     </div>
 
-    <div class="contract-layout">
-      <div id="contract-filter-bar">
+    <div class="user-layout">
+      <div id="user-filter-bar">
         <SearchInput :placeholder="t('project.searchProjectText')" variant="standalone" v-model="searchInput" />
       </div>
 
@@ -389,58 +199,27 @@ async function handleUpdateUser(user) {
 
         <template #expand="user">
           <div class="row-expand-container">
-            <div class="contract-expand-section">
-              <span class="contract-expand-header">
+            <div class="user-expand-section">
+              <span class="user-expand-header">
                 {{ t('user.adjustHeaderText') }}
               </span>
 
-              <div class="contract-expand-grid">
-                <!-- First name -->
-                <div class="contract-expand-field">
-                  <label
-                    class="contract-expand-label"
-                    :for="`firstName-${user.id}`"
-                  >
-                    {{ t('user.firstNameLabelText') }}
-                  </label>
-                  <input
+              <div class="user-expand-form">
+                <div class="user-expand-field">
+                  <TextInput
                     :id="`firstName-${user.id}`"
+                    :placeholder="t('user.firstNameLabelText')"
                     v-model="getUserDraft(user).firstName"
-                    type="text"
-                    class="contract-expand-input"
                   />
-                </div>
 
-                <!-- Last name -->
-                <div class="contract-expand-field">
-                  <label
-                    class="contract-expand-label"
-                    :for="`lastName-${user.id}`"
-                  >
-                    {{ t('user.lastNameLabelText') }}
-                  </label>
-                  <input
+                  <TextInput
                     :id="`lastName-${user.id}`"
+                    :placeholder="t('user.lastNameLabelText')"
                     v-model="getUserDraft(user).lastName"
-                    type="text"
-                    class="contract-expand-input"
                   />
                 </div>
 
-                <!-- Phone number -->
-                <div class="contract-expand-field">
-                  <label
-                    class="contract-expand-label"
-                    :for="`phoneNumber-${user.id}`"
-                  >
-                    {{ t('user.phoneNumberLabelText') }}
-                  </label>
-                  <!-- <input
-                    :id="`phoneNumber-${user.id}`"
-                    v-model="getUserDraft(user).phoneNumber"
-                    type="tel"
-                    class="contract-expand-input"
-                  /> -->
+                <div class="user-expand-field">
                   <ValidatedPhoneInput
                     class="user-expand-phone-input"
                     :id="`phoneNumber-${user.id}`"
@@ -450,19 +229,11 @@ async function handleUpdateUser(user) {
                   />
                 </div>
 
-                <!-- Role dropdown -->
-                <div class="contract-expand-field">
-                  <label
-                    class="contract-expand-label"
-                    :for="`role-${user.id}`"
-                  >
-                    {{ t('user.roleLabelText') }}
-                  </label>
-
+                <div class="user-expand-field">
                   <SearchDropdown
-                    :items="userRoleItems"
+                    :items="roles"
                     :model-value="getUserDraft(user).roleName"
-                    value-key="value"
+                    value-key="role"
                     label-key="label"
                     :icon-indent="12"
                     @update:modelValue="value => (getUserDraft(user).roleName = value)"
@@ -470,7 +241,7 @@ async function handleUpdateUser(user) {
                 </div>
               </div>
 
-              <div class="contract-expand-actions">
+              <div class="user-expand-actions">
                 <LoaderButton
                   :loading="false"
                   :label="t('user.saveChangesText')"
@@ -490,7 +261,7 @@ async function handleUpdateUser(user) {
 </template>
 
 <style>
-.contract-layout {
+.user-layout {
   flex: 1;
   background-color: var(--color-menu-background);
   margin: 12px;
@@ -501,10 +272,62 @@ async function handleUpdateUser(user) {
   gap: 8px;
 }
 
-#contract-filter-bar {
+#user-filter-bar {
   display: flex;
   flex-direction: row;
   overflow: visible;
   position: relative;
+}
+
+
+.row-expand-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  cursor: default;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--color-menu-background);
+}
+
+.user-expand-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.user-expand-header {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Noto sans JP';
+  color: var(--color-text);
+}
+
+.user-expand-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.user-expand-field {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-expand-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
 }
 </style>

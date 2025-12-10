@@ -1,12 +1,12 @@
-import { fetchContracts } from '@/services/contractsApi'
+import { fetchUsers } from '@/services/usersApi'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export const useContractStore = defineStore('contracts', () => {
+export const useUserStore = defineStore('users', () => {
   // ===============================
   // STATE
   // ===============================
-  const contracts = ref([])
+  const users = ref([])
   const loading = ref(false)
   const lastSync = ref(null)
 
@@ -16,8 +16,8 @@ export const useContractStore = defineStore('contracts', () => {
   const fetchAll = async () => {
     loading.value = true
     try {
-      const result = await fetchContracts()
-      contracts.value = result
+      const result = await fetchUsers()
+      users.value = result
       lastSync.value = new Date()
     } finally {
       loading.value = false
@@ -29,7 +29,7 @@ export const useContractStore = defineStore('contracts', () => {
   // ===============================
   return {
     // state
-    contracts,
+    users,
     loading,
     lastSync,
 

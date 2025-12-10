@@ -18,6 +18,10 @@ import nlProject from './lang/nl/nl-project.json';
 import enContract from './lang/en/en-contract.json';
 import nlContract from './lang/nl/nl-contract.json';
 
+import enUser from './lang/en/en-user.json';
+import nlUser from './lang/nl/nl-user.json';
+
+
 const messages = {
   en: {
     auth: enAuth,
@@ -25,7 +29,8 @@ const messages = {
     dash: enDash,
     ticket: enTicket,
     project: enProject,
-    contract: enContract
+    contract: enContract,
+    user: enUser
   },
   nl: {
     auth: nlAuth,
@@ -33,7 +38,8 @@ const messages = {
     dash: nlDash,
     ticket: nlTicket,
     project: nlProject,
-    contract: nlContract
+    contract: nlContract,
+    user: nlUser
   }
 };
 

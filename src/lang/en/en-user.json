@@ -1,0 +1,9 @@
+{
+  "adjustHeaderText": "Adjust user",
+  "firstNameLabelText": "First name",
+  "lastNameLabelText": "Last name",
+  "saveChangesText": "Save changes",
+  "roleAdminText": "Admin",
+  "roleEngineerText": "Engineer",
+  "roleUserText": "User"
+}

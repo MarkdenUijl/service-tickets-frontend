@@ -6,7 +6,7 @@ import { motion } from 'motion-v'
 const props = defineProps({
   id: { type: String, required: true },
   placeholder: { type: String, required: true },
-  type: { type: String, required: true },
+  type: { type: String, default: 'text' },
   validationColor: { type: String, required: false },
   name: { type: String, required: false },
   autocomplete: { type: String, required: false }
