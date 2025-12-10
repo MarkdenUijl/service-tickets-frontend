@@ -71,16 +71,22 @@ function onClickUserRow(item) {
   console.log(item)
 }
 
+async function deleteUser(userId) {
+  try {
+    await api.delete(`/users/${userId}`)
+  } catch (error) {
+    console.log(error?.status || error)
+  }
+}
+
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
   for (const item of itemsSelected.value) {
-    // await deleteUser(item.id)
-
-    console.log(item)
+    await deleteUser(item.id)
   }
   itemsSelected.value = []
 
-  // userStore.fetchAll()
+  userStore.fetchAll()
 }
 
 async function handleUpdateUser(user) {

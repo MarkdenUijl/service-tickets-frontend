@@ -1,3 +1,9 @@
 {
-  
+  "adjustHeaderText": "Gebruiker aanpassen",
+  "firstNameLabelText": "Voornaam",
+  "lastNameLabelText": "Achternaam",
+  "saveChangesText": "Opslaan",
+  "roleAdminText": "Admin",
+  "roleEngineerText": "Engineer",
+  "roleUserText": "Gebruiker"
 }
