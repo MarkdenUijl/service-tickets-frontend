@@ -1,157 +1,113 @@
 <script setup>
 import { onMounted, ref, computed, reactive } from 'vue'
-import RouteInfo from '@/components/common/RouteInfo.vue'
 import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import { PRIVILEGES } from '@/constants/privileges'
+import { splitPhoneNumber, joinPhoneNumber } from '@/utils/phoneNumber'
+import { useUserStore } from '@/stores/userStore'
+import { updateUser } from '@/services/usersApi'
 
+import RouteInfo from '@/components/common/RouteInfo.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import SearchInput from '@/components/user-input/SearchInput.vue'
-import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
+import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
+import LoaderButton from '@/components/buttons/LoaderButton.vue'
+import ValidatedPhoneInput from '@/components/user-input/ValidatedPhoneInput.vue'
+import TextInput from '@/components/user-input/TextInput.vue'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 
 const searchInput = ref('')
 const itemsSelected = ref([])
 const loading = ref(false)
 const buttonHover = ref(false)
 
+const expandedUserDrafts = reactive({})
+
 const columns = computed(() => {
   return [
-    { text: 'Project', value: 'projectName', sortable: true },
-    { text: 'Type', value: 'type', sortable: true },
-    { text: 'Start date', value: 'startDate', sortable: true },
-    { text: 'End date', value: 'endDate', sortable: true },
-    { text: 'Used time', value: 'usedTime', sortable: true }
+    { text: 'First name', value: 'firstName', sortable: true },
+    { text: 'Last name', value: 'lastName', sortable: true },
+    { text: 'E-mail', value: 'email', sortable: true },
+    { text: 'Phone', value: 'phoneNumber', sortable: true },
+    { text: 'Role', value: 'roles', sortable: true }
   ]
 })
 
-const items = [
-    {
-        "id": 151,
-        "contractTime": 360,
-        "usedTime": 120,
-        "startDate": "2024-01-01",
-        "endDate": "2024-12-31",
-        "projectName": "Delft Tech Park",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 201,
-        "contractTime": 600,
-        "usedTime": 200,
-        "startDate": "2024-03-01",
-        "endDate": "2025-02-28",
-        "projectName": "Leiden BioCenter",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 251,
-        "contractTime": 720,
-        "usedTime": 250,
-        "startDate": "2023-07-01",
-        "endDate": "2024-06-30",
-        "projectName": "Arnhem Bridge Offices",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 351,
-        "contractTime": 900,
-        "usedTime": 100,
-        "startDate": "2024-01-15",
-        "endDate": "2025-01-15",
-        "projectName": "Zwolle North",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 401,
-        "contractTime": 480,
-        "usedTime": 100,
-        "startDate": "2024-02-01",
-        "endDate": "2025-01-31",
-        "projectName": "Tilburg Centrum",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 451,
-        "contractTime": 240,
-        "usedTime": 80,
-        "startDate": "2024-06-01",
-        "endDate": "2025-05-31",
-        "projectName": "Breda Innovation Hub",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 501,
-        "contractTime": 360,
-        "usedTime": 40,
-        "startDate": "2023-11-01",
-        "endDate": "2024-10-31",
-        "projectName": "Apeldoorn Campus",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 301,
-        "contractTime": 300,
-        "usedTime": 71,
-        "startDate": "2024-05-01",
-        "endDate": "2025-04-30",
-        "projectName": "Haarlem HQ",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 101,
-        "contractTime": 480,
-        "usedTime": 27,
-        "startDate": "2023-01-01",
-        "endDate": "2023-12-31",
-        "projectName": "Groningen Central",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 1,
-        "contractTime": 480,
-        "usedTime": 11,
-        "startDate": "2023-01-01",
-        "endDate": "2023-12-31",
-        "projectName": "Amsterdam Tower",
-        "type": "OFFICE_HOURS"
-    },
-    {
-        "id": 601,
-        "contractTime": 480,
-        "usedTime": 160,
-        "startDate": "2024-07-01",
-        "endDate": "2025-06-30",
-        "projectName": "Universiteit Delft",
-        "type": "FULL_TIME"
-    },
-    {
-        "id": 551,
-        "contractTime": 600,
-        "usedTime": 192,
-        "startDate": "2024-04-01",
-        "endDate": "2025-03-31",
-        "projectName": "Tergooi",
-        "type": "FULL_TIME"
-    }
+function formatRoleName(roleName) {
+  if (!roleName) return ''
+  return roleName.replace(/^ROLE_/, '')
+              .toLowerCase()
+              .replace(/^\w/, c => c.toUpperCase())
+}
+
+const items = computed(() => userStore.users)
+
+const roles = [
+  { label: t('user.roleAdminText'), role: 'ROLE_ADMIN' },
+  { label: t('user.roleEngineerText'), role: 'ROLE_ENGINEER' },
+  { label: t('user.roleUserText'), role: 'ROLE_USER' }
 ]
 
-function onClickContractRow(item) {
+function getUserDraft(user) {
+  if (!expandedUserDrafts[user.id]) {
+    const primaryRole = user.roles?.[0]?.name || ''
+    const { countryCode, localNumber } = splitPhoneNumber(user.phoneNumber || '')
+
+    expandedUserDrafts[user.id] = {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phoneCountryCode: countryCode || '',
+      phoneLocal: localNumber || '',
+      roleName: primaryRole
+    }
+  }
+
+  return expandedUserDrafts[user.id]
+}
+
+function onClickUserRow(item) {
   console.log(item)
 }
 
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
   for (const item of itemsSelected.value) {
-    // await deleteProject(item.id)
+    // await deleteUser(item.id)
 
     console.log(item)
   }
   itemsSelected.value = []
 
-  // projectStore.fetchAll()
+  // userStore.fetchAll()
 }
+
+async function handleUpdateUser(user) {
+  const draft = getUserDraft(user)
+  const id = user.id
+
+  const payload = {
+    firstName: draft.firstName,
+    lastName: draft.lastName,
+    phoneNumber: joinPhoneNumber(draft.phoneCountryCode, draft.phoneLocal),
+    roles: [draft.roleName]
+  }
+
+  try {
+    loading.value = true
+    await updateUser(id, payload)
+    await userStore.fetchAll()
+  } catch (error) {
+    console.error('Failed to update user', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  userStore.fetchAll()
+})
 </script>
 
 <template>
@@ -214,24 +170,11 @@ async function handleBulkDelete() {
               <span>{{ t('project.deleteProjectsText') }}</span>
             </motion.button>
           </AnimatePresence>
-  
-          <!-- <motion.button
-            class="dashboard-header-button"
-            type="button"
-            :disabled="loading"
-            :aria-busy="loading ? 'true' : 'false'"
-            :transition="{ duration: 0.2 }"
-            :whileHover="{ scale: 1.03 }"
-            @click="onCreateProject"
-          >
-            <SvgIcon name="create-ticket-icon" width="20px" height="20px" />
-            <span>{{ t('project.createProjectText') }}</span>
-          </motion.button> -->
         </div>
     </div>
 
-    <div class="contract-layout">
-      <div id="contract-filter-bar">
+    <div class="user-layout">
+      <div id="user-filter-bar">
         <SearchInput :placeholder="t('project.searchProjectText')" variant="standalone" v-model="searchInput" />
       </div>
 
@@ -247,18 +190,67 @@ async function handleBulkDelete() {
         body-text-direction="center"
         v-model:items-selected="itemsSelected"
         buttons-pagination
-        @click-row="onClickContractRow"
-        :privilege-key="PRIVILEGES.MODIFY_CONTRACTS"
+        @click-row="onClickUserRow"
+        :privilege-key="PRIVILEGES.MODIFY_USERS"
       >
-        <!-- <template #item-name="{ name }">
-          <span class="project-name-indicator">{{ name }}</span>
+        <template #item-roles="{ roles }">
+          <span>{{ formatRoleName(roles[0]?.name) }}</span>
         </template>
 
-        <template #item-contractTypeDisplay="{ contractTypeDisplay }">
-          <span class="project-contract-indicator">
-              {{ contractTypeDisplay }}
-          </span>
-        </template> -->
+        <template #expand="user">
+          <div class="row-expand-container">
+            <div class="user-expand-section">
+              <span class="user-expand-header">
+                {{ t('user.adjustHeaderText') }}
+              </span>
+
+              <div class="user-expand-form">
+                <div class="user-expand-field">
+                  <TextInput
+                    :id="`firstName-${user.id}`"
+                    :placeholder="t('user.firstNameLabelText')"
+                    v-model="getUserDraft(user).firstName"
+                  />
+
+                  <TextInput
+                    :id="`lastName-${user.id}`"
+                    :placeholder="t('user.lastNameLabelText')"
+                    v-model="getUserDraft(user).lastName"
+                  />
+                </div>
+
+                <div class="user-expand-field">
+                  <ValidatedPhoneInput
+                    class="user-expand-phone-input"
+                    :id="`phoneNumber-${user.id}`"
+                    v-model="getUserDraft(user).phoneLocal"
+                    :country-code="getUserDraft(user).phoneCountryCode"
+                    :placeholder="t('auth.phone')"
+                  />
+                </div>
+
+                <div class="user-expand-field">
+                  <SearchDropdown
+                    :items="roles"
+                    :model-value="getUserDraft(user).roleName"
+                    value-key="role"
+                    label-key="label"
+                    :icon-indent="12"
+                    @update:modelValue="value => (getUserDraft(user).roleName = value)"
+                  />
+                </div>
+              </div>
+
+              <div class="user-expand-actions">
+                <LoaderButton
+                  :loading="false"
+                  :label="t('user.saveChangesText')"
+                  @click.stop="handleUpdateUser(user)"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
 
         <template #empty-message>
           <span class="ticket-no-data">{{ t('ticket.noDataFoundText') }}</span>
@@ -269,7 +261,7 @@ async function handleBulkDelete() {
 </template>
 
 <style>
-.contract-layout {
+.user-layout {
   flex: 1;
   background-color: var(--color-menu-background);
   margin: 12px;
@@ -280,10 +272,62 @@ async function handleBulkDelete() {
   gap: 8px;
 }
 
-#contract-filter-bar {
+#user-filter-bar {
   display: flex;
   flex-direction: row;
   overflow: visible;
   position: relative;
+}
+
+
+.row-expand-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  cursor: default;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--color-menu-background);
+}
+
+.user-expand-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.user-expand-header {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Noto sans JP';
+  color: var(--color-text);
+}
+
+.user-expand-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.user-expand-field {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-expand-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
 }
 </style>
