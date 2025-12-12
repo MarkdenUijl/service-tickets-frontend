@@ -4,7 +4,6 @@ import { useTicketsStore } from '@/stores/ticketStore'
 import { getTicketTypeColor } from '@/constants/ticketColors.js'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 
-
 export const DASHBOARD_TITLES = {
   bar: 'Tickets created',
   donut: 'Ticket type breakdown',
@@ -22,6 +21,111 @@ const toDayKey = (date) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+const MS_PER_MINUTE = 1000 * 60
+const MS_PER_HOUR = 1000 * 60 * 60
+
+// Pure helper to compute core KPI metrics from a list of tickets
+const computeKpiMetrics = (tickets) => {
+  let openCount = 0
+  let resolutionSumMs = 0
+  let resolutionCount = 0
+  let firstResponseSumMs = 0
+  let firstResponseCount = 0
+  let totalCount = 0
+  let withContractCount = 0
+
+  for (const t of tickets) {
+    totalCount++
+
+    // Tickets with contract: project has a serviceContract object
+    if (t?.project?.serviceContract) {
+      withContractCount++
+    }
+
+    // Open tickets: everything that is not closed or cancelled
+    if (t.status !== 'CLOSED' && t.status !== 'CANCELLED') {
+      openCount++
+    }
+
+    // Average resolution time: only for closed tickets with valid dates
+    if (t.status === 'CLOSED' && t.creationDate && t.closingDate) {
+      const created = new Date(t.creationDate)
+      const closed = new Date(t.closingDate)
+
+      if (!Number.isNaN(created.getTime()) && !Number.isNaN(closed.getTime()) && closed >= created) {
+        resolutionSumMs += (closed - created)
+        resolutionCount++
+      }
+    }
+
+
+    // Average first response time: first engineer response vs ticket creation
+    if (t.creationDate && Array.isArray(t.responses) && t.responses.length) {
+      let earliestEngineerResponse = null
+
+      for (const r of t.responses) {
+        if (!r.engineerResponse || !r.creationDate) continue
+
+        const responseDate = new Date(r.creationDate)
+        if (Number.isNaN(responseDate.getTime())) continue
+
+        if (!earliestEngineerResponse || responseDate < earliestEngineerResponse) {
+          earliestEngineerResponse = responseDate
+        }
+      }
+
+      if (earliestEngineerResponse) {
+        const created = new Date(t.creationDate)
+
+        if (!Number.isNaN(created.getTime()) && earliestEngineerResponse >= created) {
+          firstResponseSumMs += (earliestEngineerResponse - created)
+          firstResponseCount++
+        }
+      }
+    }
+  }
+
+  const avgResolutionMs = resolutionCount ? resolutionSumMs / resolutionCount : null
+  const avgFirstResponseMs = firstResponseCount ? firstResponseSumMs / firstResponseCount : null
+  const contractTicketPercent = totalCount ? (withContractCount / totalCount) * 100 : null
+  
+  return {
+    openCount,
+    avgResolutionMs,    
+    avgFirstResponseMs,
+    contractTicketPercent
+  }
+}
+
+// Format a duration in ms as a readable label for the KPI card
+const formatDurationForCard = (ms) => {
+  if (ms == null) return null
+
+  const totalMinutes = Math.floor(ms / MS_PER_MINUTE)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours <= 0) {
+    return `${minutes} min`
+  }
+
+  if (minutes === 0) {
+    return `${hours} h`
+  }
+
+  return `${hours} h ${minutes} min`
+}
+
+const formatPercentForCard = (value, decimals = 0) => {
+  if (value == null) return null
+  if (Number.isNaN(value)) return null
+
+  const factor = 10 ** decimals
+  const rounded = Math.round(value * factor) / factor
+  return `${rounded}%`
+}
+
+
 /**
  * Centralized data layer for the dashboard.
  * It transforms tickets from the store into KPIs and chart-ready datasets.
@@ -37,16 +141,30 @@ export function useDashboardData() {
    */
   const cards = computed(() => {
     const tickets = store.filteredTickets
-    const totalOpen = tickets.filter(t => t.status === 'OPEN').length
-    const escalated = tickets.filter(t => t.status === 'ESCALATED').length
-    const awaiting  = tickets.filter(t => t.status === 'PENDING').length
-    const clientRes = tickets.filter(t => t.status === 'IN_PROGRESS').length
+
+    const { openCount, avgResolutionMs, avgFirstResponseMs, contractTicketPercent } = computeKpiMetrics(tickets)
+
+    const avgResolutionLabel = formatDurationForCard(avgResolutionMs)
+    const avgFirstResponseLabel = formatDurationForCard(avgFirstResponseMs)
+    const contractPercentLabel = formatPercentForCard(contractTicketPercent)
 
     return [
-      { cardTitle: t('dash.openTicketsText'), cardInfo: totalOpen },
-      { cardTitle: t('dash.escalatedTicketsText'), cardInfo: escalated },
-      { cardTitle: t('dash.awaitingResponseText'), cardInfo: awaiting },
-      { cardTitle: t('dash.clientRespondedText'), cardInfo: clientRes }
+      {
+        cardTitle: t('dash.openTicketsText'),
+        cardInfo: openCount
+      },
+      {
+        cardTitle: t('dash.avgResolutionTimeText'),
+        cardInfo: avgResolutionLabel ?? t('dash.noClosedTicketsText')
+      },
+      {
+        cardTitle: t('dash.avgResponseTimeText'),
+        cardInfo: avgFirstResponseLabel ?? t('dash.noResponsesText')
+      },
+      {
+        cardTitle: t('dash.contractTicketPercentText'),
+        cardInfo: contractPercentLabel ?? t('dash.noTicketsText')
+      }
     ]
   })
 
@@ -168,7 +286,7 @@ export function useDashboardData() {
       type: 'datetime',
       tickAmount: 10,
       labels: {
-        format: 'dd MMM', // automatic formatting
+        format: 'dd MMM',
         rotate: -45
       }
     },
