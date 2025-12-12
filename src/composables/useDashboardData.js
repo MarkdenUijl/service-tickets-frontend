@@ -38,7 +38,7 @@ const computeKpiMetrics = (tickets) => {
     totalCount++
 
     // Tickets with contract: project has a serviceContract object
-    if (t?.project?.serviceContract) {
+    if (t?.hadValidContractAtCreation === true) {
       withContractCount++
     }
 
@@ -98,7 +98,7 @@ const computeKpiMetrics = (tickets) => {
 }
 
 // Format a duration in ms as a readable label for the KPI card
-const formatDurationForCard = (ms) => {
+const formatDurationForCard = (ms, t) => {
   if (ms == null) return null
 
   const totalMinutes = Math.floor(ms / MS_PER_MINUTE)
@@ -106,14 +106,14 @@ const formatDurationForCard = (ms) => {
   const minutes = totalMinutes % 60
 
   if (hours <= 0) {
-    return `${minutes} min`
+    return `${minutes} ${t('base.minutesShortText')}`
   }
 
   if (minutes === 0) {
-    return `${hours} h`
+    return `${hours} ${t('base.hoursShortText')}`
   }
 
-  return `${hours} h ${minutes} min`
+  return `${hours} ${t('base.hoursShortText')} ${minutes} ${t('base.minutesShortText')}`
 }
 
 const formatPercentForCard = (value, decimals = 0) => {
@@ -144,26 +144,26 @@ export function useDashboardData() {
 
     const { openCount, avgResolutionMs, avgFirstResponseMs, contractTicketPercent } = computeKpiMetrics(tickets)
 
-    const avgResolutionLabel = formatDurationForCard(avgResolutionMs)
-    const avgFirstResponseLabel = formatDurationForCard(avgFirstResponseMs)
+    const avgResolutionLabel = formatDurationForCard(avgResolutionMs, t)
+    const avgFirstResponseLabel = formatDurationForCard(avgFirstResponseMs, t)
     const contractPercentLabel = formatPercentForCard(contractTicketPercent)
 
     return [
       {
-        cardTitle: t('dash.openTicketsText'),
+        cardTitle: t('dash.kpiOpenTicketsText'),
         cardInfo: openCount
       },
       {
-        cardTitle: t('dash.avgResolutionTimeText'),
-        cardInfo: avgResolutionLabel ?? t('dash.noClosedTicketsText')
+        cardTitle: t('dash.kpiAvgResolutionTimeText'),
+        cardInfo: avgResolutionLabel ?? t('dash.kpiNoDataText')
       },
       {
-        cardTitle: t('dash.avgResponseTimeText'),
-        cardInfo: avgFirstResponseLabel ?? t('dash.noResponsesText')
+        cardTitle: t('dash.kpiAvgResponseTimeText'),
+        cardInfo: avgFirstResponseLabel ?? t('dash.kpiNoDataText')
       },
       {
-        cardTitle: t('dash.contractTicketPercentText'),
-        cardInfo: contractPercentLabel ?? t('dash.noTicketsText')
+        cardTitle: t('dash.kpiContractTicketPercentageText'),
+        cardInfo: contractPercentLabel ?? t('dash.kpiNoDataText')
       }
     ]
   })

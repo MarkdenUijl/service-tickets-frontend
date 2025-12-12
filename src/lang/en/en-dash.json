@@ -23,9 +23,9 @@
     "customRangeText": "Custom range",
     "fullRangeText": "Since start",
     "clearPreferencesText": "Clear preferences",
-    "openTicketsText": "Open tickets",
-    "escalatedTicketsText": "Escalated tickets",
-    "awaitingResponseText": "Awaiting response",
-    "clientRespondedText": "Client responded",
-    "unlinkedTicketsText": "Unlinked tickets"
+    "kpiNoDataText": "No data",
+    "kpiOpenTicketsText": "Open tickets",
+    "kpiAvgResolutionTimeText": "Average resolution time",
+    "kpiAvgResponseTimeText": "Average response time",
+    "kpiContractTicketPercentageText": "Tickets with contract"
 }

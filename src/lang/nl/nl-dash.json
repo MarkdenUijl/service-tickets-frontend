@@ -23,9 +23,9 @@
     "customRangeText": "Vrij bereik",
     "fullRangeText": "Sinds begin",
     "clearPreferencesText": "Wis voorkeuren",
-    "openTicketsText": "Open tickets",
-    "escalatedTicketsText": "Geëscaleerde tickets",
-    "awaitingResponseText": "Wachtend op reactie",
-    "clientRespondedText": "Klant heeft gereageerd",
-    "unlinkedTicketsText": "Ongekoppelde tickets"
+    "kpiNoDataText": "Geen data",
+    "kpiOpenTicketsText": "Open tickets",
+    "kpiAvgResolutionTimeText": "Gemiddelde oplostijd",
+    "kpiAvgResponseTimeText": "Gemiddelde reactietijd",
+    "kpiContractTicketPercentageText": "Tickets met contract"
 }
