@@ -8,6 +8,33 @@ export const DASHBOARD_TITLES = {
   createdByDay: 'createdByDayText',
   openedByDay: 'openedByDayText',
   ticketType: 'ticketTypeText',
+  ticketPriority: 'ticketPriorityText',
+}
+
+const PRIORITY_COLORS = {
+  CRITICAL: 'var(--color-tile-priority-critical-back)',
+  HIGH: 'var(--color-tile-priority-high-back)',
+  MEDIUM: 'var(--color-tile-priority-medium-back)',
+  LOW: 'var(--color-tile-priority-low-back)'
+}
+
+const getPriorityColor = (priority) => PRIORITY_COLORS[String(priority || '').toUpperCase()] || 'var(--color-subtext)'
+
+// --- DRY helpers for donut breakdowns
+const isOpenTicket = (t) => t?.status !== 'CLOSED' && t?.status !== 'CANCELLED'
+
+const buildBreakdownSeries = (tickets, getKey) => {
+  const countMap = new Map()
+
+  for (const t of tickets) {
+    const key = getKey(t) || 'Unknown'
+    countMap.set(key, (countMap.get(key) || 0) + 1)
+  }
+
+  return Array
+    .from(countMap.entries())
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => a.label.localeCompare(b.label))
 }
 
 const formatLabel = dateStr => {
@@ -286,21 +313,15 @@ export function useDashboardData() {
     }
   })
 
-
   // --- Donut chart: ticket type breakdown
   const ticketTypeSeries = computed(() => {
-    const tickets = store.filteredTickets
-    const countByType = new Map()
+    return buildBreakdownSeries(store.filteredTickets, t => t.type)
+  })
 
-    for (const t of tickets) {
-      const key = t.type || 'Unknown'
-      countByType.set(key, (countByType.get(key) || 0) + 1)
-    }
-
-    return Array
-      .from(countByType.entries())
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => a.label.localeCompare(b.label))
+    // --- Donut chart: open ticket priority breakdown (exclude CLOSED/CANCELLED)
+  const ticketPrioritySeries = computed(() => {
+    const openTickets = store.filteredTickets.filter(isOpenTicket)
+    return buildBreakdownSeries(openTickets, t => t.priority)
   })
 
   // // --- Area chart: response time per day (with vs without contract)
@@ -438,13 +459,62 @@ export function useDashboardData() {
               show: true,
               name: { show: true },
               value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
-              total: { show: true, showAlways: true, fontSize: 14, label: 'Total tickets', fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
+              total: { show: true, showAlways: true, fontSize: 14, label: t('dash.totalTicketsText'), fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
             }
           }
         }
       }
     }
   })
+
+  const ticketPriorityOptions = computed(() => {
+    const rawLabels = ticketPrioritySeries.value.map(item => String(item.label || 'Unknown'))
+
+    const localizedLabels = rawLabels.map(label => {
+      const normalized = label.toLowerCase()
+      const key = normalized.charAt(0).toUpperCase() + normalized.slice(1)
+      // i18n keys: priorityLowText, priorityMediumText, priorityHighText, priorityCriticalText
+      return t(`ticket.priority${key}Text`) || capitalizeWords(label)
+    })
+
+    const colors = rawLabels.map(label => getPriorityColor(label))
+
+    return {
+      chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-priority-breakdown' },
+      colors,
+      labels: localizedLabels,
+      stroke: { width: 4, colors: ['var(--color-menu-background)'] },
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        itemMargin: { horizontal: 8, vertical: 4 },
+        formatter(seriesName) {
+          const s = String(seriesName ?? '')
+          return s.length > 32 ? `${s.slice(0, 29)}…` : s
+        }
+      },
+      tooltip: { fillSeriesColor: false },
+      plotOptions: {
+        pie: {
+          startAngle: -90,
+          endAngle: 90,
+          expandOnClick: false,
+          offsetY: 0,
+          customScale: 1.06,
+          donut: {
+            size: '75%',
+            labels: {
+              show: true,
+              name: { show: true },
+              value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
+              total: { show: true, showAlways: true, fontSize: 14, label: t('dash.totalTicketsText') || 'Total tickets', fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
+            }
+          }
+        }
+      }
+    }
+  })
+
 
   // const areaOptions = computed(() => ({
   //   chart: { id: 'response-time' },
@@ -478,9 +548,11 @@ export function useDashboardData() {
     createdByDaySeries,
     openedByDaySeries,
     ticketTypeSeries,
+    ticketPrioritySeries,
     // Chart options
     createdByDayOptions,
     openedByDayOptions,
-    ticketTypeOptions
+    ticketTypeOptions,
+    ticketPriorityOptions
   }
 }

@@ -28,7 +28,9 @@
     "kpiAvgResolutionTimeText": "Average resolution time",
     "kpiAvgResponseTimeText": "Average response time",
     "kpiContractTicketPercentageText": "Tickets with contract",
+    "totalTicketsText": "Total tickets",
     "createdByDayText": "Daily ticket activity",
     "openedByDayText": "Daily submitted tickets",
-    "ticketTypeText": "Ticket type breakdown"
+    "ticketTypeText": "Ticket type breakdown",
+    "ticketPriorityText": "Open ticket priorities"
 }

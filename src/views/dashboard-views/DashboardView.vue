@@ -50,9 +50,11 @@ const {
   createdByDaySeries,
   openedByDaySeries,
   ticketTypeSeries,
+  ticketPrioritySeries,
   createdByDayOptions,
   openedByDayOptions,
-  ticketTypeOptions
+  ticketTypeOptions,
+  ticketPriorityOptions
 } = useDashboardData()
 
 // Keep a copy of the original grid to restore after mobile single-column mode
@@ -197,6 +199,8 @@ const getSeriesForType = (type) => {
       return openedByDaySeries.value.series || []
     case 'ticketType':
       return ticketTypeSeries.value || []
+    case 'ticketPriority':
+      return ticketPrioritySeries.value || []
     default:
       return []
   }
@@ -210,6 +214,8 @@ const getOptionsForType = (type) => {
       return openedByDayOptions.value || {}
     case 'ticketType':
       return ticketTypeOptions.value || {}
+    case 'ticketPriority':
+      return ticketPriorityOptions.value || {}
     default:
       return {}
   }
@@ -222,6 +228,7 @@ const getChartforType = (type) => {
     case 'openedByDay':
       return 'line'
     case 'ticketType':
+    case 'ticketPriority':
       return 'donut'
     default:
       return ''
