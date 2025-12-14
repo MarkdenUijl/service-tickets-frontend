@@ -134,9 +134,9 @@ const tileMenuOptions = reactive([
     isOpen: false,
     hideOnMobile: false,
     menuItems: [
-      { id: 'bar', optionTitle: DASHBOARD_TITLES['bar'], clickAction: () => setType('bar') },
-      { id: 'area', optionTitle: DASHBOARD_TITLES['area'], clickAction: () => setType('area') },
-      { id: 'donut', optionTitle: DASHBOARD_TITLES['donut'], clickAction: () => setType('donut') }
+      { id: 'createdByDay', optionTitle: t(`dash.${DASHBOARD_TITLES['createdByDay']}`), clickAction: () => setType('createdByDay') },
+      { id: 'openedByDay', optionTitle: t(`dash.${DASHBOARD_TITLES['openedByDay']}`), clickAction: () => setType('openedByDay') },
+      { id: 'ticketType', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketType']}`), clickAction: () => setType('ticketType') }
     ]
   }
 ])

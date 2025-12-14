@@ -112,6 +112,13 @@ watch(
   border: none !important;
 }
 
+.apexcharts-tooltip-title {
+  background-color: var(--color-text) !important;
+  color: var(--color-menu-background) !important;
+  border: none !important;
+  font-weight: 600;
+}
+
 .apexcharts-datalabel-value { font-weight: 800 !important; }
 .apexcharts-datalabel-label { font-weight: 400 !important; }
 

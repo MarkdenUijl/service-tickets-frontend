@@ -6,7 +6,7 @@
   "phoneNumberText": "Phone",
   "hourText": "hour",
   "hoursText": "hours",
-  "hourShortText": "h",
+  "hoursShortText": "h",
   "minutesText": "minutes",
   "minutesShortText": "min",
   "orText": "or",
@@ -16,5 +16,7 @@
   "cancelText": "Cancel",
   "showMoreText": "Show more...",
   "showLessText": "Show less...",
-  "filterButtonText": "Filters"
+  "filterButtonText": "Filters",
+  "createdText": "Created",
+  "closedText": "Closed"
 }

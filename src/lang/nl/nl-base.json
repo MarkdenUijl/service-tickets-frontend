@@ -6,7 +6,7 @@
   "phoneNumberText": "Telefoon",
   "hourText": "uur",
   "hoursText": "uur",
-  "hourShortText": "u",
+  "hoursShortText": "u",
   "minutesText": "minuten",
   "minutesShortText": "min",
   "orText": "of",
@@ -16,5 +16,7 @@
   "cancelText": "Annuleren",
   "showMoreText": "Laat meer zien...",
   "showLessText": "Laat minder zien...",
-  "filterButtonText" : "Filters"
+  "filterButtonText" : "Filters",
+  "createdText": "Gemaakt",
+  "closedText": "Gesloten"
 }

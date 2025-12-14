@@ -39,20 +39,20 @@ const layout = ref(
   savedLayout
     ? JSON.parse(savedLayout)
     : [
-        { x: 0, y: 0, w: 1, h: 1, i: '0', type: 'bar' },
-        { x: 1, y: 0, w: 1, h: 1, i: '1', type: 'bar' }
+        { x: 0, y: 0, w: 1, h: 1, i: '0', type: 'createdByDay' },
+        { x: 1, y: 0, w: 1, h: 1, i: '1', type: 'ticketType' }
       ]
 )
 
 const {
   DASHBOARD_TITLES,
   cards,
-  barSeries,
-  donutSeries,
-  areaSeries,
-  barOptions,
-  donutOptions,
-  areaOptions
+  createdByDaySeries,
+  openedByDaySeries,
+  ticketTypeSeries,
+  createdByDayOptions,
+  openedByDayOptions,
+  ticketTypeOptions
 } = useDashboardData()
 
 // Keep a copy of the original grid to restore after mobile single-column mode
@@ -140,7 +140,7 @@ const addLayoutTile = () => {
   layout.value = packLayout(
     [
       ...layout.value,
-      { x: 0, y: 0, w: 1, h: 1, i: uniqueId, type: 'bar' }
+      { x: 0, y: 0, w: 1, h: 1, i: uniqueId, type: 'createdByDay' }
     ],
     colNum.value
   )
@@ -186,17 +186,17 @@ watch(
   { immediate: true }
 )
 
-const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
-const DEFAULT_SERIES_TYPES = new Set(['bar', 'line', 'area', 'scatter'])
+// const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
+const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'area', 'scatter'])
 
 const getSeriesForType = (type) => {
   switch (type) {
-    case 'bar':
-      return barSeries.value.series || []
-    case 'area':
-      return areaSeries.value.series || []
-    case 'donut':
-      return donutSeries.value || []
+    case 'createdByDay':
+      return createdByDaySeries.value.series || []
+    case 'openedByDay':
+      return openedByDaySeries.value.series || []
+    case 'ticketType':
+      return ticketTypeSeries.value || []
     default:
       return []
   }
@@ -204,14 +204,27 @@ const getSeriesForType = (type) => {
 
 const getOptionsForType = (type) => {
   switch (type) {
-    case 'bar':
-      return barOptions.value || {}
-    case 'area':
-      return areaOptions.value || {}
-    case 'donut':
-      return donutOptions.value || {}
+    case 'createdByDay':
+      return createdByDayOptions.value || {}
+    case 'openedByDay':
+      return openedByDayOptions.value || {}
+    case 'ticketType':
+      return ticketTypeOptions.value || {}
     default:
       return {}
+  }
+}
+
+const getChartforType = (type) => {
+  switch (type) {
+    case 'createdByDay':
+      return 'bar'
+    case 'openedByDay':
+      return 'line'
+    case 'ticketType':
+      return 'donut'
+    default:
+      return ''
   }
 }
 
@@ -261,7 +274,7 @@ onBeforeUnmount(() => {
       <DashboardDataTile
         v-for="item in layout"
         :key="item.i"
-        :header="DASHBOARD_TITLES[item.type] || 'Dashboard Data'"
+        :header="t(`dash.${DASHBOARD_TITLES[item.type]}`) || 'Dashboard Data'"
         :x="item.x"
         :y="item.y"
         :w="item.w"
@@ -274,7 +287,7 @@ onBeforeUnmount(() => {
         <component
           :is="DEFAULT_SERIES_TYPES.has(item.type) ? CartesianChart : RadialChart"
           :chartId="item.i"
-          :type="item.type"
+          :type="getChartforType(item.type)"
           :series="getSeriesForType(item.type)"
           :options="getOptionsForType(item.type)"
         />

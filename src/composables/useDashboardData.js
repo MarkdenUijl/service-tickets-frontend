@@ -5,9 +5,9 @@ import { getTicketTypeColor } from '@/constants/ticketColors.js'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 
 export const DASHBOARD_TITLES = {
-  bar: 'Tickets created',
-  donut: 'Ticket type breakdown',
-  area: 'Response time',
+  createdByDay: 'createdByDayText',
+  openedByDay: 'openedByDayText',
+  ticketType: 'ticketTypeText',
 }
 
 const formatLabel = dateStr => {
@@ -19,6 +19,59 @@ const formatLabel = dateStr => {
 const toDayKey = (date) => {
   const d = new Date(date)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// --- DRY day bucketing helpers
+const toValidDate = (value) => {
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+const countByDayKey = (items, getDateValue) => {
+  const map = new Map()
+
+  for (const item of items) {
+    const d = toValidDate(getDateValue(item))
+    if (!d) continue
+
+    const key = toDayKey(d)
+    map.set(key, (map.get(key) || 0) + 1)
+  }
+
+  return map
+}
+
+const buildDayRange = (startDate, endDate) => {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return []
+
+  start.setHours(0, 0, 0, 0)
+  end.setHours(0, 0, 0, 0)
+
+  const days = []
+  const current = new Date(start)
+
+  while (current <= end) {
+    days.push(toDayKey(current))
+    current.setDate(current.getDate() + 1)
+  }
+
+  return days
+}
+
+const getEarliestValidDate = (items, getDateValue) => {
+  let earliest = null
+
+  for (const item of items) {
+    const d = toValidDate(getDateValue(item))
+    if (!d) continue
+
+    if (!earliest || d < earliest) earliest = d
+  }
+
+  return earliest
 }
 
 const MS_PER_MINUTE = 1000 * 60
@@ -175,54 +228,67 @@ export function useDashboardData() {
    */
 
   // --- Bar chart: tickets created vs closed per day
-  const barSeries = computed(() => {
+  const createdByDaySeries = computed(() => {
     const tickets = store.filteredTickets
     if (!tickets.length) return { series: [], categories: [] }
 
-    const createdByDay = new Map()
-    const closedByDay = new Map()
+    const createdByDay = countByDayKey(tickets, t => t.creationDate)
+    const closedByDay  = countByDayKey(tickets, t => t.closingDate)
 
-    for (const t of tickets) {
-      const createdKey = toDayKey(t.creationDate)
-      createdByDay.set(createdKey, (createdByDay.get(createdKey) || 0) + 1)
+    const earliestCreated = getEarliestValidDate(tickets, t => t.creationDate)
+    if (!earliestCreated) return { series: [], categories: [] }
 
-      if (t.closingDate) {
-        const closedKey = toDayKey(t.closingDate)
-        closedByDay.set(closedKey, (closedByDay.get(closedKey) || 0) + 1)
-      }
-    }
+    const endDate = store.dateRange?.end
+      ? new Date(store.dateRange.end)
+      : new Date()
 
-    // Find date range: first created ticket → today
-    const firstDate = new Date(Math.min(...tickets.map(t => new Date(t.creationDate))))
-    const endDate = store.dateRange?.end ? new Date(store.dateRange.end) : new Date()
-    endDate.setHours(0, 0, 0, 0)
+    const allDays = buildDayRange(earliestCreated, endDate)
 
-    // Build full list of dates between first and today
-    const allDays = []
-    const current = new Date(firstDate)
-    current.setHours(0, 0, 0, 0)
+    const createdData = allDays.map(day => [
+      new Date(day).getTime(),
+      createdByDay.get(day) || 0
+    ])
 
-    while (current <= endDate) {
-      allDays.push(toDayKey(current))
-      current.setDate(current.getDate() + 1)
-    }
-
-    // Construct the data arrays with 0 for missing days
-    const createdData = allDays.map(day => [new Date(day).getTime(), createdByDay.get(day) || 0])
-    const closedData = allDays.map(day => [new Date(day).getTime(), closedByDay.get(day) || 0])
-
+    const closedData = allDays.map(day => [
+      new Date(day).getTime(),
+      closedByDay.get(day) || 0
+    ])
 
     return {
       series: [
-        { name: 'Created', data: createdData },
-        { name: 'Closed', data: closedData }
+        { name: t('base.createdText'), data: createdData },
+        { name: t('base.closedText'), data: closedData }
       ],
       categories: allDays.map(formatLabel)
     }
   })
 
+    // --- Line chart: tickets opened per day (tickets created per day)
+  const openedByDaySeries = computed(() => {
+    const tickets = store.filteredTickets
+    if (!tickets.length) return { series: [], categories: [] }
+
+    const openedByDay = countByDayKey(tickets, t => t.creationDate)
+
+    const earliestCreated = getEarliestValidDate(tickets, t => t.creationDate)
+    if (!earliestCreated) return { series: [], categories: [] }
+
+    const endDate = store.dateRange?.end ? new Date(store.dateRange.end) : new Date()
+    const allDays = buildDayRange(earliestCreated, endDate)
+
+    const openedData = allDays.map(day => [new Date(day).getTime(), openedByDay.get(day) || 0])
+
+    return {
+      series: [
+        { name: t('base.createdText'), data: openedData }
+      ],
+      categories: allDays.map(formatLabel)
+    }
+  })
+
+
   // --- Donut chart: ticket type breakdown
-  const donutSeries = computed(() => {
+  const ticketTypeSeries = computed(() => {
     const tickets = store.filteredTickets
     const countByType = new Map()
 
@@ -237,50 +303,50 @@ export function useDashboardData() {
       .sort((a, b) => a.label.localeCompare(b.label))
   })
 
-  // --- Area chart: response time per day (with vs without contract)
-  const areaSeries = computed(() => {
-    const tickets = store.filteredTickets
-    const grouped = new Map()
+  // // --- Area chart: response time per day (with vs without contract)
+  // const areaSeries = computed(() => {
+  //   const tickets = store.filteredTickets
+  //   const grouped = new Map()
 
-    const add = (k, bucket, hours) => {
-      if (!grouped.has(k)) grouped.set(k, { with: { sum: 0, n: 0 }, without: { sum: 0, n: 0 } })
-      grouped.get(k)[bucket].sum += hours
-      grouped.get(k)[bucket].n += 1
-    }
+  //   const add = (k, bucket, hours) => {
+  //     if (!grouped.has(k)) grouped.set(k, { with: { sum: 0, n: 0 }, without: { sum: 0, n: 0 } })
+  //     grouped.get(k)[bucket].sum += hours
+  //     grouped.get(k)[bucket].n += 1
+  //   }
 
-    for (const t of tickets) {
-      if (!t.firstResponseAt) continue
-      const key = toDayKey(t.createdAt)
-      const hours = (new Date(t.firstResponseAt) - new Date(t.createdAt)) / (1000 * 60 * 60)
-      const bucket = (t.hasContract && t.contractValid) ? 'with' : 'without'
-      add(key, bucket, Math.max(0, hours))
-    }
+  //   for (const t of tickets) {
+  //     if (!t.firstResponseAt) continue
+  //     const key = toDayKey(t.createdAt)
+  //     const hours = (new Date(t.firstResponseAt) - new Date(t.createdAt)) / (1000 * 60 * 60)
+  //     const bucket = (t.hasContract && t.contractValid) ? 'with' : 'without'
+  //     add(key, bucket, Math.max(0, hours))
+  //   }
 
-    const days = Array.from(grouped.keys()).sort()
-    const withC = days.map(k => {
-      const { sum, n } = grouped.get(k).with
-      return n ? +(sum / n).toFixed(2) : 0
-    })
-    const withoutC = days.map(k => {
-      const { sum, n } = grouped.get(k).without
-      return n ? +(sum / n).toFixed(2) : 0
-    })
+  //   const days = Array.from(grouped.keys()).sort()
+  //   const withC = days.map(k => {
+  //     const { sum, n } = grouped.get(k).with
+  //     return n ? +(sum / n).toFixed(2) : 0
+  //   })
+  //   const withoutC = days.map(k => {
+  //     const { sum, n } = grouped.get(k).without
+  //     return n ? +(sum / n).toFixed(2) : 0
+  //   })
 
-    return {
-      series: [
-        { name: 'With contract', data: withC },
-        { name: 'Without contract', data: withoutC }
-      ],
-      categories: days
-    }
-  })
+  //   return {
+  //     series: [
+  //       { name: 'With contract', data: withC },
+  //       { name: 'Without contract', data: withoutC }
+  //     ],
+  //     categories: days
+  //   }
+  // })
 
   /**
    * ===============================
    * CHART OPTIONS BUILDERS
    * ===============================
    */
-  const barOptions = computed(() => ({
+  const createdByDayOptions = computed(() => ({
     chart: { id: 'tickets-per-day' },
     xaxis: {
       type: 'datetime',
@@ -300,8 +366,45 @@ export function useDashboardData() {
     grid: { borderColor: 'var(--color-subtext)' }
   }))
 
-  const donutOptions = computed(() => {
-    const rawLabels = donutSeries.value.map(item => capitalizeWords(item.label))
+  const openedByDayOptions = computed(() => ({
+    chart: {
+      id: 'tickets-opened-per-day',
+      type: 'line',
+      toolbar: { show: false },
+      zoom: { enabled: false }
+    },
+    yaxis: {
+      min: 0,
+      forceNiceScale: true,
+      decimalsInFloat: 0
+    },
+    xaxis: {
+      type: 'datetime',
+      tickAmount: 10,
+      labels: {
+        format: 'dd MMM',
+        rotate: -45
+      },
+      tooltip: {
+        enabled: false
+      }
+    },
+    stroke: {
+      width: 3,
+      curve: 'smooth'
+    },
+    markers: {
+      size: 0,
+      hover: { size: 5 }
+    },
+    dataLabels: { enabled: false },
+    colors: ['var(--color-highlight)'],
+    grid: { borderColor: 'var(--color-subtext)' },
+    legend: { show: false }
+  }))
+
+  const ticketTypeOptions = computed(() => {
+    const rawLabels = ticketTypeSeries.value.map(item => capitalizeWords(item.label))
     const localizedLabels = rawLabels.map(label =>
       t(`ticket.type${label}Text`) || capitalizeWords(label)
     )
@@ -343,24 +446,24 @@ export function useDashboardData() {
     }
   })
 
-  const areaOptions = computed(() => ({
-    chart: { id: 'response-time' },
-    xaxis: { categories: areaSeries.value.categories },
-    colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
-    stroke: { width: 2 },
-    legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
-    grid: { borderColor: 'var(--color-subtext)' },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        gradientToColors: ['var(--color-menu-background)'],
-        shadeIntensity: 1,
-        opacityFrom: 0.4,
-        opacityTo: 0,
-        stops: [0, 85, 100]
-      }
-    }
-  }))
+  // const areaOptions = computed(() => ({
+  //   chart: { id: 'response-time' },
+  //   xaxis: { categories: areaSeries.value.categories },
+  //   colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
+  //   stroke: { width: 2 },
+  //   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
+  //   grid: { borderColor: 'var(--color-subtext)' },
+  //   fill: {
+  //     type: 'gradient',
+  //     gradient: {
+  //       gradientToColors: ['var(--color-menu-background)'],
+  //       shadeIntensity: 1,
+  //       opacityFrom: 0.4,
+  //       opacityTo: 0,
+  //       stops: [0, 85, 100]
+  //     }
+  //   }
+  // }))
 
   /**
    * ===============================
@@ -372,12 +475,12 @@ export function useDashboardData() {
     // KPI
     cards,
     // Charts
-    barSeries,
-    donutSeries,
-    areaSeries,
+    createdByDaySeries,
+    openedByDaySeries,
+    ticketTypeSeries,
     // Chart options
-    barOptions,
-    donutOptions,
-    areaOptions
+    createdByDayOptions,
+    openedByDayOptions,
+    ticketTypeOptions
   }
 }
