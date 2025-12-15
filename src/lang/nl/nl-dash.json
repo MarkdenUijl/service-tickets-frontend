@@ -29,6 +29,7 @@
     "kpiAvgResponseTimeText": "Gemiddelde reactietijd",
     "kpiContractTicketPercentageText": "Tickets met contract",
     "totalTicketsText": "Totaal tickets",
+    "noOpenTicketsText": "Geen open tickets",
     "createdByDayText": "Dagelijkse ticket activiteit",
     "openedByDayText": "Dagelijkse ingevoerde tickets",
     "ticketTypeText": "Ticket type breakdown",

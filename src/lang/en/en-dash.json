@@ -29,6 +29,7 @@
     "kpiAvgResponseTimeText": "Average response time",
     "kpiContractTicketPercentageText": "Tickets with contract",
     "totalTicketsText": "Total tickets",
+    "noOpenTicketsText": "No open tickets",
     "createdByDayText": "Daily ticket activity",
     "openedByDayText": "Daily submitted tickets",
     "ticketTypeText": "Ticket type breakdown",

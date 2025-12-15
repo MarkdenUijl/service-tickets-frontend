@@ -494,6 +494,7 @@ export function useDashboardData() {
         }
       },
       tooltip: { fillSeriesColor: false },
+      noData: { text: t('dash.noOpenTicketsText') },
       plotOptions: {
         pie: {
           startAngle: -90,
@@ -507,7 +508,7 @@ export function useDashboardData() {
               show: true,
               name: { show: true },
               value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
-              total: { show: true, showAlways: true, fontSize: 14, label: t('dash.totalTicketsText') || 'Total tickets', fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
+              total: { show: true, showAlways: true, fontSize: 14, label: t('dash.kpiOpenTicketsText'), fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
             }
           }
         }

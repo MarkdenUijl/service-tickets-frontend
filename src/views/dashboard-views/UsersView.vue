@@ -181,7 +181,7 @@ onMounted(() => {
 
     <div class="user-layout">
       <div id="user-filter-bar">
-        <SearchInput :placeholder="t('project.searchProjectText')" variant="standalone" v-model="searchInput" />
+        <SearchInput :placeholder="t('user.searchUserText')" variant="standalone" v-model="searchInput" />
       </div>
 
       <PrivilegedDataTable
