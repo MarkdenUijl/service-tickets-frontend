@@ -49,6 +49,7 @@ const {
   cards,
   createdByDaySeries,
   openedByDaySeries,
+  contractDivideSeries,
   ticketTypeSeries,
   ticketPrioritySeries,
   ticketStatusSeries,
@@ -56,6 +57,7 @@ const {
   avgResolutionTimeSeries,
   createdByDayOptions,
   openedByDayOptions,
+  contractDivideOptions,
   ticketTypeOptions,
   ticketPriorityOptions,
   ticketStatusOptions,
@@ -203,6 +205,8 @@ const getSeriesForType = (type) => {
       return createdByDaySeries.value.series || []
     case 'openedByDay':
       return openedByDaySeries.value.series || []
+    case 'contractDivide':
+      return contractDivideSeries.value || []
     case 'ticketType':
       return ticketTypeSeries.value || []
     case 'ticketPriority':
@@ -224,6 +228,8 @@ const getOptionsForType = (type) => {
       return createdByDayOptions.value || {}
     case 'openedByDay':
       return openedByDayOptions.value || {}
+    case 'contractDivide':
+      return contractDivideOptions.value || {}
     case 'ticketType':
       return ticketTypeOptions.value || {}
     case 'ticketPriority':
@@ -248,6 +254,7 @@ const getChartforType = (type) => {
       return 'line'
     case 'avgResponseTime':
       return 'area'
+    case 'contractDivide':
     case 'ticketType':
     case 'ticketPriority':
     case 'ticketStatus':

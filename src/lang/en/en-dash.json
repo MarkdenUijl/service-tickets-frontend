@@ -38,5 +38,6 @@
     "avgResponseTimeText": "Average response time",
     "contractTicketsText": "Contract",
     "nonContractTicketsText": "No contract",
-    "avgResolutionTimeText": "Average resolution time"
+    "avgResolutionTimeText": "Average resolution time",
+    "contractDivideText": "Contract coverage"
 }

@@ -7,6 +7,7 @@ import { capitalizeWords } from '@/utils/capitalizeWords'
 export const DASHBOARD_TITLES = {
   createdByDay: 'createdByDayText',
   openedByDay: 'openedByDayText',
+  contractDivide: 'contractDivideText',
   ticketType: 'ticketTypeText',
   ticketPriority: 'ticketPriorityText',
   ticketStatus: 'ticketStatusText',
@@ -39,6 +40,7 @@ const getPriorityColor = (priority) => PRIORITY_COLORS[String(priority || '').to
 // --- DRY helpers for donut breakdowns
 const isOpenTicket = (t) => t?.status !== 'CLOSED' && t?.status !== 'CANCELLED'
 const normalizeStatus = (status) => String(status || '').toUpperCase()
+const getContractBucketLabel = (ticket) => (ticket?.hadValidContractAtCreation === true ? 'WITH_CONTRACT' : 'WITHOUT_CONTRACT')
 
 const buildBreakdownSeries = (tickets, getKey) => {
   const countMap = new Map()
@@ -368,6 +370,11 @@ export function useDashboardData() {
       ],
       categories: allDays.map(formatLabel)
     }
+  })
+
+  // --- Donut chart: tickets with contract vs without contract
+  const contractDivideSeries = computed(() => {
+    return buildBreakdownSeries(store.filteredTickets, getContractBucketLabel)
   })
 
   // --- Donut chart: ticket type breakdown
@@ -831,6 +838,59 @@ export function useDashboardData() {
     }
   }))
 
+  const contractDivideOptions = computed(() => {
+    const rawLabels = contractDivideSeries.value.map(item => String(item.label || 'Unknown'))
+
+    const localizedLabels = rawLabels.map(label => {
+      if (label === 'WITH_CONTRACT') return t('dash.contractTicketsText') || 'Contract'
+      if (label === 'WITHOUT_CONTRACT') return t('dash.nonContractTicketsText') || 'Non-contract'
+      return capitalizeWords(label.replaceAll('_', ' '))
+    })
+
+    return {
+      chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'contract-divide' },
+      colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
+      labels: localizedLabels,
+      stroke: { width: 4, colors: ['var(--color-menu-background)'] },
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        itemMargin: { horizontal: 8, vertical: 4 },
+        formatter(seriesName) {
+          const s = String(seriesName ?? '')
+          return s.length > 32 ? `${s.slice(0, 29)}…` : s
+        }
+      },
+      tooltip: { fillSeriesColor: false },
+      plotOptions: {
+        pie: {
+          // FULL donut
+          startAngle: 0,
+          endAngle: 360,
+          expandOnClick: false,
+          offsetY: 0,
+          customScale: 1.06,
+          donut: {
+            size: '75%',
+            labels: {
+              show: true,
+              name: { show: true },
+              value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
+              total: {
+                show: true,
+                showAlways: true,
+                fontSize: 14,
+                label: t('dash.totalTicketsText'),
+                fontFamily: 'Noto Sans JP',
+                color: 'var(--color-text)',
+                fontWeight: 700
+              }
+            }
+          }
+        }
+      }
+    }
+  })
 
   /**
    * ===============================
@@ -844,6 +904,7 @@ export function useDashboardData() {
     // Charts
     createdByDaySeries,
     openedByDaySeries,
+    contractDivideSeries,
     ticketTypeSeries,
     ticketPrioritySeries,
     ticketStatusSeries,
@@ -852,6 +913,7 @@ export function useDashboardData() {
     // Chart options
     createdByDayOptions,
     openedByDayOptions,
+    contractDivideOptions,
     ticketTypeOptions,
     ticketPriorityOptions,
     ticketStatusOptions,

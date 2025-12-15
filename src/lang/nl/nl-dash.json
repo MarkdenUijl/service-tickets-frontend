@@ -38,5 +38,6 @@
     "avgResponseTimeText": "Gemiddelde reactietijd",
     "contractTicketsText": "Contract",
     "nonContractTicketsText": "Geen contract",
-    "avgResolutionTimeText": "Gemiddelde oplostijd"
+    "avgResolutionTimeText": "Gemiddelde oplostijd",
+    "contractDivideText": "Contractdekking"
 }
