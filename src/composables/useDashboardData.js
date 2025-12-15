@@ -9,6 +9,8 @@ export const DASHBOARD_TITLES = {
   openedByDay: 'openedByDayText',
   ticketType: 'ticketTypeText',
   ticketPriority: 'ticketPriorityText',
+  ticketStatus: 'ticketStatusText',
+  avgResponseTime: 'avgResponseTimeText'
 }
 
 const PRIORITY_COLORS = {
@@ -18,10 +20,24 @@ const PRIORITY_COLORS = {
   LOW: 'var(--color-tile-priority-low-back)'
 }
 
+const STATUS_COLORS = {
+  OPEN: 'var(--color-tile-mild-back)',
+  PENDING: 'var(--color-tile-medium-back)',
+  IN_PROGRESS: 'var(--color-tile-good-back)',
+  ESCALATED: 'var(--color-tile-dire-back)'
+}
+
+const getStatusColor = (status) => STATUS_COLORS[String(status || '').toUpperCase()] || 'var(--color-subtext)'
+
+
+const OPEN_STATUS_ORDER = ['OPEN', 'PENDING', 'IN_PROGRESS', 'ESCALATED']
+const OPEN_STATUS_SET = new Set(OPEN_STATUS_ORDER)
+
 const getPriorityColor = (priority) => PRIORITY_COLORS[String(priority || '').toUpperCase()] || 'var(--color-subtext)'
 
 // --- DRY helpers for donut breakdowns
 const isOpenTicket = (t) => t?.status !== 'CLOSED' && t?.status !== 'CANCELLED'
+const normalizeStatus = (status) => String(status || '').toUpperCase()
 
 const buildBreakdownSeries = (tickets, getKey) => {
   const countMap = new Map()
@@ -99,6 +115,32 @@ const getEarliestValidDate = (items, getDateValue) => {
   }
 
   return earliest
+}
+
+// Pure helper: returns ms between ticket creation and the first engineer response, or null if unavailable/invalid
+const getFirstEngineerResponseDeltaMs = (ticket) => {
+  if (!ticket?.creationDate || !Array.isArray(ticket.responses) || !ticket.responses.length) return null
+
+  const created = new Date(ticket.creationDate)
+  if (Number.isNaN(created.getTime())) return null
+
+  let earliestEngineerResponse = null
+
+  for (const r of ticket.responses) {
+    if (!r?.engineerResponse || !r?.creationDate) continue
+
+    const responseDate = new Date(r.creationDate)
+    if (Number.isNaN(responseDate.getTime())) continue
+
+    if (!earliestEngineerResponse || responseDate < earliestEngineerResponse) {
+      earliestEngineerResponse = responseDate
+    }
+  }
+
+  if (!earliestEngineerResponse) return null
+  if (earliestEngineerResponse < created) return null
+
+  return earliestEngineerResponse - created
 }
 
 const MS_PER_MINUTE = 1000 * 60
@@ -324,43 +366,84 @@ export function useDashboardData() {
     return buildBreakdownSeries(openTickets, t => t.priority)
   })
 
-  // // --- Area chart: response time per day (with vs without contract)
-  // const areaSeries = computed(() => {
-  //   const tickets = store.filteredTickets
-  //   const grouped = new Map()
+    // --- Donut chart: open ticket status breakdown (only OPEN/PENDING/IN_PROGRESS/ESCALATED)
+  const ticketStatusSeries = computed(() => {
+    const openTickets = store.filteredTickets
+      .filter(isOpenTicket)
+      .filter(t => OPEN_STATUS_SET.has(normalizeStatus(t.status)))
 
-  //   const add = (k, bucket, hours) => {
-  //     if (!grouped.has(k)) grouped.set(k, { with: { sum: 0, n: 0 }, without: { sum: 0, n: 0 } })
-  //     grouped.get(k)[bucket].sum += hours
-  //     grouped.get(k)[bucket].n += 1
-  //   }
+    // Build counts like the other donut series
+    const series = buildBreakdownSeries(openTickets, t => normalizeStatus(t.status) || 'Unknown')
 
-  //   for (const t of tickets) {
-  //     if (!t.firstResponseAt) continue
-  //     const key = toDayKey(t.createdAt)
-  //     const hours = (new Date(t.firstResponseAt) - new Date(t.createdAt)) / (1000 * 60 * 60)
-  //     const bucket = (t.hasContract && t.contractValid) ? 'with' : 'without'
-  //     add(key, bucket, Math.max(0, hours))
-  //   }
+    // Ensure a consistent, meaningful order instead of alphabetical
+    series.sort((a, b) => OPEN_STATUS_ORDER.indexOf(a.label) - OPEN_STATUS_ORDER.indexOf(b.label))
 
-  //   const days = Array.from(grouped.keys()).sort()
-  //   const withC = days.map(k => {
-  //     const { sum, n } = grouped.get(k).with
-  //     return n ? +(sum / n).toFixed(2) : 0
-  //   })
-  //   const withoutC = days.map(k => {
-  //     const { sum, n } = grouped.get(k).without
-  //     return n ? +(sum / n).toFixed(2) : 0
-  //   })
+    return series
+  })
 
-  //   return {
-  //     series: [
-  //       { name: 'With contract', data: withC },
-  //       { name: 'Without contract', data: withoutC }
-  //     ],
-  //     categories: days
-  //   }
-  // })
+  // --- Area chart: avg first response time (contract vs non-contract) per day
+  const avgFirstResponseTimeSeries = computed(() => {
+    const tickets = store.filteredTickets
+    if (!tickets.length) return { series: [], categories: [] }
+
+    const earliestCreated = getEarliestValidDate(tickets, t => t.creationDate)
+    if (!earliestCreated) return { series: [], categories: [] }
+
+    const endDate = store.dateRange?.end
+      ? new Date(store.dateRange.end)
+      : new Date()
+
+    const allDays = buildDayRange(earliestCreated, endDate)
+
+    // Sum + count per day for each group
+    const contractSumMsByDay = new Map()
+    const contractCountByDay = new Map()
+    const nonContractSumMsByDay = new Map()
+    const nonContractCountByDay = new Map()
+
+    for (const t of tickets) {
+      const day = toDayKey(t.creationDate)
+      if (!day) continue
+
+      const deltaMs = getFirstEngineerResponseDeltaMs(t)
+      if (deltaMs == null) continue
+
+      const isContract = t?.hadValidContractAtCreation === true
+
+      if (isContract) {
+        contractSumMsByDay.set(day, (contractSumMsByDay.get(day) || 0) + deltaMs)
+        contractCountByDay.set(day, (contractCountByDay.get(day) || 0) + 1)
+      } else {
+        nonContractSumMsByDay.set(day, (nonContractSumMsByDay.get(day) || 0) + deltaMs)
+        nonContractCountByDay.set(day, (nonContractCountByDay.get(day) || 0) + 1)
+      }
+    }
+
+    // Return minutes (not ms) so the chart is readable
+    const contractAvgMinutes = allDays.map(day => {
+      const count = contractCountByDay.get(day) || 0
+      if (!count) return [new Date(day).getTime(), 0]
+
+      const avgMs = contractSumMsByDay.get(day) / count
+      return [new Date(day).getTime(), Math.round(avgMs / MS_PER_MINUTE)]
+    })
+
+    const nonContractAvgMinutes = allDays.map(day => {
+      const count = nonContractCountByDay.get(day) || 0
+      if (!count) return [new Date(day).getTime(), 0]
+
+      const avgMs = nonContractSumMsByDay.get(day) / count
+      return [new Date(day).getTime(), Math.round(avgMs / MS_PER_MINUTE)]
+    })
+
+    return {
+      series: [
+        { name: t('dash.contractTicketsText') || 'Contract', data: contractAvgMinutes },
+        { name: t('dash.nonContractTicketsText') || 'Non-contract', data: nonContractAvgMinutes }
+      ],
+      categories: allDays.map(formatLabel)
+    }
+  })
 
   /**
    * ===============================
@@ -516,25 +599,107 @@ export function useDashboardData() {
     }
   })
 
+  const ticketStatusOptions = computed(() => {
+    const rawLabels = ticketStatusSeries.value.map(item => String(item.label || 'Unknown'))
+    
+    const localizedLabels = rawLabels.map(label => {
+      return t(`ticket.status${capitalizeWords(label)}Text`)
+    })
 
-  // const areaOptions = computed(() => ({
-  //   chart: { id: 'response-time' },
-  //   xaxis: { categories: areaSeries.value.categories },
-  //   colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
-  //   stroke: { width: 2 },
-  //   legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
-  //   grid: { borderColor: 'var(--color-subtext)' },
-  //   fill: {
-  //     type: 'gradient',
-  //     gradient: {
-  //       gradientToColors: ['var(--color-menu-background)'],
-  //       shadeIntensity: 1,
-  //       opacityFrom: 0.4,
-  //       opacityTo: 0,
-  //       stops: [0, 85, 100]
-  //     }
-  //   }
-  // }))
+    const colors = rawLabels.map(label => getStatusColor(label))
+
+    return {
+      chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'ticket-status-breakdown' },
+      colors,
+      labels: localizedLabels,
+      stroke: { width: 4, colors: ['var(--color-menu-background)'] },
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        itemMargin: { horizontal: 8, vertical: 4 },
+        formatter(seriesName) {
+          const s = String(seriesName ?? '')
+          return s.length > 32 ? `${s.slice(0, 29)}…` : s
+        }
+      },
+      tooltip: { fillSeriesColor: false },
+      noData: { text: t('dash.noOpenTicketsText') },
+      plotOptions: {
+        pie: {
+          startAngle: -90,
+          endAngle: 90,
+          expandOnClick: false,
+          offsetY: 0,
+          customScale: 1.06,
+          donut: {
+            size: '75%',
+            labels: {
+              show: true,
+              name: { show: true },
+              value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
+              total: { show: true, showAlways: true, fontSize: 14, label: t('dash.kpiOpenTicketsText'), fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  const avgFirstResponseTimeOptions = computed(() => ({
+    chart: {
+      id: 'response-time',
+      type: 'area',
+      toolbar: { show: false },
+      zoom: { enabled: false }
+    },
+    xaxis: {
+      type: 'datetime',
+      tickAmount: 10,
+      labels: {
+        format: 'dd MMM',
+        rotate: -45
+      },
+      tooltip: {
+        enabled: false
+      }
+    },
+    yaxis: {
+      min: 0,
+      forceNiceScale: true,
+      decimalsInFloat: 0,
+      labels: {
+        formatter: (value) => {
+          if (value == null || Number.isNaN(value)) return ''
+          return `${Math.round(value)} ${t('base.minutesShortText')}`
+        }
+      }
+    },
+    colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
+    stroke: { width: 2, curve: 'smooth' },
+    legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
+    grid: { borderColor: 'var(--color-subtext)' },
+    dataLabels: { enabled: false },
+    tooltip: {
+      enabled: true,
+      x: { format: 'dd MMM yyyy' },
+      y: {
+        formatter: (value) => {
+          if (value == null || Number.isNaN(value)) return t('dash.kpiNoDataText')
+          return `${Math.round(value)} ${t('base.minutesShortText')}`
+        }
+      }
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        gradientToColors: ['var(--color-menu-background)'],
+        shadeIntensity: 1,
+        opacityFrom: 0.4,
+        opacityTo: 0,
+        stops: [0, 85, 100]
+      }
+    }
+  }))
 
   /**
    * ===============================
@@ -550,10 +715,14 @@ export function useDashboardData() {
     openedByDaySeries,
     ticketTypeSeries,
     ticketPrioritySeries,
+    ticketStatusSeries,
+    avgFirstResponseTimeSeries,
     // Chart options
     createdByDayOptions,
     openedByDayOptions,
     ticketTypeOptions,
-    ticketPriorityOptions
+    ticketPriorityOptions,
+    ticketStatusOptions,
+    avgFirstResponseTimeOptions
   }
 }

@@ -33,5 +33,9 @@
     "createdByDayText": "Daily ticket activity",
     "openedByDayText": "Daily submitted tickets",
     "ticketTypeText": "Ticket type breakdown",
-    "ticketPriorityText": "Open ticket priorities"
+    "ticketPriorityText": "Open ticket priorities",
+    "ticketStatusText": "Open ticket statuses",
+    "avgResponseTimeText": "Average response time",
+    "contractTicketsText": "Contract",
+    "nonContractTicketsText": "No contract"
 }

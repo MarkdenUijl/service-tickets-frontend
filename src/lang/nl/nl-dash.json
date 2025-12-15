@@ -33,5 +33,9 @@
     "createdByDayText": "Dagelijkse ticket activiteit",
     "openedByDayText": "Dagelijkse ingevoerde tickets",
     "ticketTypeText": "Ticket type breakdown",
-    "ticketPriorityText": "Open ticket prioriteiten"
+    "ticketPriorityText": "Open ticket prioriteiten",
+    "ticketStatusText": "Open ticket statusen",
+    "avgResponseTimeText": "Gemiddelde reactietijd",
+    "contractTicketsText": "Contract",
+    "nonContractTicketsText": "Geen contract"
 }

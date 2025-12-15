@@ -51,10 +51,14 @@ const {
   openedByDaySeries,
   ticketTypeSeries,
   ticketPrioritySeries,
+  ticketStatusSeries,
+  avgFirstResponseTimeSeries,
   createdByDayOptions,
   openedByDayOptions,
   ticketTypeOptions,
-  ticketPriorityOptions
+  ticketPriorityOptions,
+  ticketStatusOptions,
+  avgFirstResponseTimeOptions
 } = useDashboardData()
 
 // Keep a copy of the original grid to restore after mobile single-column mode
@@ -189,7 +193,7 @@ watch(
 )
 
 // const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
-const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'area', 'scatter'])
+const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'avgResponseTime', 'scatter'])
 
 const getSeriesForType = (type) => {
   switch (type) {
@@ -201,6 +205,10 @@ const getSeriesForType = (type) => {
       return ticketTypeSeries.value || []
     case 'ticketPriority':
       return ticketPrioritySeries.value || []
+    case 'ticketStatus':
+      return ticketStatusSeries.value || []
+    case 'avgResponseTime':
+      return avgFirstResponseTimeSeries.value.series || []
     default:
       return []
   }
@@ -216,6 +224,10 @@ const getOptionsForType = (type) => {
       return ticketTypeOptions.value || {}
     case 'ticketPriority':
       return ticketPriorityOptions.value || {}
+    case 'ticketStatus':
+      return ticketStatusOptions.value || {}
+    case 'avgResponseTime':
+      return avgFirstResponseTimeOptions.value || {}
     default:
       return {}
   }
@@ -227,13 +239,23 @@ const getChartforType = (type) => {
       return 'bar'
     case 'openedByDay':
       return 'line'
+    case 'avgResponseTime':
+      return 'area'
     case 'ticketType':
     case 'ticketPriority':
+    case 'ticketStatus':
       return 'donut'
     default:
       return ''
   }
 }
+
+const shouldShowTotalsForType = (type) => {
+  // Totals make sense for stacked/bar style counts; for averages they are misleading
+  if (type === 'avgResponseTime') return false
+  return true
+}
+
 
 // Add button icon variants
 const iconVariants = {
@@ -297,6 +319,7 @@ onBeforeUnmount(() => {
           :type="getChartforType(item.type)"
           :series="getSeriesForType(item.type)"
           :options="getOptionsForType(item.type)"
+          :showTotals="DEFAULT_SERIES_TYPES.has(item.type) ? shouldShowTotalsForType(item.type) : false"
         />
       </DashboardDataTile>
     </GridLayout>
