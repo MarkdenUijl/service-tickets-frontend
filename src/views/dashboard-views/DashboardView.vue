@@ -53,6 +53,7 @@ const {
   ticketTypeSeries,
   ticketPrioritySeries,
   ticketStatusSeries,
+  ticketsBySourcePerDaySeries,
   avgFirstResponseTimeSeries,
   avgResolutionTimeSeries,
   createdByDayOptions,
@@ -61,6 +62,7 @@ const {
   ticketTypeOptions,
   ticketPriorityOptions,
   ticketStatusOptions,
+  ticketsBySourcePerDayOptions,
   avgFirstResponseTimeOptions,
   avgResolutionTimeOptions
 } = useDashboardData()
@@ -197,7 +199,7 @@ watch(
 )
 
 // const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
-const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'avgResponseTime', 'avgResolutionTime'])
+const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'ticketSource', 'avgResponseTime', 'avgResolutionTime'])
 
 const getSeriesForType = (type) => {
   switch (type) {
@@ -213,6 +215,10 @@ const getSeriesForType = (type) => {
       return ticketPrioritySeries.value || []
     case 'ticketStatus':
       return ticketStatusSeries.value || []
+    case 'ticketSource':
+      console.log('Ticket source series: ', ticketsBySourcePerDaySeries.value)
+
+      return ticketsBySourcePerDaySeries.value.series || []
     case 'avgResponseTime':
       return avgFirstResponseTimeSeries.value.series || []
     case 'avgResolutionTime':
@@ -236,6 +242,8 @@ const getOptionsForType = (type) => {
       return ticketPriorityOptions.value || {}
     case 'ticketStatus':
       return ticketStatusOptions.value || {}
+    case 'ticketSource':
+      return ticketsBySourcePerDayOptions.value || {}
     case 'avgResponseTime':
       return avgFirstResponseTimeOptions.value || {}
     case 'avgResolutionTime':
@@ -252,6 +260,7 @@ const getChartforType = (type) => {
     case 'openedByDay':
     case 'avgResolutionTime':
       return 'line'
+    case 'ticketSource':
     case 'avgResponseTime':
       return 'area'
     case 'contractDivide':

@@ -39,5 +39,6 @@
     "contractTicketsText": "Contract",
     "nonContractTicketsText": "No contract",
     "avgResolutionTimeText": "Average resolution time",
-    "contractDivideText": "Contract coverage"
+    "contractDivideText": "Contract coverage",
+    "ticketSourceText": "Ticket source"
 }

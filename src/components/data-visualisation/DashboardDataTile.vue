@@ -150,6 +150,7 @@ const tileMenuOptions = reactive([
       { id: 'ticketType', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketType']}`), clickAction: () => setType('ticketType') },
       { id: 'ticketPriority', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketPriority']}`), clickAction: () => setType('ticketPriority') },
       { id: 'ticketStatus', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketStatus']}`), clickAction: () => setType('ticketStatus') },
+      { id: 'ticketSource', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketSource']}`), clickAction: () => setType('ticketSource') },
       { id: 'avgResponseTime', optionTitle: t(`dash.${DASHBOARD_TITLES['avgResponseTime']}`), clickAction: () => setType('avgResponseTime') },
       { id: 'avgResolutionTime', optionTitle: t(`dash.${DASHBOARD_TITLES['avgResolutionTime']}`), clickAction: () => setType('avgResolutionTime') }
     ]

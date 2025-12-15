@@ -11,6 +11,7 @@ export const DASHBOARD_TITLES = {
   ticketType: 'ticketTypeText',
   ticketPriority: 'ticketPriorityText',
   ticketStatus: 'ticketStatusText',
+  ticketSource: 'ticketSourceText',
   avgResponseTime: 'avgResponseTimeText',
   avgResolutionTime: 'avgResolutionTimeText'
 }
@@ -29,11 +30,23 @@ const STATUS_COLORS = {
   ESCALATED: 'var(--color-tile-dire-back)'
 }
 
+const SOURCE_COLORS = {
+  WEB: 'var(--color-tile-web-back)',
+  PHONE: 'var(--color-tile-phone-back)',
+  MAIL: 'var(--color-tile-mail-back)'
+}
+
 const getStatusColor = (status) => STATUS_COLORS[String(status || '').toUpperCase()] || 'var(--color-subtext)'
 
 
 const OPEN_STATUS_ORDER = ['OPEN', 'PENDING', 'IN_PROGRESS', 'ESCALATED']
 const OPEN_STATUS_SET = new Set(OPEN_STATUS_ORDER)
+
+// Deterministic source order and normalization for ticket source charts
+const SOURCE_ORDER = ['WEB', 'PHONE', 'MAIL']
+const SOURCE_SET = new Set(SOURCE_ORDER)
+const normalizeSource = (source) => String(source || '').toUpperCase()
+
 
 const getPriorityColor = (priority) => PRIORITY_COLORS[String(priority || '').toUpperCase()] || 'var(--color-subtext)'
 
@@ -41,6 +54,7 @@ const getPriorityColor = (priority) => PRIORITY_COLORS[String(priority || '').to
 const isOpenTicket = (t) => t?.status !== 'CLOSED' && t?.status !== 'CANCELLED'
 const normalizeStatus = (status) => String(status || '').toUpperCase()
 const getContractBucketLabel = (ticket) => (ticket?.hadValidContractAtCreation === true ? 'WITH_CONTRACT' : 'WITHOUT_CONTRACT')
+const getSourceColor = (source) => SOURCE_COLORS[String(source || '').toUpperCase()] || 'var(--color-subtext)'
 
 const buildBreakdownSeries = (tickets, getKey) => {
   const countMap = new Map()
@@ -105,6 +119,28 @@ const buildDayRange = (startDate, endDate) => {
   }
 
   return days
+}
+
+// Multi-series: group by groupKey, then count per day
+const countByDayKeyByGroup = (items, getDateValue, getGroupKey) => {
+  const groupToDayMap = new Map()
+
+  for (const item of items) {
+    const d = toValidDate(getDateValue(item))
+    if (!d) continue
+
+    const dayKey = toDayKey(d)
+    const groupKey = getGroupKey(item) || 'Unknown'
+
+    if (!groupToDayMap.has(groupKey)) {
+      groupToDayMap.set(groupKey, new Map())
+    }
+
+    const dayMap = groupToDayMap.get(groupKey)
+    dayMap.set(dayKey, (dayMap.get(dayKey) || 0) + 1)
+  }
+
+  return groupToDayMap
 }
 
 const getEarliestValidDate = (items, getDateValue) => {
@@ -403,6 +439,50 @@ export function useDashboardData() {
     return series
   })
 
+  // --- Area chart: tickets by source per day
+  const ticketsBySourcePerDaySeries = computed(() => {
+    const tickets = store.filteredTickets
+    if (!tickets.length) return { series: [], categories: [] }
+
+    const earliestCreated = getEarliestValidDate(tickets, t => t.creationDate)
+    if (!earliestCreated) return { series: [], categories: [] }
+
+    const endDate = store.dateRange?.end
+      ? new Date(store.dateRange.end)
+      : new Date()
+
+    const allDays = buildDayRange(earliestCreated, endDate)
+
+    // Map: source -> (day -> count)
+    const sourceToDayCounts = countByDayKeyByGroup(
+      tickets,
+      t => t.creationDate,
+      t => normalizeSource(t?.source)
+    )
+
+    // Deterministic ordering & whitelist for known channels
+    const sources = SOURCE_ORDER.filter(src => sourceToDayCounts.has(src))
+
+    const series = sources.map(source => {
+      const dayCounts = sourceToDayCounts.get(source)
+
+      const data = allDays.map(day => [
+        new Date(day).getTime(),
+        (dayCounts?.get(day) || 0)
+      ])
+
+      return {
+        name: t(`ticket.source${capitalizeWords(String(source).toLowerCase())}Text`) || capitalizeWords(String(source).toLowerCase()),
+        data
+      }
+    })
+
+    return {
+      series,
+      categories: allDays.map(formatLabel)
+    }
+  })
+
   // --- Area chart: avg first response time (contract vs non-contract) per day
   const avgFirstResponseTimeSeries = computed(() => {
     const tickets = store.filteredTickets
@@ -598,6 +678,60 @@ export function useDashboardData() {
     legend: { show: false }
   }))
 
+  const contractDivideOptions = computed(() => {
+    const rawLabels = contractDivideSeries.value.map(item => String(item.label || 'Unknown'))
+
+    const localizedLabels = rawLabels.map(label => {
+      if (label === 'WITH_CONTRACT') return t('dash.contractTicketsText') || 'Contract'
+      if (label === 'WITHOUT_CONTRACT') return t('dash.nonContractTicketsText') || 'Non-contract'
+      return capitalizeWords(label.replaceAll('_', ' '))
+    })
+
+    return {
+      chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'contract-divide' },
+      colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
+      labels: localizedLabels,
+      stroke: { width: 4, colors: ['var(--color-menu-background)'] },
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        itemMargin: { horizontal: 8, vertical: 4 },
+        formatter(seriesName) {
+          const s = String(seriesName ?? '')
+          return s.length > 32 ? `${s.slice(0, 29)}…` : s
+        }
+      },
+      tooltip: { fillSeriesColor: false },
+      plotOptions: {
+        pie: {
+          // FULL donut
+          startAngle: 0,
+          endAngle: 360,
+          expandOnClick: false,
+          offsetY: 0,
+          customScale: 1.06,
+          donut: {
+            size: '75%',
+            labels: {
+              show: true,
+              name: { show: true },
+              value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
+              total: {
+                show: true,
+                showAlways: true,
+                fontSize: 14,
+                label: t('dash.totalTicketsText'),
+                fontFamily: 'Noto Sans JP',
+                color: 'var(--color-text)',
+                fontWeight: 700
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
   const ticketTypeOptions = computed(() => {
     const rawLabels = ticketTypeSeries.value.map(item => capitalizeWords(item.label))
     const localizedLabels = rawLabels.map(label =>
@@ -647,7 +781,7 @@ export function useDashboardData() {
     const localizedLabels = rawLabels.map(label => {
       const normalized = label.toLowerCase()
       const key = normalized.charAt(0).toUpperCase() + normalized.slice(1)
-      // i18n keys: priorityLowText, priorityMediumText, priorityHighText, priorityCriticalText
+
       return t(`ticket.priority${key}Text`) || capitalizeWords(label)
     })
 
@@ -731,6 +865,62 @@ export function useDashboardData() {
               total: { show: true, showAlways: true, fontSize: 14, label: t('dash.kpiOpenTicketsText'), fontFamily: 'Noto Sans JP', color: 'var(--color-text)', fontWeight: 700 }
             }
           }
+        }
+      }
+    }
+  })
+
+  const ticketsBySourcePerDayOptions = computed(() => {
+    // Use deterministic source order and normalization to align with data series
+    const presentSources = new Set(store.filteredTickets.map(t => normalizeSource(t?.source)))
+    const rawSources = SOURCE_ORDER.filter(src => presentSources.has(src))
+
+    const colors = rawSources.map(src => getSourceColor(src))
+
+    return {
+      chart: {
+        id: 'tickets-by-source-per-day',
+        type: 'area',
+        stacked: false,
+        toolbar: { show: false },
+        zoom: { enabled: false }
+      },
+      colors,
+      xaxis: {
+        type: 'datetime',
+        tickAmount: 10,
+        labels: {
+          format: 'dd MMM',
+          rotate: -45
+        },
+        tooltip: {
+          enabled: false
+        }
+      },
+      yaxis: {
+        min: 0,
+        forceNiceScale: true,
+        decimalsInFloat: 0
+      },
+      dataLabels: { enabled: false },
+      stroke: { width: 2, curve: 'smooth' },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        itemMargin: { horizontal: 32, vertical: 4 }
+      },
+      grid: { borderColor: 'var(--color-subtext)' },
+      tooltip: {
+        enabled: true,
+        x: { format: 'dd MMM yyyy' }
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.35,
+          opacityTo: 0.05,
+          stops: [0, 85, 100]
         }
       }
     }
@@ -838,60 +1028,6 @@ export function useDashboardData() {
     }
   }))
 
-  const contractDivideOptions = computed(() => {
-    const rawLabels = contractDivideSeries.value.map(item => String(item.label || 'Unknown'))
-
-    const localizedLabels = rawLabels.map(label => {
-      if (label === 'WITH_CONTRACT') return t('dash.contractTicketsText') || 'Contract'
-      if (label === 'WITHOUT_CONTRACT') return t('dash.nonContractTicketsText') || 'Non-contract'
-      return capitalizeWords(label.replaceAll('_', ' '))
-    })
-
-    return {
-      chart: { fontFamily: 'Noto Sans JP', offsetY: 0, id: 'contract-divide' },
-      colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
-      labels: localizedLabels,
-      stroke: { width: 4, colors: ['var(--color-menu-background)'] },
-      legend: {
-        position: 'bottom',
-        horizontalAlign: 'center',
-        itemMargin: { horizontal: 8, vertical: 4 },
-        formatter(seriesName) {
-          const s = String(seriesName ?? '')
-          return s.length > 32 ? `${s.slice(0, 29)}…` : s
-        }
-      },
-      tooltip: { fillSeriesColor: false },
-      plotOptions: {
-        pie: {
-          // FULL donut
-          startAngle: 0,
-          endAngle: 360,
-          expandOnClick: false,
-          offsetY: 0,
-          customScale: 1.06,
-          donut: {
-            size: '75%',
-            labels: {
-              show: true,
-              name: { show: true },
-              value: { show: true, fontSize: 48, fontFamily: 'Ubuntu', color: 'var(--color-text)', offsetY: 24 },
-              total: {
-                show: true,
-                showAlways: true,
-                fontSize: 14,
-                label: t('dash.totalTicketsText'),
-                fontFamily: 'Noto Sans JP',
-                color: 'var(--color-text)',
-                fontWeight: 700
-              }
-            }
-          }
-        }
-      }
-    }
-  })
-
   /**
    * ===============================
    * EXPORT INTERFACE
@@ -908,6 +1044,7 @@ export function useDashboardData() {
     ticketTypeSeries,
     ticketPrioritySeries,
     ticketStatusSeries,
+    ticketsBySourcePerDaySeries,
     avgFirstResponseTimeSeries,
     avgResolutionTimeSeries,
     // Chart options
@@ -917,6 +1054,7 @@ export function useDashboardData() {
     ticketTypeOptions,
     ticketPriorityOptions,
     ticketStatusOptions,
+    ticketsBySourcePerDayOptions,
     avgFirstResponseTimeOptions,
     avgResolutionTimeOptions
   }
