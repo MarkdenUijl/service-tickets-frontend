@@ -37,5 +37,6 @@
     "ticketStatusText": "Open ticket statusen",
     "avgResponseTimeText": "Gemiddelde reactietijd",
     "contractTicketsText": "Contract",
-    "nonContractTicketsText": "Geen contract"
+    "nonContractTicketsText": "Geen contract",
+    "avgResolutionTimeText": "Gemiddelde oplostijd"
 }

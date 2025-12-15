@@ -10,7 +10,8 @@ export const DASHBOARD_TITLES = {
   ticketType: 'ticketTypeText',
   ticketPriority: 'ticketPriorityText',
   ticketStatus: 'ticketStatusText',
-  avgResponseTime: 'avgResponseTimeText'
+  avgResponseTime: 'avgResponseTimeText',
+  avgResolutionTime: 'avgResolutionTimeText'
 }
 
 const PRIORITY_COLORS = {
@@ -141,6 +142,20 @@ const getFirstEngineerResponseDeltaMs = (ticket) => {
   if (earliestEngineerResponse < created) return null
 
   return earliestEngineerResponse - created
+}
+
+// Pure helper: returns ms between ticket creation and closing date (resolution time), or null if unavailable/invalid
+const getResolutionDeltaMs = (ticket) => {
+  if (!ticket?.creationDate || !ticket?.closingDate) return null
+  if (ticket?.status !== 'CLOSED') return null
+
+  const created = new Date(ticket.creationDate)
+  const closed = new Date(ticket.closingDate)
+
+  if (Number.isNaN(created.getTime()) || Number.isNaN(closed.getTime())) return null
+  if (closed < created) return null
+
+  return closed - created
 }
 
 const MS_PER_MINUTE = 1000 * 60
@@ -445,6 +460,75 @@ export function useDashboardData() {
     }
   })
 
+  // --- Line chart: avg resolution time (contract vs non-contract) per day (grouped by closing day)
+  const avgResolutionTimeSeries = computed(() => {
+    const tickets = store.filteredTickets
+    if (!tickets.length) return { series: [], categories: [] }
+
+    // Only closed tickets can contribute to resolution time
+    const closedTickets = tickets.filter(t => t?.status === 'CLOSED' && t?.closingDate)
+    if (!closedTickets.length) return { series: [], categories: [] }
+
+    // Date range: first closing day → endDate (date filter end, or today)
+    const earliestClosed = getEarliestValidDate(closedTickets, t => t.closingDate)
+    if (!earliestClosed) return { series: [], categories: [] }
+
+    const endDate = store.dateRange?.end
+      ? new Date(store.dateRange.end)
+      : new Date()
+
+    const allDays = buildDayRange(earliestClosed, endDate)
+
+    // Sum + count per day for each group
+    const contractSumMsByDay = new Map()
+    const contractCountByDay = new Map()
+    const nonContractSumMsByDay = new Map()
+    const nonContractCountByDay = new Map()
+
+    for (const t of closedTickets) {
+      const day = toDayKey(t.closingDate)
+      if (!day) continue
+
+      const deltaMs = getResolutionDeltaMs(t)
+      if (deltaMs == null) continue
+
+      const isContract = t?.hadValidContractAtCreation === true
+
+      if (isContract) {
+        contractSumMsByDay.set(day, (contractSumMsByDay.get(day) || 0) + deltaMs)
+        contractCountByDay.set(day, (contractCountByDay.get(day) || 0) + 1)
+      } else {
+        nonContractSumMsByDay.set(day, (nonContractSumMsByDay.get(day) || 0) + deltaMs)
+        nonContractCountByDay.set(day, (nonContractCountByDay.get(day) || 0) + 1)
+      }
+    }
+
+    // Return minutes (not ms) for readability; use null to avoid misleading zeros when no data that day
+    const contractAvgMinutes = allDays.map(day => {
+      const count = contractCountByDay.get(day) || 0
+      if (!count) return [new Date(day).getTime(), 0]
+
+      const avgMs = contractSumMsByDay.get(day) / count
+      return [new Date(day).getTime(), Math.round(avgMs / MS_PER_MINUTE)]
+    })
+
+    const nonContractAvgMinutes = allDays.map(day => {
+      const count = nonContractCountByDay.get(day) || 0
+      if (!count) return [new Date(day).getTime(), 0]
+
+      const avgMs = nonContractSumMsByDay.get(day) / count
+      return [new Date(day).getTime(), Math.round(avgMs / MS_PER_MINUTE)]
+    })
+
+    return {
+      series: [
+        { name: t('dash.contractTicketsText') || 'Contract', data: contractAvgMinutes },
+        { name: t('dash.nonContractTicketsText') || 'Non-contract', data: nonContractAvgMinutes }
+      ],
+      categories: allDays.map(formatLabel)
+    }
+  })
+
   /**
    * ===============================
    * CHART OPTIONS BUILDERS
@@ -701,6 +785,53 @@ export function useDashboardData() {
     }
   }))
 
+  const avgResolutionTimeOptions = computed(() => ({
+    chart: {
+      id: 'resolution-time',
+      type: 'line',
+      toolbar: { show: false },
+      zoom: { enabled: false }
+    },
+    xaxis: {
+      type: 'datetime',
+      tickAmount: 10,
+      labels: {
+        format: 'dd MMM',
+        rotate: -45
+      },
+      tooltip: {
+        enabled: false
+      }
+    },
+    yaxis: {
+      min: 0,
+      forceNiceScale: true,
+      decimalsInFloat: 0,
+      labels: {
+        formatter: (value) => {
+          if (value == null || Number.isNaN(value)) return ''
+          return `${Math.round(value)} ${t('base.minutesShortText')}`
+        }
+      }
+    },
+    colors: ['var(--color-highlight)', 'var(--color-third-complementary)'],
+    stroke: { width: 2, curve: 'smooth' },
+    legend: { position: 'top', horizontalAlign: 'left', itemMargin: { horizontal: 40 } },
+    grid: { borderColor: 'var(--color-subtext)' },
+    dataLabels: { enabled: false },
+    tooltip: {
+      enabled: true,
+      x: { format: 'dd MMM yyyy' },
+      y: {
+        formatter: (value) => {
+          if (value == null || Number.isNaN(value)) return t('dash.kpiNoDataText')
+          return `${Math.round(value)} ${t('base.minutesShortText')}`
+        }
+      }
+    }
+  }))
+
+
   /**
    * ===============================
    * EXPORT INTERFACE
@@ -717,12 +848,14 @@ export function useDashboardData() {
     ticketPrioritySeries,
     ticketStatusSeries,
     avgFirstResponseTimeSeries,
+    avgResolutionTimeSeries,
     // Chart options
     createdByDayOptions,
     openedByDayOptions,
     ticketTypeOptions,
     ticketPriorityOptions,
     ticketStatusOptions,
-    avgFirstResponseTimeOptions
+    avgFirstResponseTimeOptions,
+    avgResolutionTimeOptions
   }
 }

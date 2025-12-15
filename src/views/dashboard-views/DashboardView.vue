@@ -53,12 +53,14 @@ const {
   ticketPrioritySeries,
   ticketStatusSeries,
   avgFirstResponseTimeSeries,
+  avgResolutionTimeSeries,
   createdByDayOptions,
   openedByDayOptions,
   ticketTypeOptions,
   ticketPriorityOptions,
   ticketStatusOptions,
-  avgFirstResponseTimeOptions
+  avgFirstResponseTimeOptions,
+  avgResolutionTimeOptions
 } = useDashboardData()
 
 // Keep a copy of the original grid to restore after mobile single-column mode
@@ -193,7 +195,7 @@ watch(
 )
 
 // const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
-const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'avgResponseTime', 'scatter'])
+const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'avgResponseTime', 'avgResolutionTime'])
 
 const getSeriesForType = (type) => {
   switch (type) {
@@ -209,6 +211,8 @@ const getSeriesForType = (type) => {
       return ticketStatusSeries.value || []
     case 'avgResponseTime':
       return avgFirstResponseTimeSeries.value.series || []
+    case 'avgResolutionTime':
+      return avgResolutionTimeSeries.value.series || []
     default:
       return []
   }
@@ -228,6 +232,8 @@ const getOptionsForType = (type) => {
       return ticketStatusOptions.value || {}
     case 'avgResponseTime':
       return avgFirstResponseTimeOptions.value || {}
+    case 'avgResolutionTime':
+      return avgResolutionTimeOptions.value || {}
     default:
       return {}
   }
@@ -238,6 +244,7 @@ const getChartforType = (type) => {
     case 'createdByDay':
       return 'bar'
     case 'openedByDay':
+    case 'avgResolutionTime':
       return 'line'
     case 'avgResponseTime':
       return 'area'
@@ -252,7 +259,7 @@ const getChartforType = (type) => {
 
 const shouldShowTotalsForType = (type) => {
   // Totals make sense for stacked/bar style counts; for averages they are misleading
-  if (type === 'avgResponseTime') return false
+  if (type === 'avgResponseTime' || type === 'avgResolutionTime') return false
   return true
 }
 
