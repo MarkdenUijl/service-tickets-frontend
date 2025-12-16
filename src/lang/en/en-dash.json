@@ -28,6 +28,7 @@
     "kpiAvgResolutionTimeText": "Average resolution time",
     "kpiAvgResponseTimeText": "Average response time",
     "kpiContractTicketPercentageText": "Tickets with contract",
+    "kpiTotalTimeSpentText": "Time spent on tickets",
     "totalTicketsText": "Total tickets",
     "noOpenTicketsText": "No open tickets",
     "createdByDayText": "Daily ticket activity",
@@ -40,5 +41,5 @@
     "nonContractTicketsText": "No contract",
     "avgResolutionTimeText": "Average resolution time",
     "contractDivideText": "Contract coverage",
-    "ticketSourceText": "Ticket source"
+    "ticketSourceText": "Ticket by reporting channel"
 }

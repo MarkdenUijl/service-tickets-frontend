@@ -208,6 +208,7 @@ const computeKpiMetrics = (tickets) => {
   let firstResponseCount = 0
   let totalCount = 0
   let withContractCount = 0
+  let totalSpentMs = 0
 
   for (const t of tickets) {
     totalCount++
@@ -215,6 +216,11 @@ const computeKpiMetrics = (tickets) => {
     // Tickets with contract: project has a serviceContract object
     if (t?.hadValidContractAtCreation === true) {
       withContractCount++
+    }
+
+    // Total time spent across tickets (minutesSpent is stored in minutes)
+    if (typeof t?.minutesSpent === 'number' && !Number.isNaN(t.minutesSpent) && t.minutesSpent > 0) {
+      totalSpentMs += t.minutesSpent * MS_PER_MINUTE
     }
 
     // Open tickets: everything that is not closed or cancelled
@@ -268,7 +274,8 @@ const computeKpiMetrics = (tickets) => {
     openCount,
     avgResolutionMs,    
     avgFirstResponseMs,
-    contractTicketPercent
+    contractTicketPercent,
+    totalSpentMs
   }
 }
 
@@ -317,11 +324,12 @@ export function useDashboardData() {
   const cards = computed(() => {
     const tickets = store.filteredTickets
 
-    const { openCount, avgResolutionMs, avgFirstResponseMs, contractTicketPercent } = computeKpiMetrics(tickets)
+    const { openCount, avgResolutionMs, avgFirstResponseMs, contractTicketPercent, totalSpentMs } = computeKpiMetrics(tickets)
 
     const avgResolutionLabel = formatDurationForCard(avgResolutionMs, t)
     const avgFirstResponseLabel = formatDurationForCard(avgFirstResponseMs, t)
     const contractPercentLabel = formatPercentForCard(contractTicketPercent)
+    const totalSpentLabel = formatDurationForCard(totalSpentMs, t)
 
     return [
       {
@@ -339,6 +347,10 @@ export function useDashboardData() {
       {
         cardTitle: t('dash.kpiContractTicketPercentageText'),
         cardInfo: contractPercentLabel ?? t('dash.kpiNoDataText')
+      },
+      {
+        cardTitle: t('dash.kpiTotalTimeSpentText'),
+        cardInfo: totalSpentLabel ?? t('dash.kpiNoDataText')
       }
     ]
   })
