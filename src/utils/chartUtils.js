@@ -42,7 +42,11 @@ export const baseOptions = {
     hover: { filter: { type: 'none' } },
     active: { filter: { type: 'none' } }
   },
-  tooltip: { x: { show: false } }
+  tooltip: {
+    enabled: true,
+    x: { format: 'dd MMM yyyy' },
+    followCursor: true
+  },
 }
 
 /**

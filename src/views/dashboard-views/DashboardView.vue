@@ -39,20 +39,32 @@ const layout = ref(
   savedLayout
     ? JSON.parse(savedLayout)
     : [
-        { x: 0, y: 0, w: 1, h: 1, i: '0', type: 'bar' },
-        { x: 1, y: 0, w: 1, h: 1, i: '1', type: 'bar' }
+        { x: 0, y: 0, w: 1, h: 1, i: '0', type: 'createdByDay' },
+        { x: 1, y: 0, w: 1, h: 1, i: '1', type: 'ticketType' }
       ]
 )
 
 const {
   DASHBOARD_TITLES,
   cards,
-  barSeries,
-  donutSeries,
-  areaSeries,
-  barOptions,
-  donutOptions,
-  areaOptions
+  createdByDaySeries,
+  openedByDaySeries,
+  contractDivideSeries,
+  ticketTypeSeries,
+  ticketPrioritySeries,
+  ticketStatusSeries,
+  ticketsBySourcePerDaySeries,
+  avgFirstResponseTimeSeries,
+  avgResolutionTimeSeries,
+  createdByDayOptions,
+  openedByDayOptions,
+  contractDivideOptions,
+  ticketTypeOptions,
+  ticketPriorityOptions,
+  ticketStatusOptions,
+  ticketsBySourcePerDayOptions,
+  avgFirstResponseTimeOptions,
+  avgResolutionTimeOptions
 } = useDashboardData()
 
 // Keep a copy of the original grid to restore after mobile single-column mode
@@ -140,7 +152,7 @@ const addLayoutTile = () => {
   layout.value = packLayout(
     [
       ...layout.value,
-      { x: 0, y: 0, w: 1, h: 1, i: uniqueId, type: 'bar' }
+      { x: 0, y: 0, w: 1, h: 1, i: uniqueId, type: 'createdByDay' }
     ],
     colNum.value
   )
@@ -186,17 +198,31 @@ watch(
   { immediate: true }
 )
 
-const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
-const DEFAULT_SERIES_TYPES = new Set(['bar', 'line', 'area', 'scatter'])
+// const OPTIONS_BY_TYPE = { bar: barOptions, area: areaOptions, donut: donutOptions }
+const DEFAULT_SERIES_TYPES = new Set(['createdByDay', 'openedByDay', 'ticketSource', 'avgResponseTime', 'avgResolutionTime'])
 
 const getSeriesForType = (type) => {
   switch (type) {
-    case 'bar':
-      return barSeries.value.series || []
-    case 'area':
-      return areaSeries.value.series || []
-    case 'donut':
-      return donutSeries.value || []
+    case 'createdByDay':
+      return createdByDaySeries.value.series || []
+    case 'openedByDay':
+      return openedByDaySeries.value.series || []
+    case 'contractDivide':
+      return contractDivideSeries.value || []
+    case 'ticketType':
+      return ticketTypeSeries.value || []
+    case 'ticketPriority':
+      return ticketPrioritySeries.value || []
+    case 'ticketStatus':
+      return ticketStatusSeries.value || []
+    case 'ticketSource':
+      console.log('Ticket source series: ', ticketsBySourcePerDaySeries.value)
+
+      return ticketsBySourcePerDaySeries.value.series || []
+    case 'avgResponseTime':
+      return avgFirstResponseTimeSeries.value.series || []
+    case 'avgResolutionTime':
+      return avgResolutionTimeSeries.value.series || []
     default:
       return []
   }
@@ -204,16 +230,55 @@ const getSeriesForType = (type) => {
 
 const getOptionsForType = (type) => {
   switch (type) {
-    case 'bar':
-      return barOptions.value || {}
-    case 'area':
-      return areaOptions.value || {}
-    case 'donut':
-      return donutOptions.value || {}
+    case 'createdByDay':
+      return createdByDayOptions.value || {}
+    case 'openedByDay':
+      return openedByDayOptions.value || {}
+    case 'contractDivide':
+      return contractDivideOptions.value || {}
+    case 'ticketType':
+      return ticketTypeOptions.value || {}
+    case 'ticketPriority':
+      return ticketPriorityOptions.value || {}
+    case 'ticketStatus':
+      return ticketStatusOptions.value || {}
+    case 'ticketSource':
+      return ticketsBySourcePerDayOptions.value || {}
+    case 'avgResponseTime':
+      return avgFirstResponseTimeOptions.value || {}
+    case 'avgResolutionTime':
+      return avgResolutionTimeOptions.value || {}
     default:
       return {}
   }
 }
+
+const getChartforType = (type) => {
+  switch (type) {
+    case 'createdByDay':
+      return 'bar'
+    case 'openedByDay':
+    case 'avgResolutionTime':
+      return 'line'
+    case 'ticketSource':
+    case 'avgResponseTime':
+      return 'area'
+    case 'contractDivide':
+    case 'ticketType':
+    case 'ticketPriority':
+    case 'ticketStatus':
+      return 'donut'
+    default:
+      return ''
+  }
+}
+
+const shouldShowTotalsForType = (type) => {
+  // Totals make sense for stacked/bar style counts; for averages they are misleading
+  if (type === 'avgResponseTime' || type === 'avgResolutionTime') return false
+  return true
+}
+
 
 // Add button icon variants
 const iconVariants = {
@@ -261,7 +326,7 @@ onBeforeUnmount(() => {
       <DashboardDataTile
         v-for="item in layout"
         :key="item.i"
-        :header="DASHBOARD_TITLES[item.type] || 'Dashboard Data'"
+        :header="t(`dash.${DASHBOARD_TITLES[item.type]}`) || 'Dashboard Data'"
         :x="item.x"
         :y="item.y"
         :w="item.w"
@@ -274,9 +339,10 @@ onBeforeUnmount(() => {
         <component
           :is="DEFAULT_SERIES_TYPES.has(item.type) ? CartesianChart : RadialChart"
           :chartId="item.i"
-          :type="item.type"
+          :type="getChartforType(item.type)"
           :series="getSeriesForType(item.type)"
           :options="getOptionsForType(item.type)"
+          :showTotals="DEFAULT_SERIES_TYPES.has(item.type) ? shouldShowTotalsForType(item.type) : false"
         />
       </DashboardDataTile>
     </GridLayout>

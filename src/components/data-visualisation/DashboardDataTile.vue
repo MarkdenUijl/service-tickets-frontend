@@ -57,6 +57,16 @@ const handleTileMenuClick = () => {
   menuOpen.value = !menuOpen.value
 }
 
+// Submenu height is animated via max-height; calculate enough room so items don't get clipped.
+// Keep this conservative to avoid layout jumps.
+const getSubmenuMaxHeight = (option) => {
+  const itemCount = option?.menuItems?.length || 0
+  const ITEM_ROW_PX = 32 // approx height incl. padding
+  const INNER_PADDING_PX = 32
+  return itemCount * ITEM_ROW_PX + INNER_PADDING_PX
+}
+
+
 const onClickOutside = () => {
   if (!menuOpen.value) return
   menuOpen.value = false
@@ -134,9 +144,15 @@ const tileMenuOptions = reactive([
     isOpen: false,
     hideOnMobile: false,
     menuItems: [
-      { id: 'bar', optionTitle: DASHBOARD_TITLES['bar'], clickAction: () => setType('bar') },
-      { id: 'area', optionTitle: DASHBOARD_TITLES['area'], clickAction: () => setType('area') },
-      { id: 'donut', optionTitle: DASHBOARD_TITLES['donut'], clickAction: () => setType('donut') }
+      { id: 'createdByDay', optionTitle: t(`dash.${DASHBOARD_TITLES['createdByDay']}`), clickAction: () => setType('createdByDay') },
+      { id: 'openedByDay', optionTitle: t(`dash.${DASHBOARD_TITLES['openedByDay']}`), clickAction: () => setType('openedByDay') },
+      { id: 'contractDivide', optionTitle: t(`dash.${DASHBOARD_TITLES['contractDivide']}`), clickAction: () => setType('contractDivide') },
+      { id: 'ticketType', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketType']}`), clickAction: () => setType('ticketType') },
+      { id: 'ticketPriority', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketPriority']}`), clickAction: () => setType('ticketPriority') },
+      { id: 'ticketStatus', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketStatus']}`), clickAction: () => setType('ticketStatus') },
+      { id: 'ticketSource', optionTitle: t(`dash.${DASHBOARD_TITLES['ticketSource']}`), clickAction: () => setType('ticketSource') },
+      { id: 'avgResponseTime', optionTitle: t(`dash.${DASHBOARD_TITLES['avgResponseTime']}`), clickAction: () => setType('avgResponseTime') },
+      { id: 'avgResolutionTime', optionTitle: t(`dash.${DASHBOARD_TITLES['avgResolutionTime']}`), clickAction: () => setType('avgResolutionTime') }
     ]
   }
 ])
@@ -225,7 +241,7 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
               v-if="option.isOpen"
               class="tile-option-submenu"
               :initial="{ opacity: 0.3, maxHeight: 0 }"
-              :animate="{ opacity: 1, maxHeight: 200 }"
+              :animate="{ opacity: 1, maxHeight: getSubmenuMaxHeight(option) }"
               :exit="{ opacity: 0.3, maxHeight: 0 }"
               :transition="{ type: 'spring', stiffness: 100, damping: 16, bounce: 0.1 }"
             >
@@ -366,6 +382,7 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
 
 .submenu-inner {
   margin: 8px;
+  overflow: auto;
 }
 
 .tile-submenu-option {
