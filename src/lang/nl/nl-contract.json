@@ -26,5 +26,8 @@
   "creationContractValidationText": "Formulier is incompleet",
   "creationContractExistsText": "Contract bestaat al",
   "creationContractGenericErrorText": "Storing bij het aanmaken van contract",
-  "ContractStatus": "Contract status"
+  "ContractStatus": "Contract status",
+  "columnProjectText": "Project",
+  "columnTypeText": "Type",
+  "contractstatusShow_expiredText": "Toon verlopen"
 }

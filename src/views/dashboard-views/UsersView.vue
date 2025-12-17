@@ -6,6 +6,7 @@ import { PRIVILEGES } from '@/constants/privileges'
 import { splitPhoneNumber, joinPhoneNumber } from '@/utils/phoneNumber'
 import { useUserStore } from '@/stores/userStore'
 import { updateUser } from '@/services/usersApi'
+import api from '@/services/api'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
@@ -27,11 +28,11 @@ const expandedUserDrafts = reactive({})
 
 const columns = computed(() => {
   return [
-    { text: 'First name', value: 'firstName', sortable: true },
-    { text: 'Last name', value: 'lastName', sortable: true },
-    { text: 'E-mail', value: 'email', sortable: true },
-    { text: 'Phone', value: 'phoneNumber', sortable: true },
-    { text: 'Role', value: 'roles', sortable: true }
+    { text: t('base.firstNameText'), value: 'firstName', sortable: true },
+    { text: t('base.lastNameText'), value: 'lastName', sortable: true },
+    { text: t('base.emailText'), value: 'email', sortable: true },
+    { text: t('base.phoneNumberText'), value: 'phoneNumber', sortable: true },
+    { text: t('user.userRoleText'), value: 'roles', sortable: true }
   ]
 })
 
@@ -173,7 +174,7 @@ onMounted(() => {
                   />
                 </motion.g>
               </svg>
-              <span>{{ t('project.deleteProjectsText') }}</span>
+              <span>{{ t('user.deleteUsersText') }}</span>
             </motion.button>
           </AnimatePresence>
         </div>

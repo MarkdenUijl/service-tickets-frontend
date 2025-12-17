@@ -36,11 +36,11 @@ const showExpiredContracts = computed(() =>
 
 const columns = computed(() => {
   return [
-    { text: 'Project', value: 'projectName', sortable: true },
-    { text: 'Type', value: 'contractTypeDisplay', sortable: true },
-    { text: 'Start date', value: 'startDate', sortable: true },
-    { text: 'End date', value: 'endDate', sortable: true },
-    { text: 'Used time', value: 'usedTimeDisplay' }
+    { text: t('contract.columnProjectText'), value: 'projectName', sortable: true },
+    { text: t('contract.columnTypeText'), value: 'contractTypeDisplay', sortable: true },
+    { text: t('contract.startDateLabelText'), value: 'startDate', sortable: true },
+    { text: t('contract.endDateLabelText'), value: 'endDate', sortable: true },
+    { text: t('contract.usedTimeLabelText'), value: 'usedTimeDisplay' }
   ]
 })
 

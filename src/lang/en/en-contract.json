@@ -28,5 +28,7 @@
   "creationContractGenericErrorText": "Error creating contract",
   "ContractStatus": "Contract status",
   "columnContractstatusText": "Contract status",
+  "columnProjectText": "Project",
+  "columnTypeText": "Type",
   "contractstatusShow_expiredText": "Show expired"
 }

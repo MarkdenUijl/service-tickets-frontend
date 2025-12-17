@@ -6,5 +6,7 @@
   "saveChangesText": "Save changes",
   "roleAdminText": "Admin",
   "roleEngineerText": "Engineer",
-  "roleUserText": "User"
+  "roleUserText": "User",
+  "deleteUsersText": "Delete users",
+  "userRoleText": "Role"
 }

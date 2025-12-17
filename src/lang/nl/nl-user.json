@@ -6,5 +6,7 @@
   "saveChangesText": "Opslaan",
   "roleAdminText": "Admin",
   "roleEngineerText": "Engineer",
-  "roleUserText": "Gebruiker"
+  "roleUserText": "Gebruiker",
+  "deleteUsersText": "Verwijder users",
+  "userRoleText": "Rol"
 }
