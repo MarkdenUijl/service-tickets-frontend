@@ -40,6 +40,7 @@
     "creationTicketFilesText": "Click here or drag files to upload",
     "creationProjectDetailsText": "Fill in project details",
     "creationProjectSelectText": "Select your project",
+    "noProjectSelectedText": "No project selected",
     "creationSeparatorText": "or",
     "creationProjectStreetText": "Street name",
     "creationProjectHouseNoText": "House number",

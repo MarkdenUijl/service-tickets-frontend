@@ -929,6 +929,7 @@ export function useDashboardData() {
       fill: {
         type: 'gradient',
         gradient: {
+          gradientToColors: ['var(--color-menu-background)'],
           shadeIntensity: 1,
           opacityFrom: 0.35,
           opacityTo: 0.05,

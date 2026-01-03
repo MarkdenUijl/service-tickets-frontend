@@ -40,6 +40,7 @@
     "creationTicketFilesText": "Klik hier of sleep bestanden om te uploaden",
     "creationProjectDetailsText": "Vul projectgegevens in",
     "creationProjectSelectText": "Selecteer je project",
+    "noProjectSelectedText": "Geen project geselecteerd",
     "creationSeparatorText": "of",
     "creationProjectStreetText": "Straatnaam",
     "creationProjectHouseNoText": "Huisnummer",

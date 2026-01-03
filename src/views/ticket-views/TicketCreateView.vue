@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectLookup } from '@/composables/useProjectLookup'
 import { useTicketValidation } from '@/composables/useTicketValidation'
@@ -68,6 +68,17 @@ if (hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)) {
 
   onMounted(fetchUsers)
 }
+
+// Display helper for users without MODERATE_SERVICE_TICKETS privilege.
+// They shouldn't be able to pick a project by title, but they should be able to see what is currently selected.
+const selectedProjectName = computed(() => {
+  const selectedId = ticketData.projectId
+  if (!selectedId) return ''
+
+  const list = projects?.value ?? []
+  const match = list.find(p => String(p.id) === String(selectedId))
+  return match?.name ?? ''
+})
 
 // Autofill project details when selection changes
 watch(() => ticketData.projectId, autofillAddress)
@@ -180,6 +191,16 @@ const ticketSources = [
                 label-key="name" value-key="id" :iconIndent="24" :dropdownHeight="60" />
               <span class="validation-text" v-if="errors.projectId">{{ errors.projectId }}</span>
             </div>
+            <div v-else class="input-wrapper">
+              <input
+                class="readonly-project-input"
+                :value="selectedProjectName"
+                :placeholder="t('ticket.noProjectSelectedText')"
+                readonly
+                aria-label="Selected project"
+              />
+            </div>
+
 
             <VisualSeparator v-if="hasPrivilege(PRIVILEGES.MODERATE_SERVICE_TICKETS)" :separatorText="t('ticket.creationSeparatorText')" />
 
@@ -349,5 +370,26 @@ const ticketSources = [
   font-size: 12px;
   bottom: -20px;
   right: 0px;
+}
+
+
+.readonly-project-input {
+  width: 100%;
+  height: 60px;
+  padding: 0 12px;
+  border-radius: 4px;
+  border: 1px solid var(--color-subtext);
+  color: var(--color-subtext);
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 16px;
+  cursor: default;
+}
+
+.readonly-project-input::placeholder {
+  color: var(--color-subtext);
+}
+
+.readonly-project-input:focus {
+  outline: none;
 }
 </style>
