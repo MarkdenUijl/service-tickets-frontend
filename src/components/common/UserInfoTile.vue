@@ -44,7 +44,6 @@ const toggleMenu = () => {
 
 <template>
   <div id="user-info-tile" :class="{ set: !isFree }">
-    <!-- User initials in circular frame -->
     <motion.div 
       id="user-info-picture-frame" 
       @click.stop="toggleMenu"
@@ -55,7 +54,6 @@ const toggleMenu = () => {
       {{ userInfo.initials }}
     </motion.div>
 
-    <!-- Dropdown menu -->
     <AnimatePresence>
       <motion.div 
         v-if="hasMenu && showMenu" 

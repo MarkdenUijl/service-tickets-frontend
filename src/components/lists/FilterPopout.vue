@@ -4,12 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 
 const props = defineProps({
-  // v-model:isOpen
   isOpen: {
     type: Boolean,
     default: false
   },
-  // Array of { id, title, isOpen, options, model }
   sections: {
     type: Array,
     required: true
@@ -30,7 +28,6 @@ const emit = defineEmits(['update:isOpen'])
 const { t } = useI18n()
 
 function toggleFilterSection(section) {
-  // mutating nested object on props is fine for this use case
   section.isOpen = !section.isOpen
 }
 
@@ -98,8 +95,6 @@ function onClickOutside() {
 </template>
 
 <style scoped>
-
-/* Filter Popout Styles */
 .filter-popout {
   position: absolute;
   z-index: 20;
@@ -153,8 +148,6 @@ function onClickOutside() {
   border-left: 4px var(--color-highlight) solid;
 }
 
-
-/* Custom checkbox styling for filter checkboxes (matches LoginForm.vue) */
 .filter-checkbox-label input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;

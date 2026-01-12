@@ -63,7 +63,7 @@ const isCurrentLang = (code) => locale.value === code
   align-items: center;
   justify-content: center;
   transition: opacity 0.3s ease;
-  opacity: 0.2; /* default dimmed */
+  opacity: 0.2;
   border: none;       /* ensure button reset styles */
   background: none;   /* ensure button reset styles */
   padding: 0;         /* tighten hit area to SVG size */

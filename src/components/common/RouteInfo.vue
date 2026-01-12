@@ -9,10 +9,6 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-/**
- * Build breadcrumb chain from current route.
- * WHY: Encapsulate logic so computed remains declarative.
- */
 function buildBreadcrumbChain(route, router, t) {
   const chain = []
   let current = route.matched.at(-1)
@@ -31,7 +27,7 @@ function buildBreadcrumbChain(route, router, t) {
 
     chain.unshift({ name: current.name, label })
 
-    // WHY: allow custom parent linking even if not direct ancestor
+    // allow custom parent linking even if not direct ancestor
     if (meta.parent) {
       current = router.resolve({ name: meta.parent }).matched.at(-1)
     } else {
@@ -48,19 +44,18 @@ const visibleBreadcrumbs = computed(() => {
   return chain.length > 2 ? chain.slice(-2) : chain
 })
 
-const mainTitle = computed(() => breadcrumbs.value.at(-1)?.label || '')
-
 const mainTitleParts = computed(() => {
   const title = breadcrumbs.value.at(-1)?.label || ''
   const match = title.match(/^(.*?)(#\S+)(.*)$/) // split into before, hash, after
+
   if (!match) return { before: title, hash: '', after: '' }
+  
   return { before: match[1].trim(), hash: match[2], after: match[3].trim() }
 })
 </script>
 
 <template>
   <div class="route-info-container">
-    <!-- <div><span class="route-info-title">{{ mainTitle }}</span></div> -->
     <div><span class="route-info-title">
       {{ mainTitleParts.before }}
       <span v-if="mainTitleParts.hash" class="hash-part">{{ mainTitleParts.hash }}</span>
@@ -101,7 +96,7 @@ const mainTitleParts = computed(() => {
   user-select: none;
   display: flex;
   flex-direction: column;
-  color: white;
+  color: var(--vt-c-white);
   max-width: 220px;
   gap: 4px;
 }

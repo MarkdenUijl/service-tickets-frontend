@@ -1,6 +1,6 @@
 <script setup>
-import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
-import { formatIsoDate } from '@/utils/formatIsoDate'
+  import { formatIsoDate } from '@/utils/formatIsoDate'
+  import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 
 defineProps({
   tickets: {

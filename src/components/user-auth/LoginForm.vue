@@ -1,17 +1,16 @@
 <script setup>
 import { reactive, ref, computed, watch } from 'vue'
-import ValidatedInput from '../user-input/ValidatedInput.vue'
 import { useI18n } from 'vue-i18n'
-import api from '@/services/api'
 import { useRouter } from 'vue-router'
 import { isEmail } from '@/utils/validators'
-import LoaderButton from '../buttons/LoaderButton.vue'
 import { useAuthStore } from '@/stores/authStore'
+import LoaderButton from '../buttons/LoaderButton.vue'
+import ValidatedInput from '../user-input/ValidatedInput.vue'
+import api from '@/services/api'
 
 const formData = reactive({
   email: '',
   password: '',
-  // Checkbox should be boolean for v-model on input[type="checkbox"]
   tokenPersist: false
 })
 
@@ -25,11 +24,9 @@ const auth = useAuthStore()
 const router = useRouter()
 const loading = ref(false)
 
-// Valid when util says email is valid AND there is no i18n error key set
 const isEmailValid = computed(() => isEmail(formData.email) && !errors.email)
 const isLoginValid = computed(() => !errors.login)
 
-// Clear errors as the user edits (keeps UX responsive)
 watch(
   () => formData.email,
   () => {
@@ -45,7 +42,6 @@ watch(
   }
 )
 
-// Centralized validation to avoid duplicating regex/logic
 const validate = () => {
   errors.email = ''
   errors.login = ''

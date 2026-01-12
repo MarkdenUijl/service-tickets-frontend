@@ -5,12 +5,10 @@ let stompClient = null
 let ticketSubscription = null
 let detailSubscriptions = {}
 
-// Allow relative URL in dev if VITE_BACKEND_URL is not set.
 const API_URL = import.meta.env.VITE_BACKEND_URL
 const WS_ENDPOINT = `${API_URL ? API_URL : ''}/ws`
 const TICKETS_TOPIC = '/topic/tickets'
 
-// Small helper to protect against malformed payloads
 const safeParseJSON = (str) => {
   try {
     return JSON.parse(str)
@@ -33,7 +31,6 @@ function ensureConnected(onConnectCallback) {
 
   stompClient = new Client({
     webSocketFactory: () => new SockJS(WS_ENDPOINT),
-    // WHY: Built-in reconnect (ms). Keeps the connection resilient.
     reconnectDelay: 5000,
 
     debug: (str) => {
@@ -54,18 +51,12 @@ function ensureConnected(onConnectCallback) {
   stompClient.activate()
 }
 
-/**
- * Connect (singleton) and subscribe to ticket updates.
- *
- * @param {(ticketUpdate: any) => void} onTicketUpdate callback for parsed messages
- */
 export function connectToTickets(onTicketUpdate) {
   if (typeof onTicketUpdate !== 'function') {
     console.warn('[websocket] connectToTickets expects a function callback')
     return
   }
 
-  // Prevent duplicate connections
   if (ticketSubscription) return
 
   ensureConnected(() => {
@@ -89,7 +80,6 @@ export function disconnectFromTickets({ full = false } = {}) {
     }
 
     if (full && stompClient) {
-      // `deactivate()` returns a Promise; we intentionally don’t await to keep API sync.
       stompClient.deactivate()
       stompClient = null
     }
@@ -106,7 +96,6 @@ export function connectToTicketDetail(ticketId, onUpdate) {
   ensureConnected(() => {
     const topic = `/topic/tickets/${ticketId}`
 
-    // Unsubscribe if already subscribed
     if (detailSubscriptions[ticketId]) {
       detailSubscriptions[ticketId].unsubscribe()
     }

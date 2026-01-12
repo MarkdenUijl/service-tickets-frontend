@@ -1,5 +1,5 @@
 <script setup>
-// No props yet, kept simple and reusable
+
 </script>
 
 <template>

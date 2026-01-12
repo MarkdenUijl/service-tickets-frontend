@@ -1,14 +1,5 @@
 import api from '@/services/api'
 
-/**
- * Fetches tickets from the backend.
- * Accepts optional date range and search query filters.
- *
- * @param {Object} params
- * @param {{start: Date, end: Date}=} params.range
- * @param {string=} params.query
- * @returns {Promise<Array>} list of ticket DTOs
- */
 export async function fetchTickets({ range, query } = {}) {
   const params = {}
 
@@ -20,14 +11,7 @@ export async function fetchTickets({ range, query } = {}) {
   return data
 }
 
-/**
- * Pure helper that merges an incoming websocket event into an existing ticket list.
- * Keeps the mutation logic in one central place.
- *
- * @param {Array} current - current array of tickets
- * @param {Object} evt - websocket event { type, ticket, ticketId? }
- * @returns {Array} new tickets array
- */
+
 export function mergeTicketEvent(current, evt) {
   if (!evt) return current
   const list = [...current]

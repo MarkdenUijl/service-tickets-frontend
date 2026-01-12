@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
 import { baseOptions, deepMerge, makeBaseOptions, updateChartSize, normalizeCartesianSeries } from '@/utils/chartUtils.js'
 import { useLegendTotals } from '@/composables/useLegendTotals'
+import VueApexCharts from 'vue3-apexcharts'
 
 const apexchart = VueApexCharts
 const chartRef = ref(null)

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
 import { baseOptions, deepMerge, updateChartSize, normalizeRadialSeries } from '@/utils/chartUtils.js'
+import VueApexCharts from 'vue3-apexcharts'
 
 const apexchart = VueApexCharts
 const chartRef = ref(null)
@@ -28,20 +28,25 @@ const isSemiDonut = computed(() => {
   const end = userPie.endAngle ?? basePie.endAngle
   const t = String(props.type || '').toLowerCase()
   const isPieType = ['pie', 'donut'].includes(t)
+
   return isPieType && typeof start === 'number' && typeof end === 'number' && Math.abs(end - start) === 180
 })
 
 const mergedOptions = computed(() => {
   const withId = props.chartId ? deepMerge(baseOptions, { chart: { id: props.chartId } }) : { ...baseOptions }
   const dynamic = isSemiDonut.value ? { plotOptions: { pie: { offsetY: pieOffsetY.value } } } : {}
+
   return deepMerge(withId, deepMerge(props.options, deepMerge(normalizedSeries.value.extraOptions, dynamic)))
 })
 
 const recomputeSemiDonutOffset = () => {
   if (!isSemiDonut.value) { pieOffsetY.value = 0; return }
+
   const container = containerRef.value
   const svg = container?.querySelector('.apexcharts-svg')
+
   if (!svg) { pieOffsetY.value = 0; return }
+  
   const h = svg.getBoundingClientRect().height || 0
   pieOffsetY.value = Math.round(h * 0.2)
 }

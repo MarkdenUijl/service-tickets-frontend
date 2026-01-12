@@ -1,23 +1,13 @@
 <script setup>
 defineProps({
-  /**
-   * The label text shown on the left side (key)
-   */
   label: {
     type: String,
     required: true
   },
-  /**
-   * The actual value shown on the right side
-   */
   value: {
     type: [String, Number],
     default: ''
   },
-  /**
-   * Optional CSS class for styling the value
-   * (e.g. 'valid' or 'expired')
-   */
   valueClass: {
     type: String,
     default: ''

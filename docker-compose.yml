@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build: .
+    container_name: helvar-service-frontend
+    ports:
+      - "8080:80"
+    extra_hosts:
+      # Works on Docker Desktop (macOS/Windows) and on Linux (Docker 20.10+)
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

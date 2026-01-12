@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import EasyDataTable from 'vue3-easy-data-table'
 import { useAuthStore } from '@/stores/authStore'
 import { PRIVILEGES } from '@/constants/privileges'
+import EasyDataTable from 'vue3-easy-data-table'
 
 const props = defineProps({
   headers: Array,

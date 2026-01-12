@@ -57,11 +57,9 @@ const handleTileMenuClick = () => {
   menuOpen.value = !menuOpen.value
 }
 
-// Submenu height is animated via max-height; calculate enough room so items don't get clipped.
-// Keep this conservative to avoid layout jumps.
 const getSubmenuMaxHeight = (option) => {
   const itemCount = option?.menuItems?.length || 0
-  const ITEM_ROW_PX = 32 // approx height incl. padding
+  const ITEM_ROW_PX = 32
   const INNER_PADDING_PX = 32
   return itemCount * ITEM_ROW_PX + INNER_PADDING_PX
 }
@@ -180,7 +178,6 @@ const { ready: contentReady } = useStableSize(contentEl, 200)
     :i="i"
     class="dashboard-tile"
   >
-    <!-- Menu toggle button: button element for a11y, animation via variants -->
     <AnimatePresence>
       <motion.button
         class="tile-menu-button"
