@@ -6,7 +6,6 @@ import { isEmail } from '@/utils/validators'
 import { useAuthStore } from '@/stores/authStore'
 import LoaderButton from '../buttons/LoaderButton.vue'
 import ValidatedInput from '../user-input/ValidatedInput.vue'
-import api from '@/services/api'
 
 const formData = reactive({
   email: '',
@@ -70,28 +69,21 @@ const login = async () => {
 
   loading.value = true
 
-  const payload = {
-    username: formData.email.trim().toLowerCase(),
-    password: formData.password,
-    tokenPersist: formData.tokenPersist
-  }
-
   try {
-    const response = await api.post('/auth/login', payload)
-    const token = response.data.token
-
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-    const userResponse = await api.get('/users/me')
-    const user = userResponse.data
-
-    auth.setUser({ user, token })
+    await auth.login({
+      email: formData.email,
+      password: formData.password,
+      tokenPersist: formData.tokenPersist,
+    })
 
     router.push('/dashboard/tickets')
   } catch (error) {
-    const status = error?.response?.status
-    if (status === 401 || error?.type === 'unauthorized') {
+    // The store throws a normalized error object.
+    if (error?.type === 'unauthorized') {
       errors.email = 'emailIncorrect'
+    } else if (error?.uiMessageKey) {
+      // Allows backend-driven (or store-mapped) messaging without leaking raw errors.
+      errors.login = error.uiMessageKey
     } else {
       errors.login = 'serverError'
     }
@@ -191,7 +183,7 @@ const login = async () => {
   height: 10px;
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
-  border-color: white;
+  border-color: var(--vt-c-white);
   border-style: solid;
 }
 

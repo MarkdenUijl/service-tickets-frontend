@@ -2,7 +2,7 @@
 import { reactive, computed, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import api from '@/services/api'
+import { useAuthStore } from '@/stores/authStore'
 
 import ValidatedInput from '../user-input/ValidatedInput.vue'
 import ValidatedPhoneInput from '../user-input/ValidatedPhoneInput.vue'
@@ -33,6 +33,7 @@ const { t } = useI18n()
 const router = useRouter()
 const emit = defineEmits(['form-progress'])
 const loading = ref(false)
+const auth = useAuthStore()
 
 // --- Field-level validity (for UI states)
 const isFirstNameValid = computed(() => formData.firstName.trim().length > 0)
@@ -168,13 +169,15 @@ const register = async () => {
   }
 
   try {
-    await api.post('/users', payload)
+    await auth.register(payload)
     resetForm()
     router.push('confirmation')
   } catch (error) {
-    const status = error?.response?.status
-    if (status === 409) {
+    if (error?.type === 'conflict') {
       errors.email = 'emailConflict'
+    } else if (error?.uiMessageKey) {
+      // Allows backend-driven (or store-mapped) messaging without leaking raw errors.
+      errors.email = error.uiMessageKey
     } else {
       errors.email = 'serverError'
     }
