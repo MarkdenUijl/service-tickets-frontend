@@ -1,17 +1,10 @@
 import { reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-/**
- * Centralized validation for the ticket create form.
- * - Soft validation while typing (no errors shown on empty fields)
- * - Strict validation on submit via validateAll()
- * - Returns per-field booleans and an errors map for UI
- */
 export function useTicketValidation(ticketData) {
   const { t } = useI18n()
   const MAX_CHARS = 5000;
 
-  // --- Reactive error messages (English placeholders)
   const errors = reactive({
     name: '',
     type: '',
@@ -23,7 +16,6 @@ export function useTicketValidation(ticketData) {
     city: ''
   })
 
-  // --- Field-level validity (booleans), permissive when empty for live UX
   const isNameValid = computed(() => ticketData.name.trim().length >= 10 || ticketData.name.length === 0)
   const isDescriptionValid = computed(() => {
     const rawLen = ticketData.description.length
@@ -35,7 +27,6 @@ export function useTicketValidation(ticketData) {
   const isZipCodeValid = computed(() => /^[1-9][0-9]{3}\s?(?!sa|sd|ss)[A-Za-z]{2}$/.test(ticketData.zipCode.trim()) || ticketData.zipCode.length === 0)
   const isCityValid = computed(() => ticketData.city.trim().length > 0 || ticketData.city.length === 0)
 
-  // --- Soft/live validation watchers (don’t shout on empty)
   watch(() => ticketData.name, (val) => {
     if (val.length === 0) errors.name = ''
     else if (val.trim().length < 10) errors.name = t('ticket.creationErrorNameShortText')
@@ -82,12 +73,9 @@ export function useTicketValidation(ticketData) {
     errors.city = val.length === 0 ? '' : (val.trim().length > 0 ? '' : t('ticket.creationErrorCityRequiredText'))
   })
 
-  // --- Strict validation on submit
   function validateAll() {
-    // Track errors for required fields
     let hasError = false
 
-    // Required: name
     if (!ticketData.name || ticketData.name.trim().length === 0) {
       errors.name = t('ticket.creationErrorNameRequiredText')
       hasError = true
@@ -96,7 +84,6 @@ export function useTicketValidation(ticketData) {
       hasError = true
     }
 
-    // Required: type (dropdown)
     if (!ticketData.type) {
       errors.type = t('ticket.creationErrorSelectTypeText')
       hasError = true
@@ -104,7 +91,6 @@ export function useTicketValidation(ticketData) {
       errors.type = ''
     }
 
-    // Required: description
     if (!ticketData.description || ticketData.description.trim().length === 0) {
       errors.description = t('ticket.creationErrorDescriptionRequiredText')
       hasError = true
@@ -116,7 +102,6 @@ export function useTicketValidation(ticketData) {
       hasError = true
     }
 
-    // Required: projectId (dropdown)
     if (!ticketData.projectId) {
       errors.projectId = t('ticket.creationErrorProjectRequiredText')
       hasError = true
@@ -124,7 +109,6 @@ export function useTicketValidation(ticketData) {
       errors.projectId = ''
     }
 
-    // Address fields are required for project context (based on current UX)
     if (!ticketData.street || ticketData.street.trim().length === 0) {
       errors.street = t('ticket.creationErrorStreetRequiredText')
       hasError = true

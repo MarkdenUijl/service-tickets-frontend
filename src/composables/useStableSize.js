@@ -43,9 +43,6 @@ export function useStableSize(targetRef, delayOrOptions = 150) {
   const width = ref(0)
   const height = ref(0)
 
-  /**
-   * Internals
-   */
   let ro = null /** @type {ResizeObserver | null} */
   let timer = null /** @type {number | null} */
   let winResizeHandler = null /** @type {(() => void) | null} */

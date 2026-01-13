@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 export function useProjectValidation(projectData) {
   const { t } = useI18n()
 
-  // --- Reactive error messages (English placeholders)
   const errors = reactive({
     name: '',
     city: '',
@@ -13,14 +12,12 @@ export function useProjectValidation(projectData) {
     houseNumber: ''
   })
 
-  // --- Field-level validity (booleans), permissive when empty for live UX
   const isNameValid = computed(() => projectData.name.trim().length >= 5 || projectData.name.length === 0)
   const isCityValid = computed(() => projectData.city.trim().length > 0 || projectData.city.length === 0)
   const isZipCodeValid = computed(() => /^[1-9][0-9]{3}\s?(?!sa|sd|ss)[A-Za-z]{2}$/.test(projectData.zipCode.trim()) || projectData.zipCode.length === 0)
   const isStreetValid = computed(() => projectData.street.trim().length > 0 || projectData.street.length === 0)
   const isHouseNumberValid = computed(() => /^(\d+)([A-Za-z])?$/.test(projectData.houseNumber.trim()) || projectData.houseNumber.length === 0)
 
-  // --- Soft/live validation watchers (don’t shout on empty)
   watch(() => projectData.name, (val) => {
     if (val.length === 0) errors.name = ''
     else if (val.trim().length < 5) errors.name = t('project.creationErrorNameShortText')
@@ -48,12 +45,9 @@ export function useProjectValidation(projectData) {
   })
 
 
-  // --- Strict validation on submit
   function validateAll() {
-    // Track errors for required fields
     let hasError = false
 
-    // Required: name
     if (!projectData.name || projectData.name.trim().length === 0) {
       errors.name = t('project.creationErrorNameRequiredText')
       hasError = true
@@ -62,7 +56,6 @@ export function useProjectValidation(projectData) {
       hasError = true
     }
 
-    // Address fields are required for project context (based on current UX)
     if (!projectData.city || projectData.city.trim().length === 0) {
       errors.city = t('project.creationErrorCityRequiredText')
       hasError = true
