@@ -7,25 +7,28 @@ import RouteInfo from '@/components/common/RouteInfo.vue'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
-import api from '@/services/api'
+
+import { useProjectStore } from '@/stores/projectStore'
+import { useContractStore } from '@/stores/contractStore'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 
+const projectStore = useProjectStore()
+const contractStore = useContractStore()
+
 const loading = ref(false)
 const hasCreationError = ref(false)
 const creationErrorTextKey = ref('')
 
-// Project data for display (not editable)
-const project = ref(null)
+const project = computed(() => projectStore.selectedProject)
 
-// Core form data (hours, not minutes)
 const contractForm = reactive({
   projectId: null,
   type: '',
   contractTime: null,
-  startDate: ''
+  startDate: '',
 })
 
 const contractHoursItems = [
@@ -33,19 +36,18 @@ const contractHoursItems = [
   { value: 12, label: `12 ${t('base.hoursText')}` },
   { value: 16, label: `16 ${t('base.hoursText')}` },
   { value: 20, label: `20 ${t('base.hoursText')}` },
-  { value: 24, label: `24 ${t('base.hoursText')}` }
+  { value: 24, label: `24 ${t('base.hoursText')}` },
 ]
 
 const contractTypeItems = [
   { value: 'FULL_TIME', label: t('ticket.contractFulltimeText') },
-  { value: 'OFFICE_HOURS', label: t('ticket.contractOfficehoursText')}
+  { value: 'OFFICE_HOURS', label: t('ticket.contractOfficehoursText') },
 ]
 
 onMounted(async () => {
   const projectIdFromRoute = route.query.projectId
 
   if (!projectIdFromRoute) {
-    // No project passed, fall back to projects overview
     router.push({ name: 'projects' })
     return
   }
@@ -54,8 +56,7 @@ onMounted(async () => {
   contractForm.projectId = numericId
 
   try {
-    const { data } = await api.get(`/projects/${numericId}`)
-    project.value = data
+    await projectStore.fetchById(numericId)
   } catch (err) {
     console.error('Failed to load project for contract creation:', err)
     // If we cannot load the project, it is safer to go back
@@ -63,7 +64,6 @@ onMounted(async () => {
   }
 })
 
-// Basic “all fields filled” validation
 const isFormValid = computed(() => {
   return (
     !!contractForm.projectId &&
@@ -73,7 +73,6 @@ const isFormValid = computed(() => {
   )
 })
 
-// Reset errors when form changes
 watch(
   () => ({ ...contractForm }),
   () => {
@@ -83,10 +82,8 @@ watch(
   { deep: true }
 )
 
-// Submit contract creation
 async function handleSubmit() {
   if (!isFormValid.value) {
-    console.log('FORM IS NOT VALID')
     hasCreationError.value = true
     creationErrorTextKey.value = 'creationContractValidationText'
     return
@@ -97,20 +94,19 @@ async function handleSubmit() {
   creationErrorTextKey.value = ''
 
   try {
-    await api.post('/serviceContracts', {
+    await contractStore.create({
       projectId: contractForm.projectId,
       type: contractForm.type,
       contractTime: contractForm.contractTime * 60,
-      startDate: contractForm.startDate
+      startDate: contractForm.startDate,
     })
 
-    // On success, go back to the project detail
     router.push(`/projects/${contractForm.projectId}`)
   } catch (err) {
     console.error('Error creating contract:', err)
     hasCreationError.value = true
 
-    if (err.status === 409) {
+    if (err?.type === 'conflict') {
       creationErrorTextKey.value = 'creationContractExistsText'
     } else {
       creationErrorTextKey.value = 'creationContractGenericErrorText'
@@ -166,7 +162,7 @@ function handleCancel() {
                   value-key="value"
                   label-key="label"
                   :icon-indent="12"
-                  @update:modelValue="value => (contractForm.type = value)"
+                  @update:modelValue="(value) => (contractForm.type = value)"
                 />
               </div>
 
@@ -182,7 +178,7 @@ function handleCancel() {
                   value-key="value"
                   label-key="label"
                   :icon-indent="12"
-                  @update:modelValue="value => (contractForm.contractTime = value)"
+                  @update:modelValue="(value) => (contractForm.contractTime = value)"
                 />
               </div>
 
