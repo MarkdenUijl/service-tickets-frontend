@@ -14,13 +14,11 @@ const backgroundWidth = computed(() =>
   route.name === 'register' ? '50%' : '40%'
 )
 
-// Registration progress state
 const formProgress = ref(0)
 function handleFormProgress(value) {
   formProgress.value = Number.isFinite(+value) ? +value : 0
 }
 
-// Clamp progress percent to [0, 100]
 const progressPercent = computed(() =>
   Math.min(100, Math.max(0, formProgress.value || 0))
 )
@@ -28,7 +26,6 @@ const progressPercent = computed(() =>
 
 <template>
   <div class="auth-page">
-    <!-- Decorative elements -->
     <LogoLarge id="homescreen-logo" aria-hidden="true" />
     <SvgIcon class="background" name="gradient-background" aria-hidden="true" />
 
@@ -39,14 +36,12 @@ const progressPercent = computed(() =>
     >
       <UISelector id="ui-selector" />
 
-      <!-- Keep router-view direct for centered layout & smooth transitions -->
       <router-view v-slot="{ Component }" @form-progress="handleFormProgress">
         <Transition name="slide-fade" mode="out-in">
           <component :is="Component" />
         </Transition>
       </router-view>
 
-      <!-- Progress bar -->
       <div
         id="register-progress-bar"
         role="progressbar"

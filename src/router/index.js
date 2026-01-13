@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isTokenValid } from '@/utils/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { PRIVILEGES } from '@/constants/privileges';
 
@@ -30,7 +29,7 @@ const routes = [
         path: '/auth',
         component: AuthLayout,
         beforeEnter(to, from, next) {
-                    if( isTokenValid() ) {
+                    if (useAuthStore().isTokenValid()) {
                         next('/dashboard/overview');
                     } else {
                         next();
@@ -199,7 +198,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const auth = useAuthStore();
-    const isAuthenticated = isTokenValid();
+    const isAuthenticated = auth.isTokenValid();
 
     if (to.meta.requiresAuth && !isAuthenticated) {
         return next('/auth/login');

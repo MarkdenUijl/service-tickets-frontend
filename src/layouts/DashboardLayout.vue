@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from 'motion-v'
 
 import { useCurrentUser } from '@/utils/useCurrentUser'
 import { useAuthStore } from '@/stores/authStore'
-import { logout } from '@/utils/auth'
 import LogoIconLarge from '@/components/graphic-items/LogoIconLarge.vue'
 import DashboardPageSelectorButton from '@/components/buttons/DashboardPageSelectorButton.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
@@ -33,7 +32,6 @@ const barTop = { open: { opacity: 0, y: 6 }, closed: { opacity: 1, y: 0, backgro
 const barMid = { open: { rotate: 45, y: 0, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 const barBot = { open: { rotate: -45, y: -7.5, backgroundColor: 'var(--color-text)' }, closed: { rotate: 0, y: 0, backgroundColor: 'var(--vt-c-white)' } }
 
-// Track resize → isMobile flag
 const handleResize = () => {
   isMobile.value = window.innerWidth <= 635
 }
@@ -48,9 +46,8 @@ onUnmounted(() => {
 
 const showMenu = computed(() => !isMobile.value || menuOpen.value)
 
-// Logout handler
 const handleLogout = () => {
-  logout()
+  auth.logout()
   router.push('/auth/login')
 }
 

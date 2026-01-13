@@ -1,8 +1,4 @@
 export function capitalizeWords(str) {
-    /**
-     * Capitalize the first letter of each word and lower-case the rest.
-     * WHY: Filters out empty segments so multiple spaces don’t produce blanks.
-     */
     return str
         .split(' ')
         .filter(word => word.trim() !== '')

@@ -80,6 +80,29 @@ export const useAuthStore = defineStore(
     const logout = () => {
       user.value = null
       token.value = null
+      setAuthToken(null)
+    }
+
+    const isTokenValid = () => {
+      if (!token.value) {
+        logout()
+        return false
+      }
+
+      try {
+        const payload = JSON.parse(atob(token.value.split('.')[1]))
+        const currentTime = Math.floor(Date.now() / 1000)
+
+        if (payload.exp > currentTime) {
+          return true
+        }
+
+        logout()
+        return false
+      } catch {
+        logout()
+        return false
+      }
     }
 
     const register = async (payload) => {
@@ -114,6 +137,7 @@ export const useAuthStore = defineStore(
       login,
       register,
       logout,
+      isTokenValid,
       hasPrivilege,
     }
   },

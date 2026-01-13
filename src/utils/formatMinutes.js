@@ -1,10 +1,3 @@
-/**
- * Converts a total number of minutes into a localized human-readable string.
- * Example: 135 → "2 hours and 15 minutes" (translations handled via i18n)
- *
- * @param {number} minutes - The total number of minutes
- * @returns {string} A localized duration string
- */
 import { useI18n } from 'vue-i18n'
 
 export function formatMinutes(minutes) {

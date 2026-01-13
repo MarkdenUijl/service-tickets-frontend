@@ -1,7 +1,6 @@
 export function formatIsoDate(isoValue) {
   if (!isoValue) return { date: '—', time: '' }
 
-  // Ensure we’re always dealing with a string
   const isoString = typeof isoValue === 'string' ? isoValue : String(isoValue)
 
   const dateObj = new Date(isoString)

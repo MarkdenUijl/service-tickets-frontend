@@ -53,8 +53,8 @@ function handleFormProgress(value) {
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  width: 90%;          /* let it breathe wider than login */
-  max-width: 600px;    /* cap at a comfortable width */
+  width: 90%;
+  max-width: 600px;
   box-sizing: border-box;
 }
 
