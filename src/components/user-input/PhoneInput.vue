@@ -23,7 +23,6 @@ const props = defineProps({
 const emit = defineEmits(['update:countryCode', 'blur'])
 
 const localCode = ref(props.countryCode)
-// const localValue = ref(props.modelValue || '')
 const modelValue = defineModel()
 
 const isFocussed = ref(false)
@@ -49,7 +48,6 @@ const inputColor = computed(() =>
 )
 
 watch(localCode, (val) => emit('update:countryCode', val))
-// watch(localValue, (val) => emit('update:modelValue', val))
 </script>
 
 <template>

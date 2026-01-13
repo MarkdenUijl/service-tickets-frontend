@@ -6,10 +6,10 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 const props = defineProps({
-  modelValue: { type: Array, default: () => [] },   // Array<File>
+  modelValue: { type: Array, default: () => [] },
   maxFiles:   { type: Number, default: 8 },
   placeholder:{ type: String, default: 'Click here or drag files to upload' },
-  accept:     { type: String, default: '' },        // e.g. "image/*,.pdf"
+  accept:     { type: String, default: '' },
   showList:   { type: Boolean, default: true }
 })
 

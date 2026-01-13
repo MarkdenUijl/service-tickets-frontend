@@ -3,7 +3,6 @@ import BaseInput from './BaseInput.vue'
 import { ref, computed } from 'vue'
 import { motion, AnimatePresence } from 'motion-v'
 
-// Props: configure label/value keys, variant, icon indent, and dropdown height
 const props = defineProps({
   items: { type: Array, default: () => [] },
   modelValue: [String, Number, Object],
@@ -13,30 +12,26 @@ const props = defineProps({
     default: 'standalone',
     validator: (v) => ['inline', 'standalone'].includes(v)
   },
-  labelKey: { type: String, default: 'name' },  // what to display
-  valueKey: { type: String, default: 'id' },    // what to emit
+  labelKey: { type: String, default: 'name' },
+  valueKey: { type: String, default: 'id' },
   iconIndent: { type: Number, default: 48 },
   dropdownHeight: { type: Number, default: 40 }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
-// Dropdown open state
 const isOpen = ref(false)
 
-// Compute visible label based on current modelValue
 const selectedLabel = computed(() => {
   const match = props.items.find(i => i[props.valueKey] === props.modelValue)
   return match ? match[props.labelKey] : ''
 })
 
-// Update selected item and close dropdown
 function selectItem(item) {
   emit('update:modelValue', item[props.valueKey])
   isOpen.value = false
 }
 
-// Compute inline style vars for spacing and height
 const cssVars = computed(() => {
   const height = props.dropdownHeight
   let fontSize = '16px'
@@ -88,7 +83,6 @@ const filterTogglePath = {
       </svg>
     </template>
 
-    <!-- Dropdown rendered in BaseInput slot -->
     <template #dropdown>
       <AnimatePresence>
         <motion.div
@@ -101,7 +95,6 @@ const filterTogglePath = {
           :exit="{ opacity: 0, height: 0, transformOrigin: 'top' }"
           :transition="{ type: 'spring', stiffness: 200, damping: 26 }"
         >
-          <!-- Render each selectable item -->
           <motion.div
             v-for="item in items"
             :key="item[valueKey]"
@@ -115,7 +108,6 @@ const filterTogglePath = {
             <p>{{ item[labelKey] }}</p>
           </motion.div>
 
-          <!-- No results fallback -->
           <div v-if="!items.length" class="search-item no-results">
             <p>No items found</p>
           </div>

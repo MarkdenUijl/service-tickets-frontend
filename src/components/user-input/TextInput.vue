@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue'
 import { motion } from 'motion-v'
 
-// Props kept minimal; added optional `name` and `autocomplete` for better forms
 const props = defineProps({
   id: { type: String, required: true },
   placeholder: { type: String, required: true },
@@ -14,7 +13,6 @@ const props = defineProps({
 
 const emit = defineEmits(['blur'])
 
-// v-model for the input value
 const modelValue = defineModel()
 
 const isFocussed = ref(false)
@@ -29,7 +27,6 @@ const handleBlur = () => {
   emit('blur')
 }
 
-// Treat `null`/`undefined` as empty; do not float the label for those
 const hasValue = computed(() => {
   const v = modelValue.value
   return v !== null && v !== undefined && String(v).length > 0

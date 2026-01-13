@@ -42,9 +42,7 @@ const getStatusColor = (status) => STATUS_COLORS[String(status || '').toUpperCas
 const OPEN_STATUS_ORDER = ['OPEN', 'PENDING', 'IN_PROGRESS', 'ESCALATED']
 const OPEN_STATUS_SET = new Set(OPEN_STATUS_ORDER)
 
-// Deterministic source order and normalization for ticket source charts
 const SOURCE_ORDER = ['WEB', 'PHONE', 'MAIL']
-const SOURCE_SET = new Set(SOURCE_ORDER)
 const normalizeSource = (source) => String(source || '').toUpperCase()
 
 
@@ -75,13 +73,11 @@ const formatLabel = dateStr => {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-// Utility helper to group by day
 const toDayKey = (date) => {
   const d = new Date(date)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-// --- DRY day bucketing helpers
 const toValidDate = (value) => {
   const d = new Date(value)
   return Number.isNaN(d.getTime()) ? null : d
@@ -121,7 +117,6 @@ const buildDayRange = (startDate, endDate) => {
   return days
 }
 
-// Multi-series: group by groupKey, then count per day
 const countByDayKeyByGroup = (items, getDateValue, getGroupKey) => {
   const groupToDayMap = new Map()
 
@@ -239,7 +234,6 @@ const computeKpiMetrics = (tickets) => {
       }
     }
 
-
     // Average first response time: first engineer response vs ticket creation
     if (t.creationDate && Array.isArray(t.responses) && t.responses.length) {
       let earliestEngineerResponse = null
@@ -307,11 +301,11 @@ const formatPercentForCard = (value, decimals = 0) => {
   return `${rounded}%`
 }
 
-
-/**
- * Centralized data layer for the dashboard.
- * It transforms tickets from the store into KPIs and chart-ready datasets.
- */
+  /**
+   * ===============================
+   * DATA LAYER
+   * ===============================
+   */
 export function useDashboardData() {
   const store = useTicketsStore()
   const { t } = useI18n()

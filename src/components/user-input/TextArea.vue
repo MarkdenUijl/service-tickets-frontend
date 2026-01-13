@@ -15,7 +15,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'input'])
 
 const isFocused = ref(false)
-// lightweight unique id when none is passed
 const internalId = computed(() => props.id || `ta-${Math.random().toString(36).slice(2, 9)}`)
 const isFilled = computed(() => isFocused.value || (props.modelValue?.trim()?.length > 0))
 

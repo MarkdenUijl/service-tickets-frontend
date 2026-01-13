@@ -1,10 +1,5 @@
-// src/composables/useFileUpload.js
 import { ref } from 'vue'
 
-/**
- * Handles drag-and-drop + manual file upload logic.
- * WHY: Keeps file handling consistent and reusable across views.
- */
 export function useFileUpload(maxSizeMB = 8) {
   const selectedFiles = ref([])
   const isDragging = ref(false)

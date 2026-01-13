@@ -7,7 +7,7 @@ import SvgIcon from '../svg-icon/SvgIcon.vue'
 
 const props = defineProps({
   modelValue: String,
-  items: { type: Array, default: () => [] }, // expects array of strings
+  items: { type: Array, default: () => [] },
   placeholder: { type: String, default: '' },
   variant: {
     type: String,
@@ -21,7 +21,6 @@ const { t } = useI18n()
 
 const isFocused = ref(false)
 
-// v-model relay
 const query = computed({
   get: () => props.modelValue || '',
   set: (val) => emit('update:modelValue', val)
@@ -42,7 +41,6 @@ const selectItem = (item) => {
   isFocused.value = false
 }
 
-// Minimal keyboard support: Enter selects first suggestion; Esc closes
 const onKeydown = (e) => {
   if (!menuOpen.value) return
   if (e.key === 'Enter') {

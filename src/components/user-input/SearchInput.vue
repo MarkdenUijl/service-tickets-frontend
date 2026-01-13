@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import BaseInput from './BaseInput.vue'
 import SvgIcon from '../svg-icon/SvgIcon.vue'
 
-// Props kept minimal for flexibility
 const props = defineProps({
   modelValue: String,
   placeholder: { type: String, default: '' },
@@ -16,7 +15,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// v-model proxy — ensures proper binding & updates
 const inputValue = computed({
   get: () => props.modelValue ?? '',
   set: (val) => emit('update:modelValue', val)
@@ -29,7 +27,6 @@ const inputValue = computed({
     :placeholder="placeholder"
     :variant="variant"
   >
-    <!-- Leading icon slot (visible only when empty) -->
     <template #leadingIcon>
       <SvgIcon
         v-if="!inputValue"

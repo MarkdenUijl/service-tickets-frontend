@@ -35,7 +35,6 @@ watch(modelValue, (newValue) => {
   }
 })
 
-// Should we show a validation message?
 const shouldValidate = computed(() => {
   return (
     !props.isValid &&
@@ -44,12 +43,10 @@ const shouldValidate = computed(() => {
   )
 })
 
-// Is the field valid *and* filled?
 const isValidAndFilled = computed(() => {
   return props.isValid && modelValue.value !== '' && modelValue.value !== null && modelValue.value !== undefined
 })
 
-// Validation color logic (DRY and explicit)
 const validationColor = computed(() => {
   if (shouldValidate.value) {
     return 'var(--vt-c-red)'
