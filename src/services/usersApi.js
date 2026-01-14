@@ -9,3 +9,7 @@ export async function updateUser(id, payload) {
   const { data } = await api.put(`/users/${id}`, payload)
   return data
 }
+
+export async function deleteUserById(id) {
+  await api.delete(`/users/${id}`)
+}

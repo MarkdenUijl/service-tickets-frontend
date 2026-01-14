@@ -8,7 +8,6 @@ import RouteInfo from '@/components/common/RouteInfo.vue'
 import SearchInput from '@/components/user-input/SearchInput.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 
-import api from '@/services/api'
 import { useTicketsStore } from '@/stores/ticketStore'
 import { useTicketViewStore } from '@/stores/ticketViewStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
@@ -126,19 +125,25 @@ function handleFilterClick() {
 }
 
 async function deleteTicket(ticketId) {
-  try {
-    await api.delete(`/serviceTickets/${ticketId}`)
-  } catch (error) {
-    console.log(error?.status || error)
-  }
+  await ticketsStore.remove(ticketId)
 }
 
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
-  for (const item of itemsSelected.value) {
-    await deleteTicket(item.id)
+
+  loading.value = true
+
+  try {
+    for (const item of itemsSelected.value) {
+      await deleteTicket(item.id)
+    }
+
+    itemsSelected.value = []
+  } catch (error) {
+    console.error('Failed to delete one or more tickets:', error)
+  } finally {
+    loading.value = false
   }
-  itemsSelected.value = []
 }
 
 function onClickTicketRow(item) {

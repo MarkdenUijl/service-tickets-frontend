@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchTickets, fetchTicketById, mergeTicketEvent } from '@/services/ticketsApi'
+import { fetchTickets, fetchTicketById, deleteTicketById, mergeTicketEvent } from '@/services/ticketsApi'
 
 export const useTicketsStore = defineStore('tickets', () => {
   // ===============================
@@ -68,6 +68,31 @@ export const useTicketsStore = defineStore('tickets', () => {
       return ticketData.value
     } catch (e) {
       clearTicketContext()
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const remove = async (id) => {
+    loading.value = true
+
+    try {
+      await deleteTicketById(id)
+
+      // Keep local lists in sync
+      tickets.value = (tickets.value || []).filter((t) => t.id !== id)
+
+      if (ticketData.value?.id === id) {
+        clearTicketContext()
+      }
+
+      // Also update related lists if present
+      recentUserTickets.value = (recentUserTickets.value || []).filter((t) => t.id !== id)
+      recentProjectTickets.value = (recentProjectTickets.value || []).filter((t) => t.id !== id)
+
+      lastSync.value = new Date()
+    } catch (e) {
       throw normalizeTicketsError(e)
     } finally {
       loading.value = false
@@ -198,6 +223,7 @@ export const useTicketsStore = defineStore('tickets', () => {
     // actions
     fetchAll,
     fetchById,
+    remove,
     fetchRecentForTicket,
     applyEvent,
     setDateRange,

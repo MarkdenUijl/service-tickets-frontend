@@ -1,4 +1,4 @@
-import { fetchProjects, getProjectById } from '@/services/projectsApi'
+import { fetchProjects, getProjectById, deleteProjectById } from '@/services/projectsApi'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -15,11 +15,12 @@ export const useProjectStore = defineStore('projects', () => {
   // INTERNAL HELPERS
   // ===============================
   const normalizeProjectError = (error) => {
-    const status = error?.status
+    const status = error?.response?.status
 
     if (status === 404) return { type: 'notFound', status }
     if (status === 400) return { type: 'badRequest', status }
     if (status === 401) return { type: 'unauthorized', status }
+    if (status === 409) return { type: 'conflict', status }
 
     const uiMessageKey =
       (typeof error?.data === 'string' && error.data) ||
@@ -52,7 +53,26 @@ export const useProjectStore = defineStore('projects', () => {
 
     try {
       const result = await getProjectById(id)
-      selectedProject.value = result
+      selectedProject.value = result || null
+      lastSync.value = new Date()
+      return selectedProject.value
+    } catch (e) {
+      selectedProject.value = null
+      throw normalizeProjectError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const removeById = async (id) => {
+    loading.value = true
+    
+    try {
+      await deleteProjectById(id)
+      // Keep local list in sync without requiring a full refetch
+      projects.value = (projects.value || []).filter((p) => p.id !== id)
+      if (selectedProject.value?.id === id) selectedProject.value = null
+      lastSync.value = new Date()
     } catch (e) {
       throw normalizeProjectError(e)
     } finally {
@@ -72,12 +92,14 @@ export const useProjectStore = defineStore('projects', () => {
   return {
     // state
     projects,
+    selectedProject,
     loading,
     lastSync,
 
     // actions
     fetchAll,
     fetchById,
+    removeById,
     clear,
   }
 })

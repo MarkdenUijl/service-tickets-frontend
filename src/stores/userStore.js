@@ -1,4 +1,4 @@
-import { fetchUsers } from '@/services/usersApi'
+import { fetchUsers, updateUser as apiUpdateUser, deleteUserById } from '@/services/usersApi'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -46,6 +46,41 @@ export const useUserStore = defineStore('users', () => {
     }
   }
 
+  const update = async (id, payload) => {
+    loading.value = true
+
+    try {
+      const result = await apiUpdateUser(id, payload)
+
+      // Keep local list in sync without requiring a full refetch
+      const idx = (users.value || []).findIndex((u) => u.id === id)
+      if (idx !== -1) {
+        users.value[idx] = { ...users.value[idx], ...result }
+      }
+
+      lastSync.value = new Date()
+      return result
+    } catch (e) {
+      throw normalizeUsersError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const remove = async (id) => {
+    loading.value = true
+
+    try {
+      await deleteUserById(id)
+      users.value = (users.value || []).filter((u) => u.id !== id)
+      lastSync.value = new Date()
+    } catch (e) {
+      throw normalizeUsersError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
   const clear = () => {
     users.value = []
     lastSync.value = null
@@ -62,6 +97,8 @@ export const useUserStore = defineStore('users', () => {
 
     // actions
     fetchAll,
+    update,
+    remove,
     clear,
   }
 })

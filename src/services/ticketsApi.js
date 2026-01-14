@@ -46,3 +46,7 @@ export function mergeTicketEvent(current, evt) {
 
   return list
 }
+
+export async function deleteTicketById(id) {
+  await api.delete(`/serviceTickets/${id}`)
+}

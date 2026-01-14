@@ -1,4 +1,4 @@
-import { fetchContracts, createContract } from '@/services/contractsApi'
+import { fetchContracts, createContract, updateContract, renewContract, deleteContract } from '@/services/contractsApi'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -60,6 +60,47 @@ export const useContractStore = defineStore('contracts', () => {
     }
   }
 
+  const update = async (id, payload) => {
+    loading.value = true
+
+    try {
+      const result = await updateContract(id, payload)
+      lastSync.value = new Date()
+      return result
+    } catch (e) {
+      throw normalizeContractsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const renew = async (id, payload) => {
+    loading.value = true
+
+    try {
+      const result = await renewContract(id, payload)
+      lastSync.value = new Date()
+      return result
+    } catch (e) {
+      throw normalizeContractsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const remove = async (id) => {
+    loading.value = true
+
+    try {
+      await deleteContract(id)
+      lastSync.value = new Date()
+    } catch (e) {
+      throw normalizeContractsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
   const clear = () => {
     contracts.value = []
     lastSync.value = null
@@ -77,6 +118,9 @@ export const useContractStore = defineStore('contracts', () => {
     // actions
     fetchAll,
     create,
+    update,
+    renew,
+    remove,
     clear,
   }
 })

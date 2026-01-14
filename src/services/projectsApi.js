@@ -6,6 +6,10 @@ export async function fetchProjects({ params } = {}) {
 }
 
 export async function getProjectById(id) {
-  const { data } = await api.get(`/projects/${ id }`)
+  const { data } = await api.get(`/projects/${id}`)
   return data
+}
+
+export async function deleteProjectById(id) {
+  await api.delete(`/projects/${id}`)
 }

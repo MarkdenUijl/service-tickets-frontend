@@ -6,7 +6,6 @@ import { PRIVILEGES } from '@/constants/privileges'
 import { useContractStore } from '@/stores/contractStore'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { getUsedTimeColorClass } from '@/utils/getUsedTimeColorClass'
-import { updateContract, renewContract } from '@/services/contractsApi'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
@@ -15,7 +14,6 @@ import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
-import api from '@/services/api'
 import FilterPopout from '@/components/lists/FilterPopout.vue'
 
 const { t } = useI18n()
@@ -174,7 +172,7 @@ async function saveContractChanges(contract, draftOverrides) {
 
   try {
     loading.value = true
-    await updateContract(contract.id, body)
+    await contractStore.update(contract.id, body)
     await contractStore.fetchAll()
   } catch (error) {
     console.error('Failed to update contract', error)
@@ -199,7 +197,7 @@ async function handleRenewContract(contract) {
   try {
     loading.value = true
 
-    await renewContract(contract.id, {
+    await contractStore.renew(contract.id, {
       type: draft.renewType,
       hours: draft.renewHours
     })
@@ -209,6 +207,14 @@ async function handleRenewContract(contract) {
     console.error('Failed to renew contract', error)
   } finally {
     loading.value = false
+  }
+}
+
+async function deleteContract(contractId) {
+  try {
+    await contractStore.remove(contractId)
+  } catch (error) {
+    console.log(error?.status || error)
   }
 }
 
@@ -237,14 +243,6 @@ const contractTypeItems = [
 
 function onClickContractRow(item) {
   console.log(item)
-}
-
-async function deleteContract(contractId) {
-  try {
-    await api.delete(`/serviceContracts/${contractId}`)
-  } catch (error) {
-    console.log(error?.status || error)
-  }
 }
 
 async function handleBulkDelete() {
@@ -326,9 +324,6 @@ onMounted(() => {
     </div>
 
     <div class="contract-layout">
-      <!-- <div id="contract-filter-bar">
-        <SearchInput :placeholder="t('contract.searchContractsText')" variant="standalone" v-model="searchInput" />
-      </div> -->
       <div id="contract-filter-bar">
         <button
           id="contract-filter-button"

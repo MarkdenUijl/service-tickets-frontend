@@ -4,16 +4,15 @@ import { motion, AnimatePresence } from 'motion-v'
 import { useI18n } from 'vue-i18n'
 import { capitalizeWords } from '@/utils/capitalizeWords'
 import { useRouter } from 'vue-router'
-import { PRIVILEGES } from '@/constants/privileges'
 import { useProjectStore } from '@/stores/projectStore'
 import { useAuthStore } from '@/stores/authStore'
 import { PROJECT_CONTRACTS } from '@/constants/projectConstants'
+import { PRIVILEGES } from '@/constants/privileges'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
 import SearchInput from '@/components/user-input/SearchInput.vue'
-import api from '@/services/api'
 import FilterPopout from '@/components/lists/FilterPopout.vue'
 
 const { t } = useI18n()
@@ -94,21 +93,28 @@ const filterSections = reactive([
 ])
 
 async function deleteProject(projectId) {
-  try {
-    await api.delete(`/projects/${projectId}`)
-  } catch (error) {
-    console.log(error?.status || error)
-  }
+  await projectStore.removeById(projectId)
 }
 
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
-  for (const item of itemsSelected.value) {
-    await deleteProject(item.id)
-  }
-  itemsSelected.value = []
 
-  projectStore.fetchAll()
+  try {
+    loading.value = true
+
+    for (const item of itemsSelected.value) {
+      await deleteProject(item.id)
+    }
+
+    itemsSelected.value = []
+
+    // Ensure we display the current server truth
+    await projectStore.fetchAll()
+  } catch (error) {
+    console.error('Failed to delete one or more projects:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 const onCreateProject = () => {

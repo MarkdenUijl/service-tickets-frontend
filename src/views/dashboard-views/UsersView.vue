@@ -5,8 +5,6 @@ import { useI18n } from 'vue-i18n'
 import { PRIVILEGES } from '@/constants/privileges'
 import { splitPhoneNumber, joinPhoneNumber } from '@/utils/phoneNumber'
 import { useUserStore } from '@/stores/userStore'
-import { updateUser } from '@/services/usersApi'
-import api from '@/services/api'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import PrivilegedDataTable from '@/components/graphic-items/PrivilegedDataTable.vue'
@@ -74,7 +72,7 @@ function onClickUserRow(item) {
 
 async function deleteUser(userId) {
   try {
-    await api.delete(`/users/${userId}`)
+    await userStore.remove(userId)
   } catch (error) {
     console.log(error?.status || error)
   }
@@ -82,12 +80,21 @@ async function deleteUser(userId) {
 
 async function handleBulkDelete() {
   if (!itemsSelected.value.length) return
-  for (const item of itemsSelected.value) {
-    await deleteUser(item.id)
-  }
-  itemsSelected.value = []
 
-  userStore.fetchAll()
+  loading.value = true
+
+  try {
+    for (const item of itemsSelected.value) {
+      await deleteUser(item.id)
+    }
+
+    itemsSelected.value = []
+    await userStore.fetchAll()
+  } catch (error) {
+    console.error('Failed to delete one or more users:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function handleUpdateUser(user) {
@@ -103,7 +110,7 @@ async function handleUpdateUser(user) {
 
   try {
     loading.value = true
-    await updateUser(id, payload)
+    await userStore.update(id, payload)
     await userStore.fetchAll()
   } catch (error) {
     console.error('Failed to update user', error)

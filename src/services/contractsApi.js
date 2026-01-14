@@ -21,3 +21,7 @@ export async function renewContract(id, payload) {
   const { data } = await api.post(`/serviceContracts/${id}/renew`, payload)
   return data
 }
+
+export async function deleteContract(id) {
+  await api.delete(`/serviceContracts/${id}`)
+}
