@@ -1,6 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchTickets, fetchTicketById, deleteTicketById, mergeTicketEvent } from '@/services/ticketsApi'
+import {
+  fetchTickets,
+  fetchTicketById,
+  deleteTicket,
+  createTicket,
+  uploadTicketFiles,
+  mergeTicketEvent,
+  downloadTicketFile,
+  deleteTicketFile,
+  updateTicketStatus as apiUpdateTicketStatus,
+  updateTicketDescription,
+  updateTicketResponse,
+  createTicketResponse,
+} from '@/services/ticketsApi'
 
 export const useTicketsStore = defineStore('tickets', () => {
   // ===============================
@@ -74,11 +87,183 @@ export const useTicketsStore = defineStore('tickets', () => {
     }
   }
 
+  const updateStatus = async (ticketId, nextStatus) => {
+    loading.value = true
+
+    try {
+      const updated = await apiUpdateTicketStatus(ticketId, nextStatus)
+
+      // Keep detail view in sync
+      if (ticketData.value?.id === ticketId) {
+        ticketData.value = { ...ticketData.value, ...updated }
+      }
+
+      // Keep list view in sync
+      const idx = (tickets.value || []).findIndex((t) => t.id === ticketId)
+      if (idx !== -1) {
+        tickets.value[idx] = { ...tickets.value[idx], ...updated }
+      }
+
+      lastSync.value = new Date()
+      return updated
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateDescription = async (ticketId, description) => {
+    loading.value = true
+
+    try {
+      const updated = await updateTicketDescription(ticketId, description)
+
+      // Keep detail view in sync
+      if (ticketData.value?.id === ticketId) {
+        ticketData.value = { ...ticketData.value, ...updated }
+      }
+
+      // Keep list view in sync (if ticket exists in list)
+      const idx = (tickets.value || []).findIndex((t) => t.id === ticketId)
+      if (idx !== -1) {
+        tickets.value[idx] = { ...tickets.value[idx], ...updated }
+      }
+
+      lastSync.value = new Date()
+      return updated
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateResponse = async (responseId, responseHtml) => {
+    loading.value = true
+
+    try {
+      const updated = await updateTicketResponse(responseId, responseHtml)
+
+      // Keep detail view in sync
+      // ticketData.responses is the raw array from backend, where each item has .id and .response
+      if (ticketData.value?.responses) {
+        const idx = ticketData.value.responses.findIndex((r) => r.id === responseId)
+        if (idx !== -1) {
+          ticketData.value.responses[idx] = {
+            ...ticketData.value.responses[idx],
+            ...updated,
+            // fallback in case backend doesn't echo everything:
+            response: updated?.response ?? responseHtml,
+          }
+        }
+      }
+
+      lastSync.value = new Date()
+      return updated
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const downloadAttachment = async (ticketId, fileId) => {
+    try {
+      const response = await downloadTicketFile(ticketId, fileId)
+      return response
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    }
+  }
+
+  const deleteAttachment = async (ticketId, fileId) => {
+    loading.value = true
+
+    try {
+      await deleteTicketFile(ticketId, fileId)
+
+      if (ticketData.value?.id === ticketId && ticketData.value?.files) {
+        const updatedFiles = { ...ticketData.value.files }
+        delete updatedFiles[fileId]
+        ticketData.value.files = updatedFiles
+      }
+
+      lastSync.value = new Date()
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const submitReply = async (ticketId, { responseHtml, minutesSpent } = {}, files = []) => {
+    loading.value = true
+
+    try {
+      const createdResponse = await createTicketResponse({
+        response: responseHtml,
+        serviceTicketId: ticketId,
+        minutesSpent: Math.max(0, minutesSpent ?? 0),
+      })
+
+      if (Array.isArray(files) && files.length > 0) {
+        const formData = new FormData()
+        files.forEach((file) => formData.append('files', file))
+        await uploadTicketFiles(ticketId, formData)
+      }
+
+      // Keep detail view in sync (best effort; websocket may also update)
+      if (ticketData.value?.id === ticketId) {
+        const current = Array.isArray(ticketData.value.responses)
+          ? ticketData.value.responses
+          : []
+
+        ticketData.value.responses = [...current, createdResponse]
+      }
+
+      lastSync.value = new Date()
+      return createdResponse
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const create = async (payload, files = []) => {
+    loading.value = true
+
+    try {
+      const created = await createTicket(payload)
+
+      // Upload attachments (best effort; if upload fails we bubble the error)
+      if (created?.id && Array.isArray(files) && files.length > 0) {
+        const formData = new FormData()
+        files.forEach((file) => formData.append('files', file))
+        await uploadTicketFiles(created.id, formData)
+      }
+
+      // Keep local list in sync
+      if (created?.id) {
+        const idx = (tickets.value || []).findIndex((t) => t.id === created.id)
+        if (idx === -1) tickets.value = [created, ...(tickets.value || [])]
+      }
+
+      lastSync.value = new Date()
+      return created
+    } catch (e) {
+      throw normalizeTicketsError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
   const remove = async (id) => {
     loading.value = true
 
     try {
-      await deleteTicketById(id)
+      await deleteTicket(id)
 
       // Keep local lists in sync
       tickets.value = (tickets.value || []).filter((t) => t.id !== id)
@@ -223,6 +408,13 @@ export const useTicketsStore = defineStore('tickets', () => {
     // actions
     fetchAll,
     fetchById,
+    updateStatus,
+    updateDescription,
+    updateResponse,
+    downloadAttachment,
+    deleteAttachment,
+    submitReply,
+    create,
     remove,
     fetchRecentForTicket,
     applyEvent,

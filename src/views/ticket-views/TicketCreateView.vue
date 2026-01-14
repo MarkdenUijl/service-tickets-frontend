@@ -7,9 +7,10 @@ import { useUserLookup } from '@/composables/useUserLookup'
 import { useAuthStore } from '@/stores/authStore'
 import { useI18n } from 'vue-i18n'
 import { PRIVILEGES } from '@/constants/privileges'
+
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
-import api from '@/services/api'
+import { useTicketsStore } from '@/stores/ticketStore'
 import SearchDropdown from '@/components/user-input/SearchDropdown.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
@@ -90,32 +91,28 @@ watch(() => ticketData.submittedByUserId, autofillUserDetails)
 onMounted(fetchProjects)
 
 // Submit ticket creation form
+const ticketsStore = useTicketsStore()
+
 async function handleSubmit() {
   if (!validateAll()) return
 
-  let { name, type, description, projectId, submittedByUserId, source } = ticketData
+  const { name, type, description, projectId, submittedByUserId, source } = ticketData
 
   loading.value = true
+
   try {
-    const { data } = await api.post('/serviceTickets', {
-      name,
-      status: 'OPEN',
-      type,
-      description,
-      projectId,
-      submittedByUserId,
-      source,
-    })
-
-    const createdTicketId = data.id
-
-    if (selectedFiles.value.length > 0) {
-      const formData = new FormData()
-      selectedFiles.value.forEach(file => formData.append('files', file))
-      await api.post(`/serviceTickets/${createdTicketId}/files`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-    }
+    await ticketsStore.create(
+      {
+        name,
+        status: 'OPEN',
+        type,
+        description,
+        projectId,
+        submittedByUserId,
+        source,
+      },
+      selectedFiles.value
+    )
 
     router.push('/dashboard/tickets')
   } catch (err) {

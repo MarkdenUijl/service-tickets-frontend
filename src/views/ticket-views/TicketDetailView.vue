@@ -7,12 +7,12 @@ import { formatIsoDate } from '@/utils/formatIsoDate'
 import { useI18n } from 'vue-i18n'
 import { connectToTicketDetail, disconnectFromTicketDetail } from '@/services/websocket'
 import { isContractCurrentlyValid, getRemainingContractTime, getContractTypeKey } from '@/utils/contractHelpers'
-import { useTickets } from '@/composables/useTickets'
-import { safeApiCall } from '@/utils/safeApiCall'
 import { useAuthStore } from '@/stores/authStore'
 import { handleTicketUpdates } from '@/services/ticketSocketHandler'
 import { PRIVILEGES } from '@/constants/privileges'
-import api from '@/services/api'
+import { useTicketsStore } from '@/stores/ticketStore'
+import { storeToRefs } from 'pinia'
+
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import TicketStatusPill from '@/components/graphic-items/TicketStatusPill.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
@@ -20,13 +20,13 @@ import TicketTypePill from '@/components/graphic-items/TicketTypePill.vue'
 import TicketSourcePill from '@/components/graphic-items/TicketSourcePill.vue'
 import TicketPriorityPill from '@/components/graphic-items/TicketPriorityPill.vue'
 import SvgIcon from '@/components/svg-icon/SvgIcon.vue'
-import DOMPurify from 'dompurify'
 import UserInfoTile from '@/components/common/UserInfoTile.vue'
 import FileDropzone from '@/components/user-input/FileDropzone.vue'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 import RecentTicketsList from '@/components/lists/RecentTicketsList.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
 import FileItem from '@/components/lists/FileItem.vue'
+import DOMPurify from 'dompurify'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const route = useRoute()
@@ -35,7 +35,8 @@ const auth = useAuthStore()
 const hasPrivilege = auth.hasPrivilege
 
 // Core state
-const { ticketData, recentUserTickets, recentProjectTickets, fetchTicketById, fetchRecentTickets } = useTickets()
+const ticketsStore = useTicketsStore()
+const { ticketData, recentUserTickets, recentProjectTickets } = storeToRefs(ticketsStore)
 const selectedFiles = ref([])
 const isLoadingTicket = ref(true)
 const isStatusUpdating = ref(false)
@@ -62,18 +63,17 @@ const submitting = ref(false)
 async function loadTicket() {
   isLoadingTicket.value = true
   hasLoadError.value = false
-  
-  const ticketLoaded = await safeApiCall(
-    async () => {
-      const ticket = await fetchTicketById(route.params.id)
-      await fetchRecentTickets(ticket)
-      return ticket
-    },
-    'Failed to fetch ticket details'
-  )
 
-  if (!ticketLoaded) hasLoadError.value = true
-  isLoadingTicket.value = false
+  try {
+    const ticket = await ticketsStore.fetchById(route.params.id)
+    await ticketsStore.fetchRecentForTicket(ticket)
+  } catch (error) {
+    // error is normalized by the store (type/status/uiMessageKey)
+    console.error('Failed to fetch ticket details:', error)
+    hasLoadError.value = true
+  } finally {
+    isLoadingTicket.value = false
+  }
 }
 
 watch(() => route.params.id, loadTicket, { immediate: true })
@@ -83,35 +83,36 @@ watch(() => route.params.id, loadTicket, { immediate: true })
  * If it's an image or PDF, open in new tab; else trigger a download.
  */
 async function downloadAttachment(fileId, filename) {
-  const response = await safeApiCall(
-    () => api.get(`/serviceTickets/${ticketData.value.id}/files/${fileId}`, { responseType: 'blob' }),
-    'Failed to download file'
-  )
-  if (!response) return
+  try {
+    const response = await ticketsStore.downloadAttachment(ticketData.value.id, fileId)
 
-  const blob = new Blob([response.data], { type: response.headers['content-type'] })
-  const blobUrl = window.URL.createObjectURL(blob)
+    const blob = new Blob([response.data], { type: response.headers['content-type'] })
+    const blobUrl = window.URL.createObjectURL(blob)
 
-  const ct = (response.headers['content-type'] || '').toLowerCase()
-  if (ct.includes('pdf') || ct.startsWith('image/')) {
-    window.open(blobUrl, '_blank')
-  } else {
-    const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const ct = (response.headers['content-type'] || '').toLowerCase()
+    if (ct.includes('pdf') || ct.startsWith('image/')) {
+      window.open(blobUrl, '_blank')
+    } else {
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+
+    window.URL.revokeObjectURL(blobUrl)
+  } catch (error) {
+    console.error('Failed to download file:', error)
   }
-
-  window.URL.revokeObjectURL(blobUrl)
 }
 
 async function deleteAttachment(fileId) {
-  await safeApiCall(
-    () => api.delete(`/serviceTickets/${ticketData.value.id}/files/${fileId}`),
-    'Failed to delete file'
-  )
+  try {
+    await ticketsStore.deleteAttachment(ticketData.value.id, fileId)
+  } catch (error) {
+    console.error('Failed to delete file:', error)
+  }
 }
 
 const isClosed = computed(() => ticketData.value?.status === 'CLOSED')
@@ -126,14 +127,13 @@ async function updateTicketStatus(nextStatus) {
 
   isStatusUpdating.value = true
 
-  await safeApiCall(
-    async () => {
-        await api.patch(`/serviceTickets/${ticketData.value.id}/status`, { status: nextStatus })
-    },
-    'Failed to update ticket status'
-  )
-
-  isStatusUpdating.value = false
+  try {
+    await ticketsStore.updateStatus(ticketData.value.id, nextStatus)
+  } catch (error) {
+    console.error('Failed to update ticket status:', error)
+  } finally {
+    isStatusUpdating.value = false
+  }
 }
 
 async function closeTicket() {
@@ -158,40 +158,31 @@ async function cancelTicket() {
  * Guards against empty or invalid input.
  */
 async function submitReply() {
-  if (!replyText.value.trim()) return
+  const text = replyText.value?.replace(/<[^>]*>/g, '').trim()
+  if (!text) return
+  if (!ticketData.value) return
+
   submitting.value = true
 
-  const responseResult = await safeApiCall(
-    () => api.post('/ticketResponses', {
-      response: DOMPurify.sanitize(replyText.value),
-      serviceTicketId: ticketData.value.id,
-      minutesSpent: Math.max(0, timeSpentMinutes.value)
-    }),
-    'Failed to submit response'
-  )
-
-  if (!responseResult) {
-    submitting.value = false
-    return
-  }
-
-  if (selectedFiles.value.length > 0) {
-    const formData = new FormData()
-    selectedFiles.value.forEach(file => formData.append('files', file))
-
-    await safeApiCall(
-      () => api.post(`/serviceTickets/${ticketData.value.id}/files`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }),
-      'Failed to upload attachments'
+  try {
+    await ticketsStore.submitReply(
+      ticketData.value.id,
+      {
+        responseHtml: DOMPurify.sanitize(replyText.value),
+        minutesSpent: timeSpentMinutes.value,
+      },
+      selectedFiles.value
     )
+    
+    replyText.value = ''
+    selectedFiles.value = []
+    timeSpentMinutes.value = null
+    if (quillRef.value) quillRef.value.setHTML('')
+  } catch (error) {
+    console.error('Failed to submit response:', error)
+  } finally {
+    submitting.value = false
   }
-
-  replyText.value = ''
-  selectedFiles.value = []
-  timeSpentMinutes.value = null
-  if (quillRef.value) quillRef.value.setHTML('')
-  submitting.value = false
 }
 
 /**
@@ -214,18 +205,12 @@ async function saveDescription() {
 
   const sanitizedDescription = DOMPurify.sanitize(editDescriptionText.value)
 
-  const updated = await safeApiCall(
-    () => api.patch(`/serviceTickets/${ticketData.value.id}`, {
-      description: sanitizedDescription
-    }),
-    'Failed to update ticket description'
-  )
-
-  if (!updated) return
-
-  // Update local ticket data so UI reflects changes immediately
-  ticketData.value.description = sanitizedDescription
-  isEditingDescription.value = false
+  try {
+    await ticketsStore.updateDescription(ticketData.value.id, sanitizedDescription)
+    isEditingDescription.value = false
+  } catch (error) {
+    console.error('Failed to update ticket description:', error)
+  }
 }
 
 function startEditResponse(response) {
@@ -239,25 +224,18 @@ function cancelEditResponse() {
 }
 
 async function saveEditedResponse(response) {
+  if (!ticketData.value) return
+
   const sanitized = DOMPurify.sanitize(editingResponseText.value)
 
-  const updated = await safeApiCall(
-    () => api.patch(`/ticketResponses/${response.id}`, {
-      response: sanitized
-    }),
-    'Failed to update response'
-  )
+  try {
+    await ticketsStore.updateResponse(response.id, sanitized)
 
-  if (!updated) return
-
-  // Update local state
-  const target = ticketData.value.responses.find(r => r.id === response.id)
-  if (target) {
-    target.response = sanitized
+    editingResponseId.value = null
+    editingResponseText.value = ''
+  } catch (error) {
+    console.error('Failed to update response:', error)
   }
-
-  editingResponseId.value = null
-  editingResponseText.value = ''
 }
 
 watch(

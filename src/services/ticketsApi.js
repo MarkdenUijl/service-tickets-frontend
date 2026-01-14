@@ -47,6 +47,53 @@ export function mergeTicketEvent(current, evt) {
   return list
 }
 
-export async function deleteTicketById(id) {
+export async function deleteTicket(id) {
   await api.delete(`/serviceTickets/${id}`)
+}
+
+export async function createTicket(payload) {
+  const { data } = await api.post('/serviceTickets', payload)
+  return data
+}
+
+export async function uploadTicketFiles(ticketId, formData) {
+  const { data } = await api.post(`/serviceTickets/${ticketId}/files`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
+export async function downloadTicketFile(ticketId, fileId) {
+  // IMPORTANT: return full axios response so we can read headers (content-type)
+  return api.get(`/serviceTickets/${ticketId}/files/${fileId}`, {
+    responseType: 'blob',
+  })
+}
+
+export async function deleteTicketFile(ticketId, fileId) {
+  await api.delete(`/serviceTickets/${ticketId}/files/${fileId}`)
+}
+
+export async function updateTicketStatus(ticketId, status) {
+  const { data } = await api.patch(`/serviceTickets/${ticketId}/status`, { status })
+  return data
+}
+
+export async function createTicketResponse(payload) {
+  const { data } = await api.post('/ticketResponses', payload)
+  return data
+}
+
+export async function updateTicketDescription(ticketId, description) {
+  const { data } = await api.patch(`/serviceTickets/${ticketId}`, {
+    description,
+  })
+  return data
+}
+
+export async function updateTicketResponse(responseId, responseHtml) {
+  const { data } = await api.patch(`/ticketResponses/${responseId}`, {
+    response: responseHtml,
+  })
+  return data
 }
