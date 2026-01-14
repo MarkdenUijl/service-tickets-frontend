@@ -13,3 +13,8 @@ export async function getProjectById(id) {
 export async function deleteProjectById(id) {
   await api.delete(`/projects/${id}`)
 }
+
+export async function createProject(payload) {
+  const { data } = await api.post('/projects', payload)
+  return data
+}

@@ -1,4 +1,4 @@
-import { fetchProjects, getProjectById, deleteProjectById } from '@/services/projectsApi'
+import { fetchProjects, getProjectById, deleteProjectById, createProject } from '@/services/projectsApi'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -64,6 +64,26 @@ export const useProjectStore = defineStore('projects', () => {
     }
   }
 
+  const create = async (payload) => {
+    loading.value = true
+
+    try {
+      const result = await createProject(payload)
+
+      // Keep local list in sync when possible
+      if (result?.id) {
+        projects.value = [result, ...(projects.value || [])]
+      }
+
+      lastSync.value = new Date()
+      return result
+    } catch (e) {
+      throw normalizeProjectError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
   const removeById = async (id) => {
     loading.value = true
     
@@ -99,6 +119,7 @@ export const useProjectStore = defineStore('projects', () => {
     // actions
     fetchAll,
     fetchById,
+    create,
     removeById,
     clear,
   }

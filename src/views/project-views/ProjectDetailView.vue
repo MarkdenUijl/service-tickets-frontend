@@ -3,11 +3,11 @@ import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { isContractCurrentlyValid, getRemainingContractTime, getContractTypeKey } from '@/utils/contractHelpers'
-import { safeApiCall } from '@/utils/safeApiCall'
 import { formatIsoDate } from '@/utils/formatIsoDate'
 import { useAuthStore } from '@/stores/authStore'
 import { PRIVILEGES } from '@/constants/privileges'
-import api from '@/services/api'
+
+import { useProjectStore } from '@/stores/projectStore'
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import VisualSeparator from '@/components/graphic-items/VisualSeparator.vue'
 import TicketInfoLine from '@/components/lists/TicketInfoLine.vue'
@@ -18,9 +18,10 @@ const router = useRouter()
 const { t } = useI18n()
 const auth = useAuthStore()
 const hasPrivilege = auth.hasPrivilege
+const projectStore = useProjectStore()
 
 // Core state
-const projectData = ref(null)
+const projectData = computed(() => projectStore.selectedProject)
 const isLoadingProject = ref(true)
 const hasLoadError = ref(false)
 
@@ -33,18 +34,15 @@ const showAllTickets = ref(false)
 async function loadProject() {
   isLoadingProject.value = true
   hasLoadError.value = false
-  
-  const projectLoaded = await safeApiCall(
-    async () => {
-      const response = await api.get(`/projects/${route.params.id}`)
-      projectData.value = response.data
-      return response.data
-    },
-    'Failed to fetch project details'
-  )
 
-  if (!projectLoaded) hasLoadError.value = true
-  isLoadingProject.value = false
+  try {
+    await projectStore.fetchById(route.params.id)
+  } catch (error) {
+    console.error('Failed to fetch project details:', error)
+    hasLoadError.value = true
+  } finally {
+    isLoadingProject.value = false
+  }
 }
 
 watch(() => route.params.id, loadProject, { immediate: true })

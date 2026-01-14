@@ -3,14 +3,15 @@ import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useProjectValidation } from '@/composables/useProjectValidation'
+import { useProjectStore } from '@/stores/projectStore'
 
 import RouteInfo from '@/components/common/RouteInfo.vue'
 import ValidatedInput from '@/components/user-input/ValidatedInput.vue'
-import api from '@/services/api'
 import LoaderButton from '@/components/buttons/LoaderButton.vue'
 
 const router = useRouter()
 const { t } = useI18n()
+const projectStore = useProjectStore()
 
 const loading = ref(false)
 
@@ -41,25 +42,28 @@ const {
 async function handleSubmit() {
   if (!validateAll()) return
 
-  let { name, city, zipCode, street, houseNumber } = projectData
+  const payload = {
+    name: projectData.name,
+    city: projectData.city,
+    zipCode: projectData.zipCode,
+    street: projectData.street,
+    houseNumber: projectData.houseNumber,
+  }
 
   loading.value = true
-  try {
-    const { data } = await api.post('/projects', {
-      name,
-      city,
-      zipCode,
-      street,
-      houseNumber
-    })
 
+  try {
+    await projectStore.create(payload)
     router.push('/dashboard/projects')
   } catch (err) {
-    console.error('Error creating ticket:', err)
+    console.error('Error creating project:', err)
 
-    if (err.status === 409) {
+    if (err?.type === 'conflict') {
       hasCreationError.value = true
       creationErrorTextKey.value = 'creationProjectExistsText'
+    } else {
+      hasCreationError.value = true
+      creationErrorTextKey.value = 'creationProjectGenericErrorText'
     }
   } finally {
     loading.value = false
